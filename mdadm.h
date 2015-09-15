@@ -106,6 +106,7 @@ extern __off64_t lseek64 __P ((int __fd, __off64_t __offset, int __whence));
 #include	"bitmap.h"
 #include	"msg.h"
 #include	"mdadm_errcode.h"
+#include	"mdadm_other.h"
 
 #include <endian.h>
 /* Redhat don't like to #include <asm/byteorder.h>, and

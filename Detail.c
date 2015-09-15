@@ -762,3 +762,497 @@ int Detail_Platform(struct superswitch *ss, int scan, int verbose, int export, c
 
 	return err;
 }
+
+int Detail_ToArrayDetail(char *dev, struct context *c, struct array_detail *ad)
+{
+	/*
+	 * Print out details for an md array by using
+	 * GET_ARRAY_INFO and GET_DISK_INFO ioctl calls
+	 */
+
+	int fd = open(dev, O_RDONLY);
+	int vers;
+	mdu_array_info_t array;
+	mdu_disk_info_t *disks;
+	int next;
+	int d;
+	time_t atime;
+	char *str;
+	char **devices = NULL;
+	int max_devices = 0, n_devices = 0;
+	struct stat stb;
+	int is_26 = get_linux_version() >= 2006000;
+	int is_rebuilding = 0;
+	int failed = 0;
+	struct supertype *st;
+	char *subarray = NULL;
+	int max_disks = MD_SB_DISKS; /* just a default */
+	struct mdinfo *info = NULL;
+	struct mdinfo *sra;
+	struct mdinfo *subdev;
+	char *member = NULL;
+	char *container = NULL;
+
+	int rv = c->test ? 4 : 1;
+	int avail_disks = 0;
+	char *avail = NULL;
+	int external;
+	int inactive;
+	int disk_counter = 0;
+
+	if (fd < 0) {
+		pr_err("cannot open %s: %s\n",
+			dev, strerror(errno));
+		return DETAIL_MDDEV_OPEN_FAIL;
+	}
+	vers = md_get_version(fd);
+	if (vers < 0) {
+		pr_err("%s does not appear to be an md device\n",
+			dev);
+		close(fd);
+		return DETAIL_MDDEV_ILLEGAL;
+	}
+	if (vers < 9000) {
+		pr_err("cannot get detail for md device %s: driver version too old.\n",
+			dev);
+		close(fd);
+		return DETAIL_MDDEV_REQUIRE_NEWER_DRIVER;
+	}
+	sra = sysfs_read(fd, NULL, GET_VERSION|GET_DEVS);
+	external = (sra != NULL && sra->array.major_version == -1
+		    && sra->array.minor_version == -2);
+	st = super_by_fd(fd, &subarray);
+	if (ioctl(fd, GET_ARRAY_INFO, &array) == 0) {
+		inactive = 0;
+	} else if (errno == ENODEV && sra) {
+		array = sra->array;
+		inactive = 1;
+	} else {
+		pr_err("cannot get array detail for %s: %s\n",
+		       dev, strerror(errno));
+		close(fd);
+		return DETAIL_MDDEV_CANNOT_GET_DETAIL;
+	}
+
+	if (fstat(fd, &stb) != 0 && !S_ISBLK(stb.st_mode))
+		stb.st_rdev = 0;
+	rv = 0;
+
+	if (st)
+		max_disks = st->max_devs;
+
+	if (subarray) {
+		/* This is a subarray of some container.
+		 * We want the name of the container, and the member
+		 */
+		int devid = devnm2devid(st->container_devnm);
+		int cfd, err;
+
+		member = subarray;
+		container = map_dev_preferred(major(devid), minor(devid),
+					      1, c->prefer);
+		cfd = open_dev(st->container_devnm);
+		if (cfd >= 0) {
+			err = st->ss->load_container(st, cfd, NULL);
+			close(cfd);
+			if (err == 0)
+				info = st->ss->container_content(st, subarray);
+		}
+	}
+
+	/* try to load a superblock. Try sra->devs first, then try ioctl */
+	if (st && !info) for (d = 0, subdev = sra ? sra->devs : NULL;
+			      d < max_disks || subdev;
+			      subdev ? (void)(subdev = subdev->next) : (void)(d++)){
+		mdu_disk_info_t disk;
+		char *dv;
+		int fd2;
+		int err;
+		if (subdev)
+			disk = subdev->disk;
+		else {
+			disk.number = d;
+			if (ioctl(fd, GET_DISK_INFO, &disk) < 0)
+				continue;
+			if (d >= array.raid_disks &&
+			    disk.major == 0 &&
+			    disk.minor == 0)
+				continue;
+		}
+
+		if (array.raid_disks > 0 &&
+		    (disk.state & (1 << MD_DISK_ACTIVE)) == 0)
+			continue;
+
+		dv = map_dev(disk.major, disk.minor, 1);
+		if (!dv)
+			continue;
+
+		fd2 = dev_open(dv, O_RDONLY);
+		if (fd2 < 0)
+			continue;
+
+		if (st->sb)
+			st->ss->free_super(st);
+
+		err = st->ss->load_super(st, fd2, NULL);
+		close(fd2);
+		if (err)
+			continue;
+		if (info)
+			free(info);
+		if (subarray)
+			info = st->ss->container_content(st, subarray);
+		else {
+			info = xmalloc(sizeof(*info));
+			st->ss->getinfo_super(st, info, NULL);
+		}
+		if (!info)
+			continue;
+
+		if (array.raid_disks != 0 && /* container */
+		    (info->array.ctime != array.ctime ||
+		     info->array.level != array.level)) {
+			st->ss->free_super(st);
+			continue;
+		}
+		/* some formats (imsm) have free-floating-spares
+		 * with a uuid of uuid_zero, they don't
+		 * have very good info about the rest of the
+		 * container, so keep searching when
+		 * encountering such a device.  Otherwise, stop
+		 * after the first successful call to
+		 * ->load_super.
+		 */
+		if (memcmp(uuid_zero,
+			   info->uuid,
+			   sizeof(uuid_zero)) == 0) {
+			st->ss->free_super(st);
+			continue;
+		}
+		break;
+	}
+
+	/* Ok, we have some info to print... */
+	str = map_num(pers, array.level);
+
+	disks = xmalloc(max_disks * sizeof(mdu_disk_info_t));
+	for (d = 0; d < max_disks; d++) {
+		disks[d].state = (1<<MD_DISK_REMOVED);
+		disks[d].major = disks[d].minor = 0;
+		disks[d].number = disks[d].raid_disk = d;
+	}
+
+	next = array.raid_disks*2;
+	if (inactive) {
+		struct mdinfo *mdi;
+		if (sra != NULL)
+			for (mdi = sra->devs; mdi; mdi = mdi->next) {
+				disks[next++] = mdi->disk;
+				disks[next-1].number = -1;
+			}
+	} else for (d = 0; d < max_disks; d++) {
+		mdu_disk_info_t disk;
+		disk.number = d;
+		if (ioctl(fd, GET_DISK_INFO, &disk) < 0) {
+			if (d < array.raid_disks)
+				pr_err("cannot get device detail for device %d: %s\n",
+					d, strerror(errno));
+			continue;
+		}
+		if (disk.major == 0 && disk.minor == 0)
+			continue;
+		if (disk.raid_disk >= 0 && disk.raid_disk < array.raid_disks
+		    && disks[disk.raid_disk*2].state == (1<<MD_DISK_REMOVED))
+			disks[disk.raid_disk*2] = disk;
+		else if (disk.raid_disk >= 0 && disk.raid_disk < array.raid_disks
+			 && disks[disk.raid_disk*2+1].state == (1<<MD_DISK_REMOVED))
+			disks[disk.raid_disk*2+1] = disk;
+		else if (next < max_disks)
+			disks[next++] = disk;
+	}
+
+	avail = xcalloc(array.raid_disks, 1);
+
+	for (d= 0; d < array.raid_disks; d++) {
+
+		if ((disks[d*2].state & (1<<MD_DISK_SYNC)) ||
+		    (disks[d*2+1].state & (1<<MD_DISK_SYNC))) {
+			avail_disks ++;
+			avail[d] = 1;
+		}
+	}
+	
+	mdu_bitmap_file_t bmf;
+	unsigned long long larray_size;
+	struct mdstat_ent *ms = mdstat_read(0, 0);
+	struct mdstat_ent *e;
+	char *devnm;
+
+	devnm = stat2devnm(&stb);
+	for (e=ms; e; e=e->next)
+		if (strcmp(e->devnm, devnm) == 0)
+			break;
+	if (!get_dev_size(fd, NULL, &larray_size))
+		larray_size = 0;
+
+	strcpy(ad->strArrayDevName, dev);
+
+	if (container) {
+		strcpy(ad->strContainer, container);
+		strcpy(ad->strMember, member);
+	}
+
+	if (array.raid_disks == 0 && external)
+		str = "container";
+	if (str)
+		strcpy(ad->strRaidLevel, str);
+	if (larray_size) {
+		ad->ullArraySize = larray_size >> 10;
+		strcpy(ad->strArraySize, human_size(larray_size));
+	}
+
+	if (array.level >= 1) {
+		if (sra)
+			array.major_version = sra->array.major_version;
+		if (array.major_version != 0 &&
+		    (larray_size >= 0xFFFFFFFFULL|| array.size == 0)) {
+			unsigned long long dsize = get_component_size(fd);
+			if (dsize > 0) {
+				ad->ullUsedSize = dsize / 2;
+				strcpy(ad->strUsedSize, human_size((unsigned long long)dsize << 9));
+			} else {
+				ad->ullUsedSize = 0;
+				strcpy(ad->strUsedSize, "unknown");
+			}
+		} else {
+			ad->ullUsedSize = (unsigned long long) array.size;
+			strcpy(ad->strUsedSize, human_size((unsigned long long) array.size << 10));
+		}
+	}
+	/* Only try GET_BITMAP_FILE for 0.90.01 and later */
+	/*if (vers >= 9001 &&
+	    ioctl(fd, GET_BITMAP_FILE, &bmf) == 0 &&
+	    bmf.pathname[0]) {
+		printf("  Intent Bitmap : %s\n", bmf.pathname);
+		printf("\n");
+	} else if (array.state & (1<<MD_SB_BITMAP_PRESENT))
+		printf("  Intent Bitmap : Internal\n\n");*/
+	if (array.raid_disks) {
+		static char *sync_action[] = {
+			", recovering",  ", resyncing",
+			", reshaping",   ", checking"  };
+		char *st;
+		int ret = 0;
+
+		if (avail_disks == array.raid_disks)
+			st = "";
+		else if (!enough(array.level, array.raid_disks,
+				 array.layout, 1, avail))
+			st = ", FAILED";
+		else
+			st = ", degraded";
+
+		ret = snprintf(ad->strArrayState, 127, "%s%s%s%s%s%s",
+			       (array.state&(1<<MD_SB_CLEAN))?"clean":"active", st,
+			       (!e || (e->percent < 0 && e->percent != RESYNC_PENDING &&
+			       e->percent != RESYNC_DELAYED)) ? "" : sync_action[e->resync],
+			       larray_size ? "": ", Not Started",
+			       (e && e->percent == RESYNC_DELAYED) ? " (DELAYED)": "",
+			       (e && e->percent == RESYNC_PENDING) ? " (PENDING)": "");
+		if (ret > 0)
+			ad->strArrayState[ret] = '\0';
+	} else if (inactive) {
+		ad->bInactive = inactive;
+	}
+	if (array.level == 5) {
+		int ret = 0;
+		str = map_num(r5layout, array.layout);
+		ret = snprintf(ad->strRaidLayout, 31, "%s", str?str:"-unknown-");
+		if (ret > 0)
+			ad->strRaidLayout[ret] = '\0';
+	}
+	if (array.level == 6) {
+		int ret = 0;
+		str = map_num(r6layout, array.layout);
+		ret = snprintf(ad->strRaidLayout, 31, "%s", str?str:"-unknown-");
+		if (ret > 0)
+			ad->strRaidLayout[ret] = '\0';
+	}
+	if (array.level == 10) {
+		get_r10_layout_string(array.layout, ad->strRaidLayout, 31);
+		ad->strRaidLayout[strlen(ad->strRaidLayout)] = '\0';
+	}
+
+	if (e && e->percent >= 0) {
+		static char *sync_action[] = {
+			"Rebuild", "Resync",
+			"Reshape", "Check"};
+		strcpy(ad->strRebuildOperation, sync_action[e->resync]);
+		ad->iRebuildProgress = e->percent;
+		ad->bIsRebuilding = 1;
+	}
+	free_mdstat(ms);
+
+	if(info)
+		ad->bReshapeActive = info->reshape_active;
+	if ((st && st->sb) && (info && info->reshape_active)) {
+		ad->ullReshapeProgress = info->reshape_progress;
+		ad->iDeltaDisks = info->delta_disks;
+		ad->iRaidNewLevel = info->new_level;
+		if (info->new_level != array.level ||
+		    info->new_layout != array.layout) {
+			if (info->new_level == 5) {
+				str = map_num(r5layout, info->new_layout);
+				snprintf(ad->strRaidNewLayout, 31, "%s", str?str:"unknown");
+				ad->strRaidNewLayout[strlen(ad->strRaidNewLayout)] = '\0';
+			}
+			if (info->new_level == 6) {
+				str = map_num(r6layout, info->new_layout);
+				snprintf(ad->strRaidNewLayout, 31, "%s", str?str:"unknown");
+				ad->strRaidNewLayout[strlen(ad->strRaidNewLayout)] = '\0';
+			}
+			if (info->new_level == 10) {
+				snprintf(ad->strRaidNewLayout, 31, "near=%d, %s=%d",
+				       info->new_layout&255,
+				       (info->new_layout&0x10000)?"offset":"far",
+				       (info->new_layout>>8)&255);
+				ad->strRaidNewLayout[strlen(ad->strRaidNewLayout)] = '\0';
+			}
+		}
+		if (info->new_chunk != array.chunk_size)
+			ad->iNewChunkSize = info->new_chunk;
+	}
+	if (st && st->sb) {
+		st->ss->uuid_from_super(st, ad->uuid);
+	}
+
+	memcpy(&ad->arrayInfo, &array, sizeof(mdu_array_info_t));
+
+#if 0
+	if (array.raid_disks == 0 && sra && sra->array.major_version == -1
+	    && sra->array.minor_version == -2 && sra->text_version[0] != '/') {
+		/* This looks like a container.  Find any active arrays
+		 * That claim to be a member.
+		 */
+		DIR *dir = opendir("/sys/block");
+		struct dirent *de;
+
+		printf("  Member Arrays :");
+
+		while (dir && (de = readdir(dir)) != NULL) {
+			char path[200];
+			char vbuf[1024];
+
+			int nlen = strlen(sra->sys_name);
+			int devid;
+			if (de->d_name[0] == '.')
+				continue;
+			sprintf(path, "/sys/block/%s/md/metadata_version",
+				de->d_name);
+			if (load_sys(path, vbuf) < 0)
+				continue;
+			if (strncmp(vbuf, "external:", 9) != 0 ||
+			    !is_subarray(vbuf+9) ||
+			    strncmp(vbuf+10, sra->sys_name, nlen) != 0 ||
+			    vbuf[10+nlen] != '/')
+				continue;
+			devid = devnm2devid(de->d_name);
+			printf(" %s", map_dev_preferred(
+				       major(devid),
+				       minor(devid), 1, c->prefer));
+		}
+		if (dir)
+			closedir(dir);
+		printf("\n\n");
+	}
+#endif
+
+	free(info);
+
+	for (d= 0; d < max_disks; d++) {
+		char *dv;
+		mdu_disk_info_t disk = disks[d];
+
+		if (d >= array.raid_disks*2 &&
+		    disk.major == 0 &&
+		    disk.minor == 0)
+			continue;
+		if ((d & 1) &&
+		    disk.major == 0 &&
+		    disk.minor == 0)
+			continue;
+		if (array.raid_disks) {
+			strcpy(ad->arrayDisks[disk_counter].strState, "");
+			if (disk.state & (1<<MD_DISK_FAULTY)) {
+				strncat(ad->arrayDisks[disk_counter].strState, " faulty", 255);
+				if (disk.raid_disk < array.raid_disks &&
+				    disk.raid_disk >= 0)
+					failed++;
+			}
+			if (disk.state & (1<<MD_DISK_ACTIVE)) {
+				strncat(ad->arrayDisks[disk_counter].strState, " active", 255);
+			}
+			if (disk.state & (1<<MD_DISK_SYNC)) {
+				strncat(ad->arrayDisks[disk_counter].strState, " sync", 255);
+				if (array.level == 10 && (array.layout & ~0x1FFFF) == 0) {
+					int nc = array.layout & 0xff;
+					int fc = (array.layout >> 8) & 0xff;
+					int copies = nc*fc;
+					if (fc == 1 && array.raid_disks % copies == 0 && copies <= 26) {
+						/* We can divide the devices into 'sets' */
+						char str_buf[255];
+						int set = disk.raid_disk % copies;
+						snprintf(str_buf, 255, "set-%c", set + 'A');
+						strncat(ad->arrayDisks[disk_counter].strState, str_buf, 255);
+					}
+				}
+			}
+			if (disk.state & (1<<MD_DISK_REMOVED))
+				strncat(ad->arrayDisks[disk_counter].strState, " removed", 255);
+			if (disk.state & (1<<MD_DISK_WRITEMOSTLY))
+				strncat(ad->arrayDisks[disk_counter].strState, " writemostly", 255);
+			if ((disk.state &
+			     ((1<<MD_DISK_ACTIVE)|(1<<MD_DISK_SYNC)
+			      |(1<<MD_DISK_REMOVED)|(1<<MD_DISK_FAULTY)))
+			    == 0) {
+				strncat(ad->arrayDisks[disk_counter].strState, " spare", 255);
+				if (is_26) {
+					if (disk.raid_disk < array.raid_disks && disk.raid_disk >= 0)
+						strncat(ad->arrayDisks[disk_counter].strState, " rebuilding", 255);
+				} else if (is_rebuilding && failed) {
+					/* Taking a bit of a risk here, we remove the
+					 * device from the array, and then put it back.
+					 * If this fails, we are rebuilding
+					 */
+					int err = ioctl(fd, HOT_REMOVE_DISK, makedev(disk.major, disk.minor));
+					if (err == 0) ioctl(fd, HOT_ADD_DISK, makedev(disk.major, disk.minor));
+					if (err && errno ==  EBUSY)
+						strncat(ad->arrayDisks[disk_counter].strState, " rebuilding", 255);
+				}
+			}
+			ad->arrayDisks[d].strState[strlen(ad->arrayDisks[disk_counter].strState)] = '\0';
+		}
+
+		dv=map_dev_preferred(disk.major, disk.minor, 0, c->prefer);
+		if (dv != NULL) {
+			snprintf(ad->arrayDisks[disk_counter].strDevName, 63, "%s", dv);
+			ad->arrayDisks[disk_counter].strDevName[strlen(ad->arrayDisks[disk_counter].strDevName)] = '\0';
+			memcpy(&ad->arrayDisks[disk_counter].diskInfo, &disk, sizeof(mdu_disk_info_t));
+			disk_counter++;
+		}
+	}
+	if (st)
+		st->ss->free_super(st);
+
+	free(disks);
+out:
+	close(fd);
+	free(subarray);
+	free(avail);
+	for (d = 0; d < n_devices; d++)
+		free(devices[d]);
+	free(devices);
+	sysfs_free(sra);
+	return rv;
+}

@@ -1,7 +1,7 @@
-cmake_minimum_required (VERSION 2.8.12)
+cmake_minimum_required (VERSION 2.8)
 project (mdadm_library)
 
-ADD_DEFINITIONS(-DBINDIR="/sbin" -DDEBUG)
+ADD_DEFINITIONS(-DBINDIR="/sbin" -DDEBUG -g)
 
 #AUX_SOURCE_DIRECTORY(${CMAKE_CURRENT_SOURCE_DIR} LIB_SRCFILE)
 #MESSAGE(${LIB_SRCFILE})

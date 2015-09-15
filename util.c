@@ -748,6 +748,26 @@ void print_r10_layout(int layout)
 	if (near*far == 1)
 		printf("NO REDUNDANCY");
 }
+
+void get_r10_layout_string(int layout, char *str_layout, int str_len)
+{
+	if (str_layout == NULL)
+		return;
+
+	int near = layout & 255;
+	int far = (layout >> 8) & 255;
+	int offset = (layout&0x10000);
+	char *sep = "";
+
+	if (near != 1) {
+		snprintf(str_layout, str_len, "%s near=%d", sep, near);
+		sep = ",";
+	}
+	if (far != 1)
+		snprintf(str_layout, str_len, "%s %s=%d", sep, offset?"offset":"far", far);
+	if (near*far == 1)
+		snprintf(str_layout, str_len, "NO REDUNDANCY");
+}
 #endif
 
 unsigned long long calc_array_size(int level, int raid_disks, int layout,
