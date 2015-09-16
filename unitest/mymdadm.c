@@ -65,8 +65,8 @@ int main(int argc, char *argv[])
 	c.verbose = 1;
 	c.brief = 1;
 
-	//ret = Create(NULL, "/dev/md1", "\0", NULL, s.raiddisks, devlist, &s, &c, INVALID_SECTORS);
-	//printf("ret = %d\n", ret);
+	ret = Create(NULL, "/dev/md1", "\0", NULL, s.raiddisks, devlist, &s, &c, INVALID_SECTORS);
+	printf("ret = %d\n", ret);
 
 	c.brief = 0;
 	//Detail("/dev/md1", &c);
@@ -77,6 +77,7 @@ int main(int argc, char *argv[])
 		free(dv);
 	}
 
+#if 0
 	ret = Detail_ToArrayDetail("/dev/md1", &c, &ad);
 	printf("done\n");
 	printf("RAID State: %s\n", ad.strArrayState);
@@ -96,6 +97,12 @@ int main(int argc, char *argv[])
 		printf("Disk Number: %d\n", ad.arrayDisks[i].diskInfo.number);
 		printf("Disk Major: %d Minor: %d\n", ad.arrayDisks[i].diskInfo.major, ad.arrayDisks[i].diskInfo.minor);
 	}
-
+#endif
+#if 0
+	int fd = open_mddev("/dev/md0", 1);
+	ret = Manage_stop("/dev/md0", fd, 1, 0); 
+	printf("%d\n", ret);
+	close(fd);
+#endif
 	return 0;
 }

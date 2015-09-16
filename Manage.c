@@ -214,7 +214,7 @@ int Manage_stop(char *devname, int fd, int verbose, int will_retry)
 		pr_err("stopping device %s "
 		       "failed: %s\n",
 		       devname, strerror(errno));
-		return 1;
+		return MANAGE_STOP_MD_FAIL;
 	}
 
 	/* If this is an mdmon managed array, just write 'inactive'
@@ -257,7 +257,7 @@ int Manage_stop(char *devname, int fd, int verbose, int will_retry)
 			       "process, mounted filesystem "
 			       "or active volume group?\n",
 			       devname);
-		return 1;
+		return MANAGE_MD_IN_USE;
 	}
 	if (mdi &&
 	    mdi->array.level > 0 &&
@@ -283,7 +283,7 @@ int Manage_stop(char *devname, int fd, int verbose, int will_retry)
 			if (verbose >= 0)
 				pr_err("failed to stop array %s: %s\n",
 				       devname, strerror(errno));
-			rv = 1;
+			rv = MANAGE_STOP_MD_FAIL;
 			goto out;
 		}
 
@@ -296,7 +296,7 @@ int Manage_stop(char *devname, int fd, int verbose, int will_retry)
 				pr_err("failed to completely stop %s"
 				       ": Device is busy\n",
 				       devname);
-			rv = 1;
+			rv = MANAGE_DEVICE_BUSY;
 			goto out;
 		}
 	} else if (mdi &&
@@ -324,7 +324,7 @@ int Manage_stop(char *devname, int fd, int verbose, int will_retry)
 					       "member %s still active\n",
 					       devname, m->dev);
 				free_mdstat(mds);
-				rv = 1;
+				rv = MANAGE_STOP_CONTAINER_FAIL;
 				goto out;
 			}
 	}
@@ -464,7 +464,10 @@ int Manage_stop(char *devname, int fd, int verbose, int will_retry)
 					 "process, mounted filesystem "
 					 "or active volume group?\n");
 		}
-		rv = 1;
+		if (errno == EBUSY)
+			rv = MANAGE_DEVICE_BUSY;
+		else
+			rv = MANAGE_STOP_MD_FAIL;
 		goto out;
 	}
 	/* prior to 2.6.28, KOBJ_CHANGE was not sent when an md array
