@@ -657,7 +657,7 @@ int attempt_re_add(int fd, int tfd, struct mddev_dev *dv,
 			if (tfd < 0) {
 				pr_err("failed to open %s for"
 				       " superblock update during re-add\n", dv->devname);
-				return -1;
+				return MANAGE_ADD_UPDATE_SUPERBLOCK_FAIL;
 			}
 
 			if (dv->writemostly == 1)
@@ -678,7 +678,7 @@ int attempt_re_add(int fd, int tfd, struct mddev_dev *dv,
 			if (rv != 0) {
 				pr_err("failed to update"
 				       " superblock during re-add\n");
-				return -1;
+				return MANAGE_ADD_UPDATE_SUPERBLOCK_FAIL;
 			}
 		}
 		/* don't even try if disk is marked as faulty */
@@ -686,14 +686,14 @@ int attempt_re_add(int fd, int tfd, struct mddev_dev *dv,
 		if (ioctl(fd, ADD_NEW_DISK, &disc) == 0) {
 			if (verbose >= 0)
 				pr_err("re-added %s\n", dv->devname);
-			return 1;
+			return 0;
 		}
 		if (errno == ENOMEM || errno == EROFS) {
 			pr_err("add new device failed for %s: %s\n",
 			       dv->devname, strerror(errno));
 			if (dv->disposition == 'M')
 				return 0;
-			return -1;
+			return MANAGE_ADD_ADD_NEW_DEVS_FAIL;
 		}
 	}
 skip_re_add:
@@ -714,7 +714,7 @@ int Manage_add(int fd, int tfd, struct mddev_dev *dv,
 		if (dv->disposition == 'M')
 			return 0;
 		else
-			return -1;
+			return MANAGE_ADD_GET_DEV_SIZE_FAIL;
 	}
 
 	if (tst->ss == &super0 && ldsize > 4ULL*1024*1024*1024*1024) {
@@ -725,7 +725,7 @@ int Manage_add(int fd, int tfd, struct mddev_dev *dv,
 			       "       Add --force is you "
 			       "really want to add this device.\n",
 			       dv->devname, devname);
-			return -1;
+			return MANAGE_ADD_WASTED_DEV_SIZE;
 		}
 		pr_err("%s is larger than %s can "
 		       "effectively use.\n"
@@ -740,12 +740,12 @@ int Manage_add(int fd, int tfd, struct mddev_dev *dv,
 			if (verbose >= 0)
 				pr_err("hot added %s\n",
 				       dv->devname);
-			return 1;
+			return 0;
 		}
 
 		pr_err("hot add failed for %s: %s\n",
 		       dv->devname, strerror(errno));
-		return -1;
+		return MANAGE_ADD_HOT_ADD_FAIL;
 	}
 
 	if (array->not_persistent == 0 || tst->ss->external) {
@@ -794,7 +794,7 @@ int Manage_add(int fd, int tfd, struct mddev_dev *dv,
 			 */
 		} else if (!tst->sb) {
 			pr_err("cannot load array metadata from %s\n", devname);
-			return -1;
+			return MANAGE_ADD_CANNOT_LOAD_ARRAY_METADATA;
 		}
 
 		/* Make sure device is large enough */
@@ -804,7 +804,7 @@ int Manage_add(int fd, int tfd, struct mddev_dev *dv,
 				return 0;
 			pr_err("%s not large enough to join array\n",
 			       dv->devname);
-			return -1;
+			return MANAGE_ADD_DEV_SIZE_NOT_LARGE_ENOUGH;
 		}
 
 		/* Possibly this device was recently part of
@@ -837,7 +837,7 @@ int Manage_add(int fd, int tfd, struct mddev_dev *dv,
 		if (dv->disposition == 'A') {
 			pr_err("--re-add for %s to %s is not possible\n",
 			       dv->devname, devname);
-			return -1;
+			return MANAGE_ADD_READD_IMPOSSIBLE;
 		}
 		if (array->active_disks < array->raid_disks) {
 			char *avail = xcalloc(array->raid_disks, 1);
@@ -865,7 +865,7 @@ int Manage_add(int fd, int tfd, struct mddev_dev *dv,
 			       devname);
 			pr_err("data on %s.  You should stop the array and re-assemble it.\n",
 			       dv->devname);
-			return -1;
+			return MANAGE_ADD_ARRAY_FAILED;
 		}
 	} else {
 		/* non-persistent. Must ensure that new drive
@@ -874,7 +874,7 @@ int Manage_add(int fd, int tfd, struct mddev_dev *dv,
 		if (ldsize/512 < array_size) {
 			pr_err("%s not large enough to join array\n",
 			       dv->devname);
-			return -1;
+			return MANAGE_ADD_DEV_SIZE_NOT_LARGE_ENOUGH;
 		}
 	}
 	/* committed to really trying this device now*/
@@ -905,9 +905,9 @@ int Manage_add(int fd, int tfd, struct mddev_dev *dv,
 		dfd = dev_open(dv->devname, O_RDWR | O_EXCL|O_DIRECT);
 		if (tst->ss->add_to_super(tst, &disc, dfd,
 					  dv->devname, INVALID_SECTORS))
-			return -1;
+			return MANAGE_ADD_UPDATE_SUPERBLOCK_FAIL;
 		if (tst->ss->write_init_super(tst))
-			return -1;
+			return MANAGE_ADD_WRITE_INIT_SUPERBLOCK_FAIL;
 	} else if (dv->disposition == 'A') {
 		/*  this had better be raid1.
 		 * As we are "--re-add"ing we must find a spare slot
@@ -956,7 +956,7 @@ int Manage_add(int fd, int tfd, struct mddev_dev *dv,
 			       " could not get exclusive access to container\n",
 			       dv->devname);
 			tst->ss->free_super(tst);
-			return -1;
+			return MANAGE_ADD_CANNOT_GET_EXCLUSIVE_ACCESS;
 		}
 
 		Kill(dv->devname, NULL, 0, -1, 0);
@@ -967,7 +967,7 @@ int Manage_add(int fd, int tfd, struct mddev_dev *dv,
 					  dv->devname, INVALID_SECTORS)) {
 			close(dfd);
 			close(container_fd);
-			return -1;
+			return MANAGE_ADD_UPDATE_SUPERBLOCK_FAIL;
 		}
 		if (tst->update_tail)
 			flush_metadata_updates(tst);
@@ -980,7 +980,7 @@ int Manage_add(int fd, int tfd, struct mddev_dev *dv,
 			       dv->devname);
 			close(container_fd);
 			tst->ss->free_super(tst);
-			return -1;
+			return MANAGE_ADD_READ_SYSFS_FAIL;
 		}
 		sra->array.level = LEVEL_CONTAINER;
 		/* Need to set data_offset and component_size */
@@ -996,7 +996,7 @@ int Manage_add(int fd, int tfd, struct mddev_dev *dv,
 			       " failed for %s\n", dv->devname);
 			close(container_fd);
 			sysfs_free(sra);
-			return -1;
+			return MANAGE_ADD_ADD_NEW_DEVS_FAIL;
 		}
 		ping_monitor(devnm);
 		sysfs_free(sra);
@@ -1006,12 +1006,12 @@ int Manage_add(int fd, int tfd, struct mddev_dev *dv,
 		if (ioctl(fd, ADD_NEW_DISK, &disc)) {
 			pr_err("add new device failed for %s as %d: %s\n",
 			       dv->devname, j, strerror(errno));
-			return -1;
+			return MANAGE_ADD_ADD_NEW_DEVS_FAIL;
 		}
 	}
 	if (verbose >= 0)
 		pr_err("added %s\n", dv->devname);
-	return 1;
+	return 0;
 }
 
 int Manage_remove(struct supertype *tst, int fd, struct mddev_dev *dv,
@@ -1037,7 +1037,7 @@ int Manage_remove(struct supertype *tst, int fd, struct mddev_dev *dv,
 		if (lfd < 0) {
 			pr_err("Cannot get exclusive access "
 			       " to container - odd\n");
-			return -1;
+			return MANAGE_REMOVE_CANNOT_GET_EXCLUSIVE_ACCESS;
 		}
 		/* We may not be able to check on holders in
 		 * sysfs, either because we don't have the dev num
@@ -1054,13 +1054,13 @@ int Manage_remove(struct supertype *tst, int fd, struct mddev_dev *dv,
 			pr_err("%s is not a member, cannot remove.\n",
 			       dv->devname);
 			close(lfd);
-			return -1;
+			return MANAGE_REMOVE_NOT_MEMBER;
 		}
 		if (ret >= 2) {
 			pr_err("%s is still in use, cannot remove.\n",
 			       dv->devname);
 			close(lfd);
-			return -1;
+			return MANAGE_REMOVE_IN_USE;
 		}
 	}
 	/* FIXME check that it is a current member */
@@ -1101,7 +1101,7 @@ int Manage_remove(struct supertype *tst, int fd, struct mddev_dev *dv,
 		       strerror(errno));
 		if (lfd >= 0)
 			close(lfd);
-		return -1;
+		return MANAGE_REMOVE_HOT_REMOVE_FAIL;
 	}
 	if (tst->ss->external) {
 		/*
@@ -1114,7 +1114,7 @@ int Manage_remove(struct supertype *tst, int fd, struct mddev_dev *dv,
 
 		if (!devnm) {
 			pr_err("unable to get container name\n");
-			return -1;
+			return MANAGE_REMOVE_GET_CONTAINER_NAME_FAIL;
 		}
 
 		ping_manager(devnm);
@@ -1124,7 +1124,7 @@ int Manage_remove(struct supertype *tst, int fd, struct mddev_dev *dv,
 	if (verbose >= 0)
 		pr_err("hot removed %s from %s\n",
 		       dv->devname, devname);
-	return 1;
+	return 0;
 }
 
 int Manage_replace(struct supertype *tst, int fd, struct mddev_dev *dv,
@@ -1133,7 +1133,7 @@ int Manage_replace(struct supertype *tst, int fd, struct mddev_dev *dv,
 	struct mdinfo *mdi, *di;
 	if (tst->ss->external) {
 		pr_err("--replace only supported for native metadata (0.90 or 1.x)\n");
-		return -1;
+		return MANAGE_REPLACE_UNSUPPORTED_METADATA_VER;
 	}
 	/* Need to find the device in sysfs and add 'want_replacement' to the
 	 * status.
@@ -1142,7 +1142,7 @@ int Manage_replace(struct supertype *tst, int fd, struct mddev_dev *dv,
 	if (!mdi || !mdi->devs) {
 		pr_err("Cannot find status of %s to enable replacement - strange\n",
 		       devname);
-		return -1;
+		return MANAGE_REPLACE_CANNOT_FIND_MD_INFO;
 	}
 	for (di = mdi->devs; di; di = di->next)
 		if (di->disk.major == (int)major(rdev) &&
@@ -1154,7 +1154,7 @@ int Manage_replace(struct supertype *tst, int fd, struct mddev_dev *dv,
 			pr_err("%s is not active and so cannot be replaced.\n",
 			       dv->devname);
 			sysfs_free(mdi);
-			return -1;
+			return MANAGE_REPLACE_DISK_NOT_ACTIVE;
 		}
 		rv = sysfs_set_str(mdi, di,
 				   "state", "want_replacement");
@@ -1162,7 +1162,7 @@ int Manage_replace(struct supertype *tst, int fd, struct mddev_dev *dv,
 			sysfs_free(mdi);
 			pr_err("Failed to request replacement for %s\n",
 			       dv->devname);
-			return -1;
+			return MANAGE_REPLACE_REQUEST_REPLACEMENT_FAIL;
 		}
 		if (verbose >= 0)
 			pr_err("Marked %s (device %d in %s) for replacement\n",
@@ -1176,12 +1176,12 @@ int Manage_replace(struct supertype *tst, int fd, struct mddev_dev *dv,
 			dv->disposition = 'w';
 			dv->used = di->disk.raid_disk;
 		}
-		return 1;
+		return 0;
 	}
 	sysfs_free(mdi);
 	pr_err("%s not found in %s so cannot --replace it\n",
 	       dv->devname, devname);
-	return -1;
+	return MANAGE_REPLACE_MD_NOT_FOUND;
 }
 
 int Manage_with(struct supertype *tst, int fd, struct mddev_dev *dv,
@@ -1193,7 +1193,7 @@ int Manage_with(struct supertype *tst, int fd, struct mddev_dev *dv,
 	if (!mdi || !mdi->devs) {
 		pr_err("Cannot find status of %s to enable replacement - strange\n",
 		       devname);
-		return -1;
+		return MANAGE_WITH_CANNOT_FOUND_MD_INFO;
 	}
 	for (di = mdi->devs; di; di = di->next)
 		if (di->disk.major == (int)major(rdev) &&
@@ -1205,13 +1205,13 @@ int Manage_with(struct supertype *tst, int fd, struct mddev_dev *dv,
 			pr_err("%s is faulty and cannot be a replacement\n",
 			       dv->devname);
 			sysfs_free(mdi);
-			return -1;
+			return MANAGE_WITH_FAULTY_DISK;
 		}
 		if (di->disk.raid_disk >= 0) {
 			pr_err("%s is active and cannot be a replacement\n",
 			       dv->devname);
 			sysfs_free(mdi);
-			return -1;
+			return MANAGE_WITH_ACTIVE_DISK;
 		}
 		rv = sysfs_set_num(mdi, di,
 				   "slot", dv->used);
@@ -1219,17 +1219,17 @@ int Manage_with(struct supertype *tst, int fd, struct mddev_dev *dv,
 			sysfs_free(mdi);
 			pr_err("Failed to set %s as preferred replacement.\n",
 			       dv->devname);
-			return -1;
+			return MANAGE_WITH_PREFER_REPLACEMENT_FAIL;
 		}
 		if (verbose >= 0)
 			pr_err("Marked %s in %s as replacement for device %d\n",
 			       dv->devname, devname, dv->used);
-		return 1;
+		return 0;
 	}
 	sysfs_free(mdi);
 	pr_err("%s not found in %s so cannot make it preferred replacement\n",
 	       dv->devname, devname);
-	return -1;
+	return MANAGE_WITH_MD_NOT_FOUND;
 }
 
 int Manage_subdevs(char *devname, int fd,
@@ -1275,10 +1275,12 @@ int Manage_subdevs(char *devname, int fd,
 	struct mdinfo info;
 	int frozen = 0;
 	int busy = 0;
+	int ret = SUCCESS;
 
 	if (ioctl(fd, GET_ARRAY_INFO, &array)) {
 		pr_err("Cannot get array info for %s\n",
 			devname);
+		ret = MANAGE_GET_ARRAY_INFO_FAIL;
 		goto abort;
 	}
 	sysfs_init(&info, fd, NULL);
@@ -1295,6 +1297,7 @@ int Manage_subdevs(char *devname, int fd,
 	if (!tst) {
 		pr_err("unsupport array - version %d.%d\n",
 			array.major_version, array.minor_version);
+		ret = MANAGE_UNSUPPORTED_ARRAY;
 		goto abort;
 	}
 
@@ -1310,6 +1313,7 @@ int Manage_subdevs(char *devname, int fd,
 				pr_err("%s only meaningful "
 					"with -r or --re-add, not -%c\n",
 					dv->devname, dv->disposition);
+				ret = MANAGE_NEED_MEANINGFUL_DISPOSITION;
 				goto abort;
 			}
 			add_faulty(dv, fd, (dv->disposition == 'A'
@@ -1321,6 +1325,7 @@ int Manage_subdevs(char *devname, int fd,
 				pr_err("%s only meaningful "
 					"with -r of -f, not -%c\n",
 					dv->devname, dv->disposition);
+				ret = MANAGE_NEED_MEANINGFUL_DISPOSITION;
 				goto abort;
 			}
 			add_detached(dv, fd, dv->disposition);
@@ -1333,6 +1338,7 @@ int Manage_subdevs(char *devname, int fd,
 			if (dv->disposition != 'A') {
 				pr_err("'missing' only meaningful "
 				       "with --re-add\n");
+				ret = MANAGE_NEED_MEANINGFUL_DISPOSITION;
 				goto abort;
 			}
 			add_devlist = conf_get_devs();
@@ -1356,11 +1362,13 @@ int Manage_subdevs(char *devname, int fd,
 			    dv->disposition != 'f') {
 				pr_err("'%s' only meaningful with -r or -f\n",
 				       dv->devname);
+				ret = MANAGE_NEED_MEANINGFUL_DISPOSITION;
 				goto abort;
 			}
 			if (array.level != 10) {
 				pr_err("'%s' only meaningful with RAID10 arrays\n",
 				       dv->devname);
+				ret = MANAGE_NOT_MEANINGFUL_FOR_R10;
 				goto abort;
 			}
 			copies = ((array.layout & 0xff) *
@@ -1371,6 +1379,7 @@ int Manage_subdevs(char *devname, int fd,
 			    copies > 26) {
 				pr_err("'%s' not meaningful with this array\n",
 				       dv->devname);
+				ret = MANAGE_NOT_MEANINGFUL_FOR_ARRAY;
 				goto abort;
 			}
 			add_set(dv, fd, dv->devname[4]);
@@ -1387,6 +1396,7 @@ int Manage_subdevs(char *devname, int fd,
 				pr_err("%s only meaningful "
 					"with -r or -f, not -%c\n",
 					dv->devname, dv->disposition);
+				ret = MANAGE_NEED_MEANINGFUL_DISPOSITION;
 				goto abort;
 			}
 
@@ -1408,6 +1418,7 @@ int Manage_subdevs(char *devname, int fd,
 					pr_err("%s does not appear "
 						"to be a component of %s\n",
 						dv->devname, devname);
+					ret = MANAGE_OPEN_SYSFD_FAIL;
 					goto abort;
 				}
 			}
@@ -1427,6 +1438,7 @@ int Manage_subdevs(char *devname, int fd,
 				if (stat(dv->devname, &stb) != 0) {
 					pr_err("Cannot find %s: %s\n",
 					       dv->devname, strerror(errno));
+					ret = MANAGE_CANNOT_FIND_DEV;
 					goto abort;
 				}
 				if ((stb.st_mode & S_IFMT) != S_IFBLK) {
@@ -1435,6 +1447,7 @@ int Manage_subdevs(char *devname, int fd,
 						continue;
 					pr_err("%s is not a block device.\n",
 					       dv->devname);
+					ret = MANAGE_NOT_BLOCK_DEV;
 					goto abort;
 				}
 				if (dv->disposition == 'r')
@@ -1448,6 +1461,7 @@ int Manage_subdevs(char *devname, int fd,
 						continue;
 					pr_err("Cannot open %s: %s\n",
 					       dv->devname, strerror(open_err));
+					ret = MANAGE_CANNOT_OPEN_DEV;
 					goto abort;
 				}
 			}
@@ -1468,6 +1482,7 @@ int Manage_subdevs(char *devname, int fd,
 				pr_err("Cannot add disks to a"
 					" \'member\' array, perform this"
 					" operation on the parent container\n");
+				ret = MANAGE_CANNOT_ADD_DISKS_TO_MEMBER_ARRAY;
 				goto abort;
 			}
 			if (dv->disposition == 'F')
@@ -1488,6 +1503,7 @@ int Manage_subdevs(char *devname, int fd,
 					continue;
 				pr_err("Cannot open %s: %s\n",
 					dv->devname, strerror(errno));
+				ret = MANAGE_CANNOT_OPEN_DEV;
 				goto abort;
 			}
 			if (!frozen) {
@@ -1501,9 +1517,10 @@ int Manage_subdevs(char *devname, int fd,
 					rdev, array_size);
 			close(tfd);
 			tfd = -1;
-			if (rv < 0)
+			if (rv > 0) {
+				ret = rv;
 				goto abort;
-			if (rv > 0)
+			} if (rv == 0)
 				count++;
 			break;
 
@@ -1513,7 +1530,8 @@ int Manage_subdevs(char *devname, int fd,
 				pr_err("Cannot remove disks from a"
 					" \'member\' array, perform this"
 					" operation on the parent container\n");
-				rv = -1;
+				ret = MANAGE_CANNOT_REMOVE_DISKS_FROM_MEMBER_ARRAY;
+				goto abort;
 			} else
 				rv = Manage_remove(tst, fd, dv, sysfd,
 						   rdev, verbose,
@@ -1521,9 +1539,10 @@ int Manage_subdevs(char *devname, int fd,
 			if (sysfd >= 0)
 				close(sysfd);
 			sysfd = -1;
-			if (rv < 0)
+			if (rv > 0) {
+				ret = rv;
 				goto abort;
-			if (rv > 0)
+			} if (rv == 0)
 				count++;
 			break;
 
@@ -1532,8 +1551,12 @@ int Manage_subdevs(char *devname, int fd,
 			if ((sysfd >= 0 && write(sysfd, "faulty", 6) != 6) ||
 			    (sysfd < 0 && ioctl(fd, SET_DISK_FAULTY,
 						rdev))) {
-				if (errno == EBUSY)
+				if (errno == EBUSY) {
 					busy = 1;
+					ret = MANAGE_DEVICE_BUSY;
+				} else {
+					ret = MANAGE_SET_FAULTY_FAIL;
+				}
 				pr_err("set device faulty failed for %s:  %s\n",
 					dv->devname, strerror(errno));
 				if (sysfd >= 0)
@@ -1553,7 +1576,8 @@ int Manage_subdevs(char *devname, int fd,
 				pr_err("Cannot replace disks in a"
 					" \'member\' array, perform this"
 					" operation on the parent container\n");
-				rv = -1;
+				ret = MANAGE_CANNOT_ADD_DISKS_TO_MEMBER_ARRAY;
+				goto abort;
 			} else {
 				if (!frozen) {
 					if (sysfs_freeze_array(&info) == 1)
@@ -1565,33 +1589,37 @@ int Manage_subdevs(char *devname, int fd,
 						    rdev, verbose,
 						    devname);
 			}
-			if (rv < 0)
+			if (rv > 0) {
+				ret = rv;
 				goto abort;
-			if (rv > 0)
+			} if (rv == 0)
 				count++;
 			break;
 		case 'W': /* --with device that doesn't match */
 			pr_err("No matching --replace device for --with %s\n",
 			       dv->devname);
+			ret = MANAGE_NO_MATCHING_DEV;
 			goto abort;
 		case 'w': /* --with device which was matched */
 			rv = Manage_with(tst, fd, dv,
 					 rdev, verbose, devname);
-			if (rv < 0)
+			if (rv > 0) {
+				ret = rv;
 				goto abort;
+			}
 			break;
 		}
 	}
 	if (frozen > 0)
 		sysfs_set_str(&info, NULL, "sync_action","idle");
-	if (test && count == 0)
-		return 2;
+//	if (test && count == 0)
+//		return 2;
 	return 0;
 
 abort:
 	if (frozen > 0)
 		sysfs_set_str(&info, NULL, "sync_action","idle");
-	return !test && busy ? 2 : 1;
+	return ret;
 }
 
 int autodetect(void)
