@@ -65,12 +65,16 @@ int main(int argc, char *argv[])
 	c.verbose = 1;
 	c.brief = 1;
 
+#if 0
 	ret = Create(NULL, "/dev/md1", "\0", NULL, s.raiddisks, devlist, &s, &c, INVALID_SECTORS);
 	printf("ret = %d\n", ret);
+#endif
+
+#if 0
 
 	c.brief = 0;
 	//Detail("/dev/md1", &c);
-
+#endif
 
 	for (dv = devlist; dv; dv = dv->next) {
 		printf("%s\n", dv->devname);
@@ -104,5 +108,23 @@ int main(int argc, char *argv[])
 	printf("%d\n", ret);
 	close(fd);
 #endif
+	struct mddev_ident ident;
+	ident.uuid_set = 1;
+	//ident.uuid[0] = -2110487005;
+	//ident.uuid[1] = -466931330;
+	//ident.uuid[2] =  138953740;
+	//ident.uuid[3] =  -785669806;
+	char uuid[128];
+	snprintf(uuid, 127,"5f3e55da4f7e42f9759f8e52902172a8");
+	uuid[32] = '\0';
+	parse_uuid(uuid, ident.uuid);
+	ident.super_minor = UnSet;
+	ident.level = UnSet;
+	ident.raid_disks = UnSet;
+	ident.spare_disks = UnSet;
+	ident.bitmap_fd = -1;
+	ret = Assemble(NULL, "/dev/md1", &ident, NULL, &c); 
+	printf("ret = %d\n", ret);
+	
 	return 0;
 }

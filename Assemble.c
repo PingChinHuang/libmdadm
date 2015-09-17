@@ -1294,7 +1294,7 @@ int Assemble(struct supertype *st, char *mddev,
 	    ident->devices == NULL) {
 		pr_err("No identity information available for %s - cannot assemble.\n",
 		       mddev ? mddev : "further assembly");
-		return 1;
+		return ASSEMBLE_NO_IDENTITY_INFO;
 	}
 
 	if (devlist == NULL)
@@ -1319,10 +1319,10 @@ try_again:
 	num_devs = select_devices(devlist, ident, &st, &content, c,
 				  inargv, auto_assem);
 	if (num_devs < 0)
-		return 1;
+		return ASSEMBLE_NEGATIVE_NUM_DEVICES;
 
 	if (!st || !st->sb || !content)
-		return 2;
+		return ASSEMBLE_SUPER_INFO_IS_NULL;
 
 	/* We have a full set of devices - we now need to find the
 	 * array device.
@@ -1347,7 +1347,7 @@ try_again:
 			pr_err("Found some drive for an array that is already active: %s\n",
 			       mp->path);
 			pr_err("giving up.\n");
-			return 1;
+			return ASSEMBLE_DRIVE_IS_ACTIVE;
 		}
 		for (dv = pre_exist->devs; dv; dv = dv->next) {
 			/* We want to add this device to our list,
@@ -1420,7 +1420,7 @@ try_again:
 		st->ss->free_super(st);
 		if (auto_assem)
 			goto try_again;
-		return 1;
+		return ASSEMBLE_INVALID_MDFD;
 	}
 	mddev = chosen_name;
 	if (get_linux_version() < 2004000 ||
@@ -1429,7 +1429,7 @@ try_again:
 		       "     md driver version 0.90.0 or later.\n"
 		       "    Upgrade your kernel or try --build\n");
 		close(mdfd);
-		return 1;
+		return ASSEMBLE_KERNEL_UNSUPPORT;
 	}
 	if (pre_exist == NULL) {
 		if (mddev_busy(fd2devnm(mdfd))) {
@@ -1447,7 +1447,7 @@ try_again:
 			st->ss->free_super(st);
 			if (auto_assem)
 				goto try_again;
-			return 1;
+			return ASSEMBLE_MD_ALREADY_ACTIVE;
 		}
 		/* just incase it was started but has no content */
 		ioctl(mdfd, STOP_ARRAY, NULL);
@@ -1460,7 +1460,7 @@ try_again:
 		err = assemble_container_content(st, mdfd, content, c,
 						 chosen_name, NULL);
 		close(mdfd);
-		return err;
+		return ASSEMBLE_CONTAINER_CONTENT_FAIL;
 	}
 #endif
 	/* Ok, no bad inconsistancy, we can try updating etc */
@@ -1470,7 +1470,7 @@ try_again:
 			      c, content, mdfd, mddev,
 			      &most_recent, &bestcnt, &best, inargv);
 	if (devcnt < 0)
-		return 1;
+		return ASSEMBLE_NEGATIVE_DEV_CNT;
 
 	if (devcnt == 0) {
 		pr_err("no devices found for %s\n",
@@ -1480,7 +1480,7 @@ try_again:
 		close(mdfd);
 		free(devices);
 		free(devmap);
-		return 1;
+		return ASSEMBLE_NO_DEVS_FOR_MD;
 	}
 
 	if (c->update && strcmp(c->update, "byteorder")==0)
@@ -1589,7 +1589,7 @@ try_again:
 			       devices[j].devname, strerror(errno));
 			close(mdfd);
 			free(devices);
-			return 1;
+			return ASSEMBLE_OPEN_DEV_FAIL;
 		}
 		if (st->ss->load_super(st,fd, NULL)) {
 			close(fd);
@@ -1597,7 +1597,7 @@ try_again:
 			       devices[j].devname);
 			close(mdfd);
 			free(devices);
-			return 1;
+			return ASSEMBLE_SUPERBLOCK_DISAPPEARED;
 		}
 		close(fd);
 	}
@@ -1605,7 +1605,7 @@ try_again:
 		pr_err("No suitable drives found for %s\n", mddev);
 		close(mdfd);
 		free(devices);
-		return 1;
+		return ASSEMBLE_NO_SUITABLE_DRIVES;
 	}
 	st->ss->getinfo_super(st, content, NULL);
 #ifndef MDASSEMBLE
@@ -1672,7 +1672,7 @@ try_again:
 			       devices[chosen_drive].devname);
 			close(mdfd);
 			free(devices);
-			return 1;
+			return ASSEMBLE_OPEN_DEV_FAIL;
 		}
 		if (st->ss->store_super(st, fd)) {
 			close(fd);
@@ -1680,7 +1680,7 @@ try_again:
 			       devices[chosen_drive].devname);
 			close(mdfd);
 			free(devices);
-			return 1;
+			return ASSEMBLE_REWRITE_SUPERBLOCK_FAIL;
 		}
 		if (c->verbose >= 0)
 			pr_err("Marking array %s as 'clean'\n",
@@ -1713,7 +1713,7 @@ try_again:
 				if (fdlist[i] < 0) {
 					pr_err("Could not open %s for write - cannot Assemble array.\n",
 					       devices[j].devname);
-					err = 1;
+					err = ASSEMBLE_FAIL;
 					break;
 				}
 			} else
