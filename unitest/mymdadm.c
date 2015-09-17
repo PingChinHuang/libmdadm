@@ -133,8 +133,19 @@ int main(int argc, char *argv[])
 	ret = Manage_subdevs("/dev/md1", fd, devlist, c.verbose, 0, 0, c.force);
 	close(fd);
 #endif
-
+#if 0
 	ret = Kill("/dev/sdb", NULL, c.force, c.verbose, 0);
+#endif
+
+	struct query_result result;
+	Query_ToQueryResult("/dev/md1", &result);
+	if (result.bIsMD) {
+		if (result.bHasMDError)
+			printf("%s\n", result.strMDError);
+		else if (result.bIsMDActive && result.bHasMDDetail)
+			printf("%s: Raid Disks %d, Spare Disks %d, Raid Level %d(%s), Size %s\n", result.strMDDevName, result.iMDRaidDiskNum, result.iMDSpareDiskNum, result.iMDRaidLevel, result.strMDLevel, result.strMDSize);
+	} else
+		printf("%s: Disk Number %d, Activity %s, MD %s, Raid Disks %d, Raid Level %d(%s)\n", result.strDiskDevName, result.iDiskNumber, result.strDiskActivity, result.strMDDevName, result.iMDRaidDiskNum, result.iMDRaidLevel, result.strMDLevel);
 
 	printf("ret = %d\n", ret);
 	for (dv = devlist; dv; dv = dv->next) {

@@ -49,7 +49,7 @@ int Query(char *dev)
 	if (fd < 0){
 		pr_err("cannot open %s: %s\n",
 			dev, strerror(errno));
-		return 1;
+		return QUERY_OPEN_DEV_FAIL;
 	}
 
 	vers = md_get_version(fd);
@@ -119,6 +119,116 @@ int Query(char *dev)
 		       activity,
 		       map_num(pers, info.array.level),
 		       mddev);
+		if (st->ss == &super0)
+			put_md_name(mddev);
+	}
+	return 0;
+}
+
+int Query_ToQueryResult(char *dev, struct query_result* result)
+{
+	/* Give a brief description of the device,
+	 * whether it is an md device and whether it has
+	 * a superblock
+	 */
+	int fd = open(dev, O_RDONLY);
+	int vers;
+	int ioctlerr;
+	int superror;
+	struct mdinfo info;
+	mdu_array_info_t array;
+	struct supertype *st = NULL;
+
+	unsigned long long larray_size;
+	struct stat stb;
+	char *mddev;
+	mdu_disk_info_t disc;
+	char *activity;
+
+	if (fd < 0){
+		pr_err("cannot open %s: %s\n",
+			dev, strerror(errno));
+		return QUERY_OPEN_DEV_FAIL;
+	}
+
+	if (result == NULL) {
+		return QUERY_NULL_POINTER;
+	}
+
+	vers = md_get_version(fd);
+	if (ioctl(fd, GET_ARRAY_INFO, &array)<0)
+		ioctlerr = errno;
+	else ioctlerr = 0;
+
+	fstat(fd, &stb);
+
+	if (vers>=9000 && !ioctlerr) {
+		if (!get_dev_size(fd, NULL, &larray_size))
+			larray_size = 0;
+	}
+
+	result->bIsMD = 1;
+	if (vers < 0)
+		result->bIsMD = 0;
+	else if (vers < 9000) {
+		result->bHasMDDetail = 0;
+	} else if (ioctlerr == ENODEV) {
+		result->bIsMDActive = 0;
+	} else if (ioctlerr) {
+		result->bHasMDError = 1;
+		strncpy(result->strMDError, strerror(ioctlerr), 127);
+	} else {
+		result->bHasMDDetail = 1;
+		result->bIsMDActive = 1;
+		result->bHasMDError = 0;
+		result->iMDRaidDiskNum = array.raid_disks;
+		result->iMDSpareDiskNum = array.spare_disks;
+		result->iMDRaidLevel = array.level;
+		strncpy(result->strMDSize, human_size_brief(larray_size, IEC), 31);
+		strncpy(result->strMDLevel, map_num(pers, array.level), 15);
+		strncpy(result->strMDDevName, dev, 31);
+	}
+	st = guess_super(fd);
+	if (st && st->ss->compare_super != NULL)
+		superror = st->ss->load_super(st, fd, dev);
+	else
+		superror = -1;
+	close(fd);
+	if (superror == 0) {
+		/* array might be active... */
+		int uuid[4];
+		struct map_ent *me, *map = NULL;
+		st->ss->getinfo_super(st, &info, NULL);
+		st->ss->uuid_from_super(st, uuid);
+		me = map_by_uuid(&map, uuid);
+		if (me) {
+			mddev = me->path;
+			disc.number = info.disk.number;
+			activity = "undetected";
+			if (mddev && (fd = open(mddev, O_RDONLY))>=0) {
+				if (md_get_version(fd) >= 9000 &&
+				    ioctl(fd, GET_ARRAY_INFO, &array)>= 0) {
+					if (ioctl(fd, GET_DISK_INFO, &disc) >= 0 &&
+					    makedev((unsigned)disc.major,(unsigned)disc.minor) == stb.st_rdev)
+						activity = "active";
+					else
+						activity = "mismatch";
+				}
+				close(fd);
+			}
+		} else {
+			activity = "inactive";
+			mddev = "array";
+		}
+
+		result->iDiskNumber = info.disk.number;
+		result->iMDRaidDiskNum = info.array.raid_disks;
+		result->iMDRaidLevel = info.array.level;
+		strncpy(result->strDiskActivity, activity, 31);
+		strncpy(result->strMDDevName, mddev, 31);
+		strncpy(result->strDiskDevName, dev, 31);
+		strncpy(result->strMDLevel, map_num(pers, info.array.level), 15);
+
 		if (st->ss == &super0)
 			put_md_name(mddev);
 	}

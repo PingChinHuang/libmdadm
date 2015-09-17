@@ -40,4 +40,22 @@ struct array_detail {
 	char strRaidNewLayout[32];
 };
 
+struct query_result {
+	int bIsMD;
+	int bIsMDActive;
+	int bHasMDDetail;
+	int bHasMDError;
+	int iMDRaidDiskNum;	// Available for MD, Disk
+	int iMDSpareDiskNum;	
+	int iMDRaidLevel;	// Available for MD, Disk
+	char strMDSize[32];
+	char strMDLevel[16];	// Available for MD, Disk
+	char strMDDevName[32];	// Available for MD, Disk
+	char strMDError[128];
+
+	int iDiskNumber;
+	char strDiskActivity[32];
+	char strDiskDevName[32];
+};
+
 #endif
