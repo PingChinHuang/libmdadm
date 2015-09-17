@@ -49,7 +49,7 @@ int Kill(char *dev, struct supertype *st, int force, int verbose, int noexcl)
 		if (verbose >= 0)
 			pr_err("Couldn't open %s for write - not zeroing\n",
 				dev);
-		return 2;
+		return KILL_OPEN_DEV_FAIL;
 	}
 	if (st == NULL)
 		st = guess_super(fd);
@@ -57,7 +57,7 @@ int Kill(char *dev, struct supertype *st, int force, int verbose, int noexcl)
 		if (verbose >= 0)
 			pr_err("Unrecognised md component device - %s\n", dev);
 		close(fd);
-		return 2;
+		return KILL_NOT_MD_COMPONENT;
 	}
 	st->ignore_hw_compat = 1;
 	rv = st->ss->load_super(st, fd, dev);
@@ -69,7 +69,7 @@ int Kill(char *dev, struct supertype *st, int force, int verbose, int noexcl)
 			if (verbose >= 0)
 				pr_err("Could not zero superblock on %s\n",
 					dev);
-			rv = 1;
+			rv = KILL_ZERO_SUPERBLOCK_FAIL;
 		} else if (rv) {
 			if (verbose >= 0)
 				pr_err("superblock zeroed anyway\n");

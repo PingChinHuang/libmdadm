@@ -76,11 +76,6 @@ int main(int argc, char *argv[])
 	//Detail("/dev/md1", &c);
 #endif
 
-	for (dv = devlist; dv; dv = dv->next) {
-		printf("%s\n", dv->devname);
-		free(dv);
-	}
-
 #if 0
 	ret = Detail_ToArrayDetail("/dev/md1", &c, &ad);
 	printf("done\n");
@@ -109,6 +104,7 @@ int main(int argc, char *argv[])
 	close(fd);
 #endif
 	struct mddev_ident ident;
+#if 0
 	ident.uuid_set = 1;
 	//ident.uuid[0] = -2110487005;
 	//ident.uuid[1] = -466931330;
@@ -118,13 +114,32 @@ int main(int argc, char *argv[])
 	snprintf(uuid, 127,"5f3e55da4f7e42f9759f8e52902172a8");
 	uuid[32] = '\0';
 	parse_uuid(uuid, ident.uuid);
+#endif
+#if 0
 	ident.super_minor = UnSet;
 	ident.level = UnSet;
 	ident.raid_disks = UnSet;
 	ident.spare_disks = UnSet;
 	ident.bitmap_fd = -1;
-	ret = Assemble(NULL, "/dev/md1", &ident, NULL, &c); 
-	printf("ret = %d\n", ret);
+	ret = Assemble(NULL, "/dev/md1", &ident, devlist, &c); 
+#endif
+#if 0
+	int fd = open_mddev("/dev/md1", 1);
+	if (fd == -2)
+		return 0;
 	
+	for (dv = devlist; dv; dv = dv->next)
+		dv->disposition = 'a';	
+	ret = Manage_subdevs("/dev/md1", fd, devlist, c.verbose, 0, 0, c.force);
+	close(fd);
+#endif
+
+	ret = Kill("/dev/sdb", NULL, c.force, c.verbose, 0);
+
+	printf("ret = %d\n", ret);
+	for (dv = devlist; dv; dv = dv->next) {
+		printf("%s\n", dv->devname);
+		free(dv);
+	}
 	return 0;
 }
