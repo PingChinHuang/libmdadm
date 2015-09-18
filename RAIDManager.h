@@ -10,24 +10,29 @@
 
 using namespace std;
 
-struct DiskInfo {
+struct RAIDDiskInfo {
 	string		m_strState;
 	string		m_strDevName;
+	int32_t		m_UUID[4];
 	int32_t		m_iState;
 	int32_t		m_iNumber;
 	int32_t		m_iRaidDisk;
 
-	DiskInfo()
+	RAIDDiskInfo()
 	: m_strState("")
 	, m_strDevName("")
 	, m_iState(0)
 	, m_iNumber(0)
 	, m_iRaidDisk(0)
-	{}
+	{
+		for (int i = 0; i < 4; i++)
+			m_UUID[i] = 0;
+		}
+	}
 
-	~DiskInfo() {}
+	~RAIDDiskInfo() {}
 
-	DiskInfo& operator=(const struct array_disk_info& rhs)
+	RAIDDiskInfo& operator=(const struct array_disk_info& rhs)
 	{
 		m_strState = rhs.strState;
 		m_strDevName = rhs.strDevName;
@@ -36,7 +41,7 @@ struct DiskInfo {
 		m_iRaidDisk = rhs.diskInfo.raid_disk;
 	}
 
-	DiskInfo& operator=(const DiskInfo& rhs)
+	RAIDDiskInfo& operator=(const RAIDDiskInfo& rhs)
 	{
 		if (this == &rhs)
 			return *this;
@@ -49,7 +54,7 @@ struct DiskInfo {
 		return *this;
 	}
 
-	bool operator==(const DiskInfo& rhs) const
+	bool operator==(const RAIDDiskInfo& rhs) const
 	{
 		return (m_strState == rhs.m_strState &&
 			m_strDevName == rhs.m_strDevName &&
@@ -60,7 +65,7 @@ struct DiskInfo {
 }
 
 struct RAIDInfo {
-	vector<DiskInfo>	m_vDiskList;
+	vector<RAIDDiskInfo>	m_vDiskList;
 	string			m_strVolumeName;
 	string			m_strDevNodeName;
 	string			m_strMountPoint;
@@ -72,7 +77,7 @@ struct RAIDInfo {
 	uint32_t		m_UUID[4];
 	int64_t			m_ullTotalCapacity;
 	int32_t			m_iRAIDLevel;
-	int32_t			m_iDiskNum;
+	int32_t			m_iTotalDiskNum;
 	int32_t			m_iRAIDDiskNum;
 	int32_t			m_iActiveDiskNum;
 	int32_t			m_iWorkingDiskNum;
@@ -81,9 +86,12 @@ struct RAIDInfo {
 	int32_t			m_iState;
 	int32_t			m_iChunkSize;
 	int32_t			m_iRebuildingProgress;
+	int32_t			m_iFormatProgress;
 	bool			m_bSuperBlockPersistent;
 	bool			m_bInactive;
 	bool			m_bRebuilding;
+	bool			m_bFormat;
+	bool			m_bMount;
 	
 	RAIDInfo()
 	: m_strVolume("")
@@ -103,7 +111,7 @@ struct RAIDInfo {
 	{
 		m_vDiskList.clear();
 		for (int i = 0; i < MAX_DISK_NUM; i++) {
-			DiskInfo info;
+			RAIDDiskInfo info;
 			if (rhs.arrayDisks[i].diskInfo.major == 0 &&
 			    rhs.arrayDisks[i].diskInfo.minor == 0)
 				continue;
@@ -119,7 +127,7 @@ struct RAIDInfo {
 		memcpy(m_UUID, rhs.uuid, sizeof(m_UUID));
 		m_ullTotalCapacity = rhs.ullArraySize;
 		m_iRAIDLevel = rhs.arrayInfo.level;
-		m_iDiskNum = rhs.arrayInfo.nr_disks;
+		m_iTotalDiskNum = rhs.arrayInfo.nr_disks;
 		m_iRAIDDiskNum = rhs.arrayInfo.raid_disks;
 		m_iActiveDiskNum = rhs.arrayInfo.active_disks;
 		m_iWorkingDiskNum = rhs.arrayInfo.working_disks;
@@ -152,7 +160,7 @@ struct RAIDInfo {
 		memcpy(m_UUID, rhs.m_UUID, sizeof(m_UUID));
 		m_ullTotalCapacity = rhs.m_ullTotalCapacity;
 		m_iRAIDLevel = rhs.m_iRAIDLevel;
-		m_iDiskNum = rhs.m_iDisksNum;
+		m_iTotalDiskNum = rhs.m_iTotalDiskNum;
 		m_iRAIDDiskNum = rhs.m_iRAIDDiskNum;
 		m_iActiveDiskNum = rhs.m_iActiveDiskNum;
 		m_iWorkingDiskNum = rhs.m_iWorkingDiskNum;
@@ -174,11 +182,45 @@ struct RAIDInfo {
 class RAIDManager {
 private:
 	vector<RAIDInfo> m_vRAIDInfoList;
+	vector<RAIDDiskInfo> m_vRAIDDiskList;
+
+private:
+	bool Assemble();
+	bool Manage();
+	bool Kill();
+	bool Stop();
+	bool Examine();
+	bool Detail();
+
+	int SearchDiskBelong2RAID();
 
 public:
-	
+	RAIDManager();
+	~RAIDManager();
 
+	bool AddRAIDDisk();
+	bool RemoveRAIDDisk();
 
+	bool CreateRAID();
+	bool AssembleByRAIDUUID();
+	bool AssembleByRAIDDisks();
+	bool RemoveDisksFromRAID();
+	bool MarkFaultyDisksInRAID();
+	bool AddDisksIntoRAID();
+	bool ReaddDisksIntoRAID();
+	bool ReplaceDisksInRAID();
+	bool DeleteRAID();
+	bool GetRAIDInfo();
+	bool UpdateRAIDInfo(); // May need for periodically update.
+	bool UpdateRAIDInfo(const string& mddev);
+
+	bool CheckFileSystem();
+	bool DoFileSystemRecovery();
+	bool GetFileSystemStatus();
+
+	bool Format();
+	bool Mount();
+	bool Unmount();
 }; 
 
 
