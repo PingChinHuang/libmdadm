@@ -13,7 +13,7 @@ using namespace std;
 struct RAIDDiskInfo {
 	string		m_strState;
 	string		m_strDevName;
-	int32_t		m_UUID[4];
+	int32_t		m_RaidUUID[4]; // Get after Examine()
 	int32_t		m_iState;
 	int32_t		m_iNumber;
 	int32_t		m_iRaidDisk;
@@ -26,7 +26,7 @@ struct RAIDDiskInfo {
 	, m_iRaidDisk(0)
 	{
 		for (int i = 0; i < 4; i++)
-			m_UUID[i] = 0;
+			m_RaidUUID[i] = 0;
 		}
 	}
 
@@ -183,6 +183,7 @@ class RAIDManager {
 private:
 	vector<RAIDInfo> m_vRAIDInfoList;
 	vector<RAIDDiskInfo> m_vRAIDDiskList;
+	bool m_bRAIDInfoListUpdating;
 
 private:
 	bool Assemble();
@@ -198,8 +199,8 @@ public:
 	RAIDManager();
 	~RAIDManager();
 
-	bool AddRAIDDisk();
-	bool RemoveRAIDDisk();
+	bool AddRAIDDisk(const string& dev);
+	bool RemoveRAIDDisk(const string& dev);
 
 	bool CreateRAID();
 	bool AssembleByRAIDUUID();
@@ -213,6 +214,7 @@ public:
 	bool GetRAIDInfo();
 	bool UpdateRAIDInfo(); // May need for periodically update.
 	bool UpdateRAIDInfo(const string& mddev);
+	bool UpdateRAIDInfo(const int uuid[4]);
 
 	bool CheckFileSystem();
 	bool DoFileSystemRecovery();

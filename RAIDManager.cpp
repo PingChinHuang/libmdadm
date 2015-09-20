@@ -48,5 +48,30 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 
 bool RAIDManager::RemoveRAIDDisk(const string& dev)
 {
+	/*
+		[CS Start] Protect m_vRAIDDiskList
+		1. Exist in m_vRAIDDiskList?
+			1.1 Yes -> Remove from m_vRAIDDiskList -> 2
+			1.2 No -> return true;
+				Come from 2.2 return true
+				Come from 2.1 -> 4
+
+		2. UpdateRAIDInfo(uuid)
+		[CS End]
+	*/
+}
+
+bool RAIDManager::UpdateRAIDInfo()
+{
+
+}
+
+bool RAIDManager::UpdateRAIDInfo(const string& mddev)
+{
+
+}
+
+bool RAIDManager::UpdateRAIDInfo(const int uuid[4])
+{
 
 }
