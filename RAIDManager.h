@@ -5,6 +5,7 @@
 
 #include <string>
 #include <vector>
+#include <iterator>
 
 #include <stdint.h>
 
@@ -193,7 +194,13 @@ private:
 	bool Examine();
 	bool Detail();
 
-	int SearchDiskBelong2RAID();
+	vector<RAIDInfo>::iterator SearchDiskBelong2RAID(const string& dev);
+
+	void InitializeShape(struct shape& s, int raiddisks, int level, int chunk = 512, int bitmap_chunk = UnSet, char* bitmap_file = NULL);
+	void InitializeContext(struct context& c, int force = 1, int runstop = 1, int verbose = 0);
+	void InitializeMDDevIdent(struct mddev_ident& ident, int uuid_set, const string& str_uuid, int bitmap_fd = -1, char* bitmap_file = NULL);
+	void InitializeDevList(struct mddev_dev* devlist, const vector<string>& devNameList, int disposition = 0);
+	void FreeDevList(struct mddev_dev* devlist);
 
 public:
 	RAIDManager();
@@ -205,6 +212,7 @@ public:
 	bool CreateRAID();
 	bool AssembleByRAIDUUID();
 	bool AssembleByRAIDDisks();
+	bool ManageRAIDSubdevs(const string& mddev, const vector<string>& vDevList, int operation);
 	bool RemoveDisksFromRAID();
 	bool MarkFaultyDisksInRAID();
 	bool AddDisksIntoRAID();
