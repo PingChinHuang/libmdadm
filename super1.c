@@ -504,6 +504,54 @@ static void examine_super1(struct supertype *st, char *homehost)
 	printf("\n");
 }
 
+static void examine_super1_result(struct supertype *st, char *homehost, struct examine_result *result)
+{
+	struct mdp_superblock_1 *sb = st->sb;
+	int role;
+	int i;
+
+	if (result == NULL)
+		return;
+
+	result->bIsValid = 0;
+	if (sb == NULL)
+		return;
+
+	for (i=0; i<16; i++) {
+		result->arrayUUID[i] =  sb->set_uuid[i];
+	}
+	result->uRaidLevel = sb->level;
+	result->uRaidDiskNum = sb->raid_disks;
+
+	if (sb->bblog_size && sb->bblog_offset) {
+		if (sb->feature_map &
+		    __cpu_to_le32(MD_FEATURE_BAD_BLOCKS))
+			result->bHasBadblock = 1;
+		else
+			result->bHasBadblock = 0;
+	}
+
+	result->uChkSum = sb->sb_csum;
+	result->uExpectedChkSum = calc_sb_1_csum(sb);
+	if (calc_sb_1_csum(sb) != sb->sb_csum)
+		result->bSBChkSumError = 1;
+
+	result->uDevRole = __le32_to_cpu(sb->dev_number);
+	if (result->uDevRole < __le32_to_cpu(sb->max_dev))
+		role = __le16_to_cpu(sb->dev_roles[result->uDevRole]);
+	else
+		role = 0xFFFF;
+
+	if (role >= 0xFFFE)
+		result->cState = 'S';
+	else if (sb->feature_map & __cpu_to_le32(MD_FEATURE_REPLACEMENT))
+		result->cState = 'R';
+	else
+		result->cState = 'A';
+
+	result->bIsValid = 1;
+}
+
 static void brief_examine_super1(struct supertype *st, int verbose)
 {
 	struct mdp_superblock_1 *sb = st->sb;
@@ -2390,6 +2438,7 @@ void *super1_make_v0(struct supertype *st, struct mdinfo *info, mdp_super_t *sb0
 struct superswitch super1 = {
 #ifndef MDASSEMBLE
 	.examine_super = examine_super1,
+	.examine_super_result = examine_super1_result,
 	.brief_examine_super = brief_examine_super1,
 	.export_examine_super = export_examine_super1,
 	.detail_super = detail_super1,

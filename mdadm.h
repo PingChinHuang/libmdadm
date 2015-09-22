@@ -621,6 +621,7 @@ extern struct superswitch {
 	 * device. ->load_super has been called.
 	 */
 	void (*examine_super)(struct supertype *st, char *homehost);
+	void (*examine_super_result)(struct supertype *st, char *homehost, struct examine_result *resultlist);
 	void (*brief_examine_super)(struct supertype *st, int verbose);
 	void (*brief_examine_subarrays)(struct supertype *st, int verbose);
 	void (*export_examine_super)(struct supertype *st);

@@ -223,3 +223,95 @@ out:
 	}
 	return err;
 }
+
+int Examine_ToResult(struct mddev_dev *devlist,
+	    struct context *c,
+	    struct supertype *forcest,
+	    struct examine_result *result)
+{
+
+	/* Read the raid superblock from a device and
+	 * display important content.
+	 *
+	 * If cannot be found, print reason: too small, bad magic
+	 *
+	 * Print:
+	 *   version, ctime, level, size, raid+spare+
+	 *   prefered minor
+	 *   uuid
+	 *
+	 *   utime, state etc
+	 *
+	 * If (brief) gather devices for same array and just print a mdadm.conf
+	 * line including devices=
+	 * if devlist==NULL, use conf_get_devs()
+	 */
+	int fd;
+	int rv = 0;
+	int err = 0;
+
+	struct array {
+		struct supertype *st;
+		struct mdinfo info;
+		void *devs;
+		struct array *next;
+		int spares;
+	} *arrays = NULL;
+
+	for (; devlist ; devlist = devlist->next) {
+		struct supertype *st;
+		int have_container = 0;
+
+		fd = dev_open(devlist->devname, O_RDONLY);
+		if (fd < 0) {
+			if (!c->scan) {
+				pr_err("cannot open %s: %s\n",
+				       devlist->devname, strerror(errno));
+				rv = EXAMINE_OPEN_DEV_FAIL;
+			}
+			err = 1;
+		}
+		else {
+			int container = 0;
+			if (forcest)
+				st = dup_super(forcest);
+			else if (must_be_container(fd)) {
+				/* might be a container */
+				st = super_by_fd(fd, NULL);
+				container = 1;
+			} else
+				st = guess_super(fd);
+			if (st) {
+				err = 1;
+				st->ignore_hw_compat = 1;
+				if (!container)
+					err = st->ss->load_super(st, fd,
+								 (c->brief||c->scan) ? NULL
+								 :devlist->devname);
+				if (err && st->ss->load_container) {
+					err = st->ss->load_container(st, fd,
+								 (c->brief||c->scan) ? NULL
+								 :devlist->devname);
+					if (!err)
+						have_container = 1;
+				}
+				st->ignore_hw_compat = 0;
+			} else {
+				if (!c->brief) {
+					pr_err("No md superblock detected on %s.\n", devlist->devname);
+					rv = EXAMINE_NO_MD_SUPERBLOCK;
+				}
+				err = 1;
+			}
+			close(fd);
+		}
+		if (err)
+			continue;
+
+		strncpy(result->strDevName, devlist->devname, 31);
+		st->ss->examine_super_result(st, c->homehost, result);
+		st->ss->free_super(st);
+	}
+
+	return rv;
+}

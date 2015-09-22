@@ -136,7 +136,7 @@ int main(int argc, char *argv[])
 #if 0
 	ret = Kill("/dev/sdb", NULL, c.force, c.verbose, 0);
 #endif
-
+#if 0
 	struct query_result result;
 	Query_ToQueryResult("/dev/md1", &result);
 	if (result.bIsMD) {
@@ -146,8 +146,25 @@ int main(int argc, char *argv[])
 			printf("%s: Raid Disks %d, Spare Disks %d, Raid Level %d(%s), Size %s\n", result.strMDDevName, result.iMDRaidDiskNum, result.iMDSpareDiskNum, result.iMDRaidLevel, result.strMDLevel, result.strMDSize);
 	} else
 		printf("%s: Disk Number %d, Activity %s, MD %s, Raid Disks %d, Raid Level %d(%s)\n", result.strDiskDevName, result.iDiskNumber, result.strDiskActivity, result.strMDDevName, result.iMDRaidDiskNum, result.iMDRaidLevel, result.strMDLevel);
+#endif
+
+
+	struct examine_result result;
+	ret = Examine_ToResult(devlist, &c, NULL, &result);
+//	for (result = list; result; result = result->next) {
+	if (result.bIsValid) {
+		printf("State %c, DevName %s, raid lv: %u, raid disk num: %u\n",
+			result.cState, result.strDevName, result.uRaidLevel, result.uRaidDiskNum);
+		for (i = 0; i < 16; i++) {
+			printf("%02X ", result.arrayUUID[i]);
+
+		}
+		printf("\n");
+	}
+//	}
 
 	printf("ret = %d\n", ret);
+
 	for (dv = devlist; dv; dv = dv->next) {
 		printf("%s\n", dv->devname);
 		free(dv);

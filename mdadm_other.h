@@ -58,4 +58,19 @@ struct query_result {
 	char strDiskDevName[32];
 };
 
+struct examine_result {
+	char cState; /* Active: 'A', Spare: 'S', Replacement: 'R' */
+	char strDevName[32];
+	unsigned char arrayUUID[16];
+	unsigned uRaidLevel;
+	unsigned uRaidDiskNum;
+	unsigned bHasBadblock;
+	unsigned bSBChkSumError;
+	unsigned bIsValid;
+	unsigned uChkSum;
+	unsigned uExpectedChkSum;
+	unsigned uDevRole;
+	struct examine_result* next;
+};
+
 #endif
