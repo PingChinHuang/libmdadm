@@ -1894,7 +1894,7 @@ int assemble_container_content(struct supertype *st, int mdfd,
 
 	if (enough(content->array.level, content->array.raid_disks,
 		   content->array.layout, content->array.state & 1, avail) == 0) {
-		if (c->export && result)
+		if (c->_export && result)
 			*result |= INCR_NO;
 		else if (c->verbose >= 0) {
 			pr_err("%s assembled with %d device%s",
@@ -1912,7 +1912,7 @@ int assemble_container_content(struct supertype *st, int mdfd,
 	if (c->runstop <= 0 &&
 	    (working + preexist + expansion) <
 	    content->array.working_disks) {
-		if (c->export && result)
+		if (c->_export && result)
 			*result |= INCR_UNSAFE;
 		else if (c->verbose >= 0) {
 			pr_err("%s assembled with %d device%s",
@@ -1978,7 +1978,7 @@ int assemble_container_content(struct supertype *st, int mdfd,
 	    !start_reshape)
 		block_subarray(content);
 
-	if (c->export && result) {
+	if (c->_export && result) {
 		if (err)
 			*result |= INCR_NO;
 		else

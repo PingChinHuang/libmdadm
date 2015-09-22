@@ -221,7 +221,7 @@ int Detail(char *dev, struct context *c)
 	/* Ok, we have some info to print... */
 	str = map_num(pers, array.level);
 
-	if (c->export) {
+	if (c->_export) {
 		if (array.raid_disks) {
 			if (str)
 				printf("MD_LEVEL=%s\n", str);
@@ -717,7 +717,7 @@ out:
 	return rv;
 }
 
-int Detail_Platform(struct superswitch *ss, int scan, int verbose, int export, char *controller_path)
+int Detail_Platform(struct superswitch *ss, int scan, int verbose, int _export, char *controller_path)
 {
 	/* display platform capabilities for the given metadata format
 	 * 'scan' in this context means iterate over all metadata types
@@ -725,7 +725,7 @@ int Detail_Platform(struct superswitch *ss, int scan, int verbose, int export, c
 	int i;
 	int err = 1;
 
-	if (ss && export && ss->export_detail_platform)
+	if (ss && _export && ss->export_detail_platform)
 		err = ss->export_detail_platform(verbose, controller_path);
 	else if (ss && ss->detail_platform)
 		err = ss->detail_platform(verbose, 0, controller_path);
@@ -754,7 +754,7 @@ int Detail_Platform(struct superswitch *ss, int scan, int verbose, int export, c
 			if (verbose > 0)
 				pr_err("%s metadata is platform independent\n",
 					meta->name ? : "[no name]");
-		} else if (export && meta->export_detail_platform) {
+		} else if (_export && meta->export_detail_platform) {
 			err |= meta->export_detail_platform(verbose, controller_path);
 		} else
 			err |= meta->detail_platform(verbose, 0, controller_path);

@@ -145,7 +145,7 @@ int Examine(struct mddev_dev *devlist,
 				ap->spares++;
 			d = dl_strdup(devlist->devname);
 			dl_add(ap->devs, d);
-		} else if (c->export) {
+		} else if (c->_export) {
 			if (st->ss->export_examine_super)
 				st->ss->export_examine_super(st);
 			st->ss->free_super(st);

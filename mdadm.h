@@ -339,7 +339,7 @@ struct context {
 	char	*homehost;
 	int	require_homehost;
 	char	*prefer;
-	int	export;
+	int	_export;
 	int	test;
 	char	*subarray;
 	char	*update;
@@ -1163,7 +1163,7 @@ extern int Create(struct supertype *st, char *mddev,
 		  unsigned long long data_offset);
 
 extern int Detail(char *dev, struct context *c);
-extern int Detail_Platform(struct superswitch *ss, int scan, int verbose, int export, char *controller_path);
+extern int Detail_Platform(struct superswitch *ss, int scan, int verbose, int _export, char *controller_path);
 extern int Query(char *dev);
 extern int ExamineBadblocks(char *devname, int brief, struct supertype *forcest);
 extern int Examine(struct mddev_dev *devlist, struct context *c,

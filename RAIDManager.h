@@ -26,7 +26,7 @@ struct RAIDDiskInfo {
 	, m_iNumber(0)
 	, m_iRaidDisk(0)
 	{
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < 4; i++) {
 			m_RaidUUID[i] = 0;
 		}
 	}
@@ -61,9 +61,9 @@ struct RAIDDiskInfo {
 			m_strDevName == rhs.m_strDevName &&
 			m_iState == rhs.m_iState &&
 			m_iNumber == rhs.m_iNumber &&
-			m_iRaidDisk = rhs.m_iRaidDisk)
+			m_iRaidDisk == rhs.m_iRaidDisk);
 	}
-}
+};
 
 struct RAIDInfo {
 	vector<RAIDDiskInfo>	m_vDiskList;
@@ -95,12 +95,12 @@ struct RAIDInfo {
 	bool			m_bMount;
 	
 	RAIDInfo()
-	: m_strVolume("")
+	: m_strVolumeName("")
 	, m_strDevNodeName("")
 	, m_strMountPoint("")
 	, m_ullTotalCapacity(0ull)
 	, m_iRAIDLevel(UnSet)
-	, m_iDiskNum(0)
+	, m_iTotalDiskNum(0)
 	{
 		for (int i = 0; i < 4; i ++)
 			m_UUID[i] = 0;
@@ -146,7 +146,7 @@ struct RAIDInfo {
 
 	RAIDInfo& operator=(const RAIDInfo& rhs)
 	{
-		if (*this == rhs)
+		if (this == &rhs)
 			return *this;
 
 		m_vDiskList.clear();

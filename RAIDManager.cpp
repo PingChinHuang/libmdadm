@@ -135,10 +135,10 @@ void RAIDManager::InitializeContext(struct context& c, int force, int runstop, i
 	c.brief = 0;
 }
 
-void RAIDManager::InitializeMDDevIdent(struct mddev_ident& ident, const string& str_uuid, int uuid[4], int bitmap_fd, char* bitmap_file)
+void RAIDManager::InitializeMDDevIdent(struct mddev_ident& ident, int uuid_set, const string& str_uuid, int bitmap_fd, char* bitmap_file)
 {
 	ident.uuid_set = uuid_set;
-	parse_uuid(str_uuid.c_str(), ident.uuid);
+	parse_uuid((char*)str_uuid.c_str(), ident.uuid);
 	ident.super_minor = UnSet;
 	ident.level = UnSet;
 	ident.raid_disks = UnSet;
@@ -153,12 +153,12 @@ bool RAIDManager::InitializeDevListForReplace(struct mddev_dev* devlist, const s
 	struct mddev_dev* dv = NULL;
 
 	devlist = NULL;
-	dv = malloc(sizeof(struct mddev_dev));
+	dv = (struct mddev_dev*)malloc(sizeof(struct mddev_dev));
 	if (dv == NULL) {
 		// TODO: Write HW logs.
 		return false;
 	}
-	dv->devname = replace.c_str();
+	dv->devname = (char*)replace.c_str();
 	dv->disposition = 'R';
 	dv->writemostly = 0;
 	dv->used = 0;
@@ -166,12 +166,12 @@ bool RAIDManager::InitializeDevListForReplace(struct mddev_dev* devlist, const s
 	*devlistend = dv;
 	devlistend = &dv->next;
 
-	dv = malloc(sizeof(struct mddev_dev));
+	dv = (struct mddev_dev*)malloc(sizeof(struct mddev_dev));
 	if (dv == NULL) {
 		// TODO: Write HW logs.
 		return false;
 	}
-	dv->devname = with.c_str();
+	dv->devname = (char*)with.c_str();
 	dv->disposition = 'w';
 	dv->writemostly = 0;
 	dv->used = 0;
@@ -189,12 +189,12 @@ bool RAIDManager::InitializeDevList(struct mddev_dev* devlist, const vector<stri
 
 	devlist = NULL;
 	for (size_t i = 0; i < devNameList.size(); i ++) {
-		dv = malloc(sizeof(struct mddev_dev));
+		dv = (struct mddev_dev*)malloc(sizeof(struct mddev_dev));
 		if (dv == NULL) {
 			// TODO: Write HW logs.
 			return false;
 		}
-		dv->devname = devNameList[i].c_str();
+		dv->devname = (char*)devNameList[i].c_str();
 		dv->disposition = 0;
 		dv->writemostly = 0;
 		dv->used = 0;

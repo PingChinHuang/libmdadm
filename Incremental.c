@@ -140,7 +140,7 @@ int Incremental(struct mddev_dev *devlist, struct context *c,
 			if (map_lock(&map))
 				pr_err("failed to get "
 				       "exclusive lock on mapfile\n");
-			if (c->export)
+			if (c->_export)
 				printf("MD_DEVNAME=%s\n", devname);
 			rv = Incremental_container(st, devname, c, NULL);
 			map_unlock(&map);
@@ -480,7 +480,7 @@ int Incremental(struct mddev_dev *devlist, struct context *c,
 		md_devname = chosen_name+8;
 	else
 		md_devname = chosen_name;
-	if (c->export) {
+	if (c->_export) {
 		printf("MD_DEVICE=%s\n", fd2devnm(mdfd));
 		printf("MD_DEVNAME=%s\n", md_devname);
 		printf("MD_FOREIGN=%s\n", trustworthy == FOREIGN ? "yes" : "no");
@@ -492,7 +492,7 @@ int Incremental(struct mddev_dev *devlist, struct context *c,
 		char devnm[32];
 		/* Try to assemble within the container */
 		sysfs_uevent(sra, "change");
-		if (!c->export && c->verbose >= 0)
+		if (!c->_export && c->verbose >= 0)
 			pr_err("container %s now has %d device%s\n",
 			       chosen_name, info.array.working_disks,
 			       info.array.working_disks == 1?"":"s");
@@ -524,7 +524,7 @@ int Incremental(struct mddev_dev *devlist, struct context *c,
 	if (enough(info.array.level, info.array.raid_disks,
 		   info.array.layout, info.array.state & 1,
 		   avail) == 0) {
-		if (c->export) {
+		if (c->_export) {
 			printf("MD_STARTED=no\n");
 		} else if (c->verbose >= 0)
 			pr_err("%s attached to %s, not enough to start (%d).\n",
@@ -540,7 +540,7 @@ int Incremental(struct mddev_dev *devlist, struct context *c,
 	/*   + start the array (auto-readonly). */
 
 	if (ioctl(mdfd, GET_ARRAY_INFO, &ainf) == 0) {
-		if (c->export) {
+		if (c->_export) {
 			printf("MD_STARTED=already\n");
 		} else if (c->verbose >= 0)
 			pr_err("%s attached to %s which is already active.\n",
@@ -593,7 +593,7 @@ int Incremental(struct mddev_dev *devlist, struct context *c,
 		 */
 		reopen_mddev(mdfd);
 		if (rv == 0) {
-			if (c->export) {
+			if (c->_export) {
 				printf("MD_STARTED=yes\n");
 			} else if (c->verbose >= 0)
 				pr_err("%s attached to %s, which has been started.\n",
@@ -618,7 +618,7 @@ int Incremental(struct mddev_dev *devlist, struct context *c,
 			rv = 1;
 		}
 	} else {
-		if (c->export) {
+		if (c->_export) {
 			printf("MD_STARTED=unsafe\n");
 		} else if (c->verbose >= 0)
 			pr_err("%s attached to %s, not enough to start safely.\n",
@@ -1482,7 +1482,7 @@ static int Incremental_container(struct supertype *st, char *devname,
 	    info.container_enough > 0)
 		/* pass */;
 	else {
-		if (c->export) {
+		if (c->_export) {
 			printf("MD_STARTED=no\n");
 		} else if (c->verbose)
 			pr_err("not enough devices to start the container\n");
@@ -1506,7 +1506,7 @@ static int Incremental_container(struct supertype *st, char *devname,
 	list = st->ss->container_content(st, NULL);
 	/* when nothing to activate - quit */
 	if (list == NULL) {
-		if (c->export) {
+		if (c->_export) {
 			printf("MD_STARTED=nothing\n");
 		}
 		return 0;
@@ -1603,7 +1603,7 @@ static int Incremental_container(struct supertype *st, char *devname,
 					   chosen_name, &result);
 		close(mdfd);
 	}
-	if (c->export && result) {
+	if (c->_export && result) {
 		char sep = '=';
 		printf("MD_STARTED");
 		if (result & INCR_NO) {
