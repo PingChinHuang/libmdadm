@@ -137,7 +137,42 @@ void RAIDManager::InitializeMDDevIdent(struct mddev_ident& ident, const string& 
 	ident.bitmap_file = bitmap_file;
 }
 
-void RAIDManager::InitializeDevList(struct mddev_dev* devlist, const vector<string>& devNameList, int disposition)
+bool RAIDManager::InitializeDevListForReplace(struct mddev_dev* devlist, const string& replace, const string& with)
+{
+	struct mddev_dev** devlistend = &devlist;
+	struct mddev_dev* dv = NULL;
+
+	devlist = NULL;
+	dv = malloc(sizeof(struct mddev_dev));
+	if (dv == NULL) {
+		// TODO: Write HW logs.
+		return false;
+	}
+	dv->devname = replace.c_str();
+	dv->disposition = 'R';
+	dv->writemostly = 0;
+	dv->used = 0;
+	dv->next = NULL;
+	*devlistend = dv;
+	devlistend = &dv->next;
+
+	dv = malloc(sizeof(struct mddev_dev));
+	if (dv == NULL) {
+		// TODO: Write HW logs.
+		return false;
+	}
+	dv->devname = with.c_str();
+	dv->disposition = 'w';
+	dv->writemostly = 0;
+	dv->used = 0;
+	dv->next = NULL;
+	*devlistend = dv;
+	devlistend = &dv->next;
+
+	return true;
+}
+
+bool RAIDManager::InitializeDevList(struct mddev_dev* devlist, const vector<string>& devNameList, int disposition)
 {
 	struct mddev_dev** devlistend = &devlist;
 	struct mddev_dev* dv = NULL;
@@ -147,7 +182,7 @@ void RAIDManager::InitializeDevList(struct mddev_dev* devlist, const vector<stri
 		dv = malloc(sizeof(struct mddev_dev));
 		if (dv == NULL) {
 			// TODO: Write HW logs.
-			return;
+			return false;
 		}
 		dv->devname = devNameList[i].c_str();
 		dv->disposition = 0;
@@ -157,6 +192,8 @@ void RAIDManager::InitializeDevList(struct mddev_dev* devlist, const vector<stri
 		*devlistend = dv;
 		devlistend = &dv->next;
 	}
+
+	return true;
 }
 
 void RAIDManager::FreeDevList(struct mddev_dev* devlist)
@@ -175,6 +212,8 @@ bool RAIDManager::CreateRAID(const string& mddev, const vector<string>& vDevList
 			empty string -> return false;
 		2. Check devList
 			no device (empty vector) > return false
+		3.[CS] mddev exist in m_vRAIDInfoList or not
+			Yes -> return false 
 
 		[CS Start] Protect m_vRAIDDiskList
 		3. Check whether devices in devList exist in m_vRAIDDiskList or not.
@@ -184,6 +223,7 @@ bool RAIDManager::CreateRAID(const string& mddev, const vector<string>& vDevList
 		4. InitializeShape(s, vDevList.size(), level, 512)
 		5. InitializeContext(c)
 		6. InitializeDevList(devlist, vDevList)
+			6.1 false -> FreeDevList(devlist) -> return false
 		7. ret = Create(NULL, mddev.c_str(), "\0", NULL, vDevList.size(), devlist, &s, &c, INVALID_SECTORS)
 			7.1 ret != 0 -> Write HW Log ->9
 			7.2 ret == 0 -> 8
@@ -201,11 +241,13 @@ bool RAIDManager::AssembleByRAIDUUID(const string& mddev, const string& str_uuid
 			empty -> return false
 		2. Check uuid
 			NULL -> return false
+		3. [CS] Check mddev exists in m_vRAIDInfoList or not
+			Yes -> return false
 
-		3. InitializeMDDevIdent(ident, 1, str_uuid)
-		4. ret = Assemble(NULL, mddev.c_str(), &ident, NULL, &c);
+		4. InitializeMDDevIdent(ident, 1, str_uuid)
+		5. ret = Assemble(NULL, mddev.c_str(), &ident, NULL, &c);
 			4.1 ret != 0 -> Write HW Log -> return false
-		5. return UpdateRAIDInfo(mddev)
+		6. return UpdateRAIDInfo(mddev)
 	*/	
 }
 
@@ -216,19 +258,22 @@ bool RAIDManager::AssembleByRAIDDisks(const string& mddev, const vector<string>&
 			empty -> return false
 		2. Check vDevList 
 			empty -> return false
+		3. [CS] Check mddev exists in m_vRAIDInfoList or not
+			Yes -> return false
 
 		[CS Start] Protect m_vRAIDDiskList
-		3. Check whether devices in devList exist in m_vRAIDDiskList or not.
+		4. Check whether devices in devList exist in m_vRAIDDiskList or not.
 			Any device does not exist in m_vRAIDDiskList -> return false
 		[CS End]
 
-		4. InitializeMDDevIdent(ident, 0, "");
-		5. InitalizeDevList(devlist, vDevList);
-		6. ret = Assemble(NULL, mddev.c_str(), &ident, devlist, &c);
-			6.1 ret != 0 -> Write HW Log
-		7. FreeDevList(devlist)
+		5. InitializeMDDevIdent(ident, 0, "");
+		6. InitalizeDevList(devlist, vDevList);
+			6.1 false -> FreeDevlist(devlist) -> return false
+		7. ret = Assemble(NULL, mddev.c_str(), &ident, devlist, &c);
+			7.1 ret != 0 -> Write HW Log
+		8. FreeDevList(devlist)
 		
-		8.
+		9.
 		if (ret != 0)
 			return false;
 		else
@@ -244,24 +289,32 @@ bool RAIDManager::ManageRAIDSubdevs(const string& mddev, const vector<string>& v
 			empty -> return false
 		2. Check vDevList 
 			empty -> return false
+		3. [CS] Check mddev exists in m_vRAIDInfoList or not
+			No -> return false
 
 		[CS Start] Protect m_vRAIDDiskList
-		3. Check whether devices in devList exist in m_vRAIDDiskList or not.
+		4. Check whether devices in devList exist in m_vRAIDDiskList or not.
 			Any device does not exist in m_vRAIDDiskList -> return false
 		[CS End]
 	
-		4. fd = open_mddev(mddev.c_str(), 1)
+		5. fd = open_mddev(mddev.c_str(), 1)
 			4.1 fd < 0 -> return false
-			4.2 other ->5
+			4.2 other ->6
 
-		5. InitializeDevList(devlist, vDevList, operation);
-		6. InitializeContext(c)
-		7. ret = Manage_subdevs(mddev.c_str(), fd, devlist, c.verbose, 0, 0, c.force);
+		6.
+			if (disposition == 'R')
+				if vDevList.size != 2 close(fd);return false;
+				InitializeDevListForReplace(devlist, vDevList[0], vDevList[1])
+			else
+				InitializeDevList(devlist, vDevList, operation);
+			6.1 false -> FreeDevlist(devlist) -> return false
+		7. InitializeContext(c)
+		8. ret = Manage_subdevs(mddev.c_str(), fd, devlist, c.verbose, 0, NULL, c.force);
 			ret != 0 -> Write HW Log
-		8. close(fd)
-		9. FreeDevList(devlist) 
+		9. close(fd)
+		10. FreeDevList(devlist) 
 
-		10.
+		11.
 		if (ret != 0)
 			return false;
 		else
@@ -271,32 +324,48 @@ bool RAIDManager::ManageRAIDSubdevs(const string& mddev, const vector<string>& v
 
 bool RAIDManager::RemoveDisksFromRAID(const string& mddev, const vector<string>& vDevList)
 {
-
+	return ManageRAIDSubdevs(mddev, vDevList, 'r');
 }
 
-bool RAIDManager::MarkFaultyDisksInRAID()
+bool RAIDManager::MarkFaultyDisksInRAID(const string& mddev, const vector<string>& vDevList)
 {
-
+	return ManageRAIDSubdevs(mddev, vDevList, 'f');
 }
 
-bool RAIDManager::AddDisksIntoRAID()
+bool RAIDManager::AddDisksIntoRAID(const string& mddev, const vector<string>& vDevList)
 {
-
+	return ManageRAIDSubdevs(mddev, vDevList, 'a');
 }
 
-bool RAIDManager::ReaddDisksIntoRAID()
+bool RAIDManager::ReaddDisksIntoRAID(const string& mddev, const vector<string>& vDevList)
 {
-
+	return ManageRAIDSubdevs(mddev, vDevList, 'A');
 }
 
-bool RAIDManager::ReplaceDisksInRAID()
+bool RAIDManager::ReplaceDisksInRAID(const string& mddev, const vector<string>& vDevList)
 {
-
+	return ManageRAIDSubdevs(mddev, vDevList, 'R');
 }
 
-bool RAIDManager::DeleteRAID()
+bool RAIDManager::DeleteRAID(const string& mddev)
 {
-
+	/*
+		1. Check mddev
+			empty -> return false
+		2. If mddev exist in m_vRAIdInfoList
+			No -> return true;
+			Yes -> 3
+		3. fd = open_mddev(mddev.c_str(), 1);
+			fd < 0 -> return false;
+		4. ret = Manage_stop(mddev.c_str(), fd, 1, 0);
+			ret != 0 -> close(fd) -> close(fd);return false;
+			ret == 0 -> 5
+		5. close(fd)
+		6. Remove mddev from m_vRAIDInfoList, keep a RAID disks list copy for later use.
+		7. InitializeContext(c)
+		8. For all raid disks in mddev: ret = Kill(devname, NULL, c.force, c.verbose, 0);
+			Write HW Log if ret != 0 
+	*/
 }
 
 
