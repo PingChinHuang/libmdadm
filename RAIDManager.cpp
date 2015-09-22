@@ -1,6 +1,7 @@
 #include "RAIDManager.h"
 
 RAIDManager::RAIDManager()
+: m_bRAIDInfoListUpdating(false)
 {
 
 }
@@ -342,8 +343,15 @@ bool RAIDManager::ReaddDisksIntoRAID(const string& mddev, const vector<string>& 
 	return ManageRAIDSubdevs(mddev, vDevList, 'A');
 }
 
-bool RAIDManager::ReplaceDisksInRAID(const string& mddev, const vector<string>& vDevList)
+bool RAIDManager::ReplaceDisksInRAID(const string& mddev, const string& replace, const string& with)
 {
+	if (replace.empty() || with.empty())
+		return false;
+
+	vector<string> vDevList;
+	vDevList.push_back(replace);
+	vDevList.push_back(with);
+
 	return ManageRAIDSubdevs(mddev, vDevList, 'R');
 }
 
@@ -368,4 +376,12 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 	*/
 }
 
+void RAIDManager::GetRAIDInfo(const string& mddev, RAIDInfo& info)
+{
 
+}
+
+void RAIDManager::GetRAIDInfo(vector<RAIDInfo>& list)
+{
+
+}

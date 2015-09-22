@@ -187,13 +187,6 @@ private:
 	bool m_bRAIDInfoListUpdating;
 
 private:
-	bool Assemble();
-	bool Manage();
-	bool Kill();
-	bool Stop();
-	bool Examine();
-	bool Detail();
-
 	vector<RAIDInfo>::iterator SearchDiskBelong2RAID(const string& dev);
 
 	void InitializeShape(struct shape& s, int raiddisks, int level, int chunk = 512, int bitmap_chunk = UnSet, char* bitmap_file = NULL);
@@ -210,17 +203,20 @@ public:
 	bool AddRAIDDisk(const string& dev);
 	bool RemoveRAIDDisk(const string& dev);
 
-	bool CreateRAID();
-	bool AssembleByRAIDUUID();
-	bool AssembleByRAIDDisks();
+	bool CreateRAID(const string& mddev, const vector<string>& vDevList, int level);
+	bool AssembleByRAIDUUID(const string& mddev, const string& str_uuid);
+	bool AssembleByRAIDDisks(const string& mddev, const vector<string>& vDevList);
 	bool ManageRAIDSubdevs(const string& mddev, const vector<string>& vDevList, int operation);
-	bool RemoveDisksFromRAID();
-	bool MarkFaultyDisksInRAID();
-	bool AddDisksIntoRAID();
-	bool ReaddDisksIntoRAID();
-	bool ReplaceDisksInRAID();
-	bool DeleteRAID();
-	bool GetRAIDInfo();
+	bool RemoveDisksFromRAID(const string& mddev, const vector<string>& vDevList);
+	bool MarkFaultyDisksInRAID(const string& mddev, const vector<string>& vDevList);
+	bool AddDisksIntoRAID(const string& mddev, const vector<string>& vDevList);
+	bool ReaddDisksIntoRAID(const string& mddev, const vector<string>& vDevList);
+	bool ReplaceDisksInRAID(const string& mddev, const string& replace, const string& with);
+	bool DeleteRAID(const string& mddev);
+
+	void GetRAIDInfo(const string& mddev, RAIDInfo& info);
+	void GetRAIDInfo(vector<RAIDInfo>& list);
+
 	bool UpdateRAIDInfo(); // May need for periodically update.
 	bool UpdateRAIDInfo(const string& mddev);
 	bool UpdateRAIDInfo(const int uuid[4]);
