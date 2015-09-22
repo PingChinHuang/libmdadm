@@ -214,7 +214,7 @@ public:
 	bool ReplaceDisksInRAID(const string& mddev, const string& replace, const string& with);
 	bool DeleteRAID(const string& mddev);
 
-	void GetRAIDInfo(const string& mddev, RAIDInfo& info);
+	bool GetRAIDInfo(const string& mddev, RAIDInfo& info);
 	void GetRAIDInfo(vector<RAIDInfo>& list);
 
 	bool UpdateRAIDInfo(); // May need for periodically update.

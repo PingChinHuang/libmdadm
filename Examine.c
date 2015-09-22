@@ -258,6 +258,9 @@ int Examine_ToResult(struct mddev_dev *devlist,
 		int spares;
 	} *arrays = NULL;
 
+	if (result == NULL)
+		return EXAMINE_NULL_POINTER;
+
 	for (; devlist ; devlist = devlist->next) {
 		struct supertype *st;
 		int have_container = 0;

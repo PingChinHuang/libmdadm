@@ -1,5 +1,7 @@
 #include "RAIDManager.h"
 
+#include "common/file.h"
+
 RAIDManager::RAIDManager()
 : m_bRAIDInfoListUpdating(false)
 {
@@ -14,13 +16,14 @@ RAIDManager::~RAIDManager()
 bool RAIDManager::AddRAIDDisk(const string& dev)
 {
 	/*
-		1. Check device node exists or not
+		0. dev is empty -> return false
+		1. Check device node exists or not (SYSUTILS::CheckBlockDevice)
 			1.1 Yes -> 2
 			1.2 No -> return false
 		[CS Start] Protect m_vRAIDDiskList
-		2. Examine() to check MD superblock
+		2. ret = Examine_ToResult() to check MD superblock
 			2.1 Has MD superblock -> 3
-			2.2 No MD superblock -> 3
+			2.2 ret == EXAMINE_NO_MD_SUPERBLOCK -> 3
 		3. Exist in m_vRAIDDiskList?
 			3.1 Yes
 				Come from 2.2 return true
@@ -33,7 +36,7 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 		4. SearchDiskBelong2RAID()
 			4.1 Has Active RAID in m_vRAIDInfoList 
 				4.1.1 Disk is active/spare in RAID -> return true
-				4.1.2 Disk is faulty in RAID -> RemoveDiskFromRAID() -> ReaddDiskIntoRAID() -> 6
+				4.1.2 Disk is faulty in RAID -> RemoveDiskFromRAID() -> AddDiskIntoRAID() -> 6
 				4.1.3 ReaddDiskIntoRAID() -> 6
 			4.2 No Active RAID in m_vRAIDInfoList -> 5
 		
@@ -48,6 +51,8 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 vector<RAIDInfo>::iterator RAIDManager::SearchDiskBelong2RAID(const string& dev)
 {
 	/*
+		0. dev is empty -> return false
+
 		[CS Start] Protect m_vRAIDInfoList
 		1. Search dev in m_vRAIDInfoList.vDiskList
 			1.1 Exist a RAID return its iterator
@@ -63,6 +68,7 @@ bool RAIDManager::RemoveRAIDDisk(const string& dev)
 		And just keep this status and it should be updated
 		after UpdateRAIDInfo finished.
 
+		0. dev is empty -> return false
 
 		[CS Start] Protect m_vRAIDDiskList
 		1. Exist in m_vRAIDDiskList?
@@ -78,8 +84,11 @@ bool RAIDManager::UpdateRAIDInfo(const string& mddev)
 {
 	/*
 		Update RAID object by mddev name.
+		
+		0. mddev is empty -> return false
+
 		[CS Start] Protect m_vRAIDInfoList
-		1. Detail(mddev)
+		1. Detail_ToArrayDetail(mddev)
 		2. Erase old one and push new one
 		[CS End]
 	*/
@@ -376,9 +385,17 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 	*/
 }
 
-void RAIDManager::GetRAIDInfo(const string& mddev, RAIDInfo& info)
+bool RAIDManager::GetRAIDInfo(const string& mddev, RAIDInfo& info)
 {
-
+	/*
+		1. Check mddev
+			empty -> return false
+		[CS Start] protect m_vRAIDInfoList
+		2. Look for mddev in m_vRAIDInfoList
+			2.1 Exist -> Copy to info -> return true (found)
+		[CS End]
+		3. return false (not found)
+	*/
 }
 
 void RAIDManager::GetRAIDInfo(vector<RAIDInfo>& list)
