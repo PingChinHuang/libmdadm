@@ -61,7 +61,7 @@ struct query_result {
 struct examine_result {
 	char cState; /* Active: 'A', Spare: 'S', Replacement: 'R' */
 	char strDevName[32];
-	unsigned char arrayUUID[16];
+	int arrayUUID[4];
 	unsigned uRaidLevel;
 	unsigned uRaidDiskNum;
 	unsigned bHasBadblock;

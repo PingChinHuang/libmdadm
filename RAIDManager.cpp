@@ -1,8 +1,7 @@
 #include "RAIDManager.h"
 
 #include "common/file.h"
-
-using namespace SYSUTILS_SPACE;
+#include "common/string.h"
 
 RAIDManager::RAIDManager()
 : m_bRAIDInfoListUpdating(false)
@@ -27,13 +26,12 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 	if (!CheckBlockDevice(dev))
 		return false;
 	
-	/*[CS Start] Protect m_vRAIDDiskList*/
 	/*2. ret = Examine_ToResult() to check MD superblock
 		2.1 Has MD superblock -> 3
 		2.2 ret == EXAMINE_NO_MD_SUPERBLOCK -> 3*/
 	vector<string> vDevList;
 	struct examine_result result;
-	struct mddev_dev* devlist;
+	struct mddev_dev* devlist = NULL;
 	struct context c;
 	int ret = SUCCESS;
 
@@ -44,6 +42,8 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 	InitializeContext(c);
 	ret = Examine_ToResult(devlist, &c, NULL, &result);
 
+	/*[CS Start] Protect m_vRAIDDiskList*/
+	m_csRAIDDiskList.Lock();
 	/*3. Exist in m_vRAIDDiskList?
 		3.1 Yes
 			Come from 2.2 return true
@@ -51,23 +51,21 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 		3.2 No -> Push into m_vRAIDDiskLisit
 			Come from 2.2 return true
 			Come from 2.1 -> 4*/
+	RAIDDiskInfo info;
 	vector<RAIDDiskInfo>::iterator it = m_vRAIDDiskList.begin();
-	bool bExist = false;
 	while (it != m_vRAIDDiskList.end()) {
 		if (it->m_strDevName == dev) {
-			bExist = true;
+			info.m_strDevName = result.strDevName;
+			info.m_iNumber = result.uDevRole;
+			info.m_iRaidDisk = result.uRaidDiskNum;
+			memcpy(info.m_RaidUUID, result.arrayUUID, sizeof(int) * 4);
+			m_vRAIDDiskList.push_back(info);
 			break;
 		}
 		it ++;
 	}
-
-		RAIDDiskInfo info;
-	if (!bExist) {
-		RAIDDiskInfo info;
-		// TODO: Copy result content into info
-		m_vRAIDDiskList.push_back(info);
-
-	}
+	/*[CS End]*/
+	m_csRAIDDiskList.Unlock();
 
 	if (ret == EXAMINE_NO_MD_SUPERBLOCK) {
 		return true;
@@ -75,7 +73,6 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 		// TODO: Write HW Log
 		return false;
 	}
-	/*[CS End]*/
 
 	/*4. SearchDiskBelong2RAID()
 		4.1 Has Active RAID in m_vRAIDInfoList 
@@ -84,32 +81,110 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 			4.1.3 ReaddDiskIntoRAID() -> 6
 		4.2 No Active RAID in m_vRAIDInfoList -> 5
 	*/
-	vector<RAIDInfo>::iterator raid_it = SearchDiskBelong2RAID(dev);
-	if (raid_it != m_vRAIDInfoList.end()) {
-		// TODO: 4.1
-		// if (raid_it->m_vDiskList.)
-	} 
+	string mddev;
+	vector<RAIDInfo>::iterator raid_it = SearchDiskBelong2RAID(dev, info);
+	if (raid_it != m_vRAIDInfoList.end()) { // 4.1
+		if ((info.m_iState & (1 << MD_DISK_ACTIVE)) ||
+		    (info.m_iState & ((1 << MD_DISK_ACTIVE) | (1 << MD_DISK_SYNC) | (1 << MD_DISK_REMOVED) | (1 << MD_DISK_FAULTY))) == 0
+		) {
+			// 4.1.1
+			return true;
+		} else if (info.m_iState & (1 << MD_DISK_FAULTY)) {
+			// 4.1.2
+			vector<string> vDevList;
+			vDevList.push_back(dev);
+			ret = RemoveDisksFromRAID(raid_it->m_strDevNodeName, vDevList);
+			if (ret == SUCCESS) {
+				ret = AddDisksIntoRAID(raid_it->m_strDevNodeName, vDevList);
+				if (ret != SUCCESS) {
+					// TODO: Write Log
+					// We still need to upate raid info list because remove was done successfully.
+				}
+			} else {
+				// TODO: Write Log
+				return true; // Treat it as normal, and should be solved by manually. We don't need to update list.
+			}
+		} else {
+			// 4.1.3
+			vector<string> vDevList;
+			vDevList.push_back(dev);
+			ret = ReaddDisksIntoRAID(raid_it->m_strDevNodeName, vDevList);
+			if (ret != SUCCESS) {
+				// TODO: Write Log
+				return true;
+			}
+		}
+	} else { // 4.2
+			/*	5. Check whether there are enough disk for assembling.
+				5.1 enough -> AssembleByRAIDUUID() -> 6
+				5.2 not enough -> return true	*/
+		int counter = 1; // count disk has the same uuid. Initial value is 1 for this newly added disk.
+		CriticalSectionLock cs_disk(&m_csRAIDDiskList);
+		for (size_t i = 0; i < m_vRAIDDiskList.size(); i++) {
+			if (info.m_strDevName == m_vRAIDDiskList[i].m_strDevName) // Bypass itself
+				continue;
 
-	/*		
-		5. Check whether there are enough disk for assembling.
-			5.1 enough -> AssembleByRAIDUUID() -> 6
-			5.2 not enough -> return true
+			// The list include other disks which has the same array id of this newly added disk.
+			if (0 == memcmp(info.m_RaidUUID, m_vRAIDDiskList[i].m_RaidUUID, sizeof(int) * 4))
+				counter++;
+		}
+		
+		if (counter >= info.m_iRaidDisk) {
+			int freeMD = 0;
+			CriticalSectionLock cs_md(&m_csUsedMD);
+			for (; freeMD < 128; freeMD++) {
+				if (!m_bUsedMD[freeMD]) {
+					break;
+				}
+			}
 
-		6.  UpdateRAIDInfo(mddev)
-	*/
+			if (freeMD >= 128) {
+				// TODO: HW Log, exceed maxmimal raid device number.
+				return true;
+			}
+
+			mddev = string_format("/dev/md%d", freeMD);
+			ret = AssembleByRAIDUUID(mddev, info.m_RaidUUID);
+			if (ret != SUCCESS) {
+				// TODO: HW Log
+				return true; // Treat it as normal, and should be solved by manually. We don't need to update list.
+			}
+		}
+	}
+
+	/* 6.  UpdateRAIDInfo(mddev) */
+	UpdateRAIDInfo(mddev);
+	return true;
 }
 
-vector<RAIDInfo>::iterator RAIDManager::SearchDiskBelong2RAID(const string& dev)
+vector<RAIDInfo>::iterator RAIDManager::SearchDiskBelong2RAID(const string& dev, RAIDDiskInfo& devInfo)
 {
-	/*
-		0. dev is empty -> return false
+	/* 0. dev is empty -> return false */
+	if (dev.empty())
+		return m_vRAIDInfoList.end();
 
+	/*
 		[CS Start] Protect m_vRAIDInfoList
 		1. Search dev in m_vRAIDInfoList.vDiskList
 			1.1 Exist a RAID return its iterator
 			1.2 Not exist a RAID return m_vRAIDInfoList.end()
 		[CS End]		
 	*/
+	CriticalSectionLock cs(&m_csRAIDInfoList);
+	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
+	while (it != m_vRAIDInfoList.end()) {
+		vector<RAIDDiskInfo>::iterator it_disk = it->m_vDiskList.begin();
+		while (it_disk != it->m_vDiskList.end()) {
+			if (it_disk->m_strDevName == dev) {
+				devInfo = *it_disk;
+				return it;
+			}
+		}
+
+		it ++;
+	}
+
+	return it;
 }
 
 bool RAIDManager::RemoveRAIDDisk(const string& dev)
@@ -186,16 +261,17 @@ void RAIDManager::InitializeContext(struct context& c, int force, int runstop, i
 	c.brief = 0;
 }
 
-void RAIDManager::InitializeMDDevIdent(struct mddev_ident& ident, int uuid_set, const string& str_uuid, int bitmap_fd, char* bitmap_file)
+void RAIDManager::InitializeMDDevIdent(struct mddev_ident& ident, int uuid_set, const int uuid[4], int bitmap_fd, char* bitmap_file)
 {
 	ident.uuid_set = uuid_set;
-	parse_uuid((char*)str_uuid.c_str(), ident.uuid);
 	ident.super_minor = UnSet;
 	ident.level = UnSet;
 	ident.raid_disks = UnSet;
 	ident.spare_disks = UnSet;
 	ident.bitmap_fd = bitmap_fd;
 	ident.bitmap_file = bitmap_file;
+	if (uuid_set)
+		memcpy(ident.uuid, uuid, sizeof(int) * 4);
 }
 
 bool RAIDManager::InitializeDevListForReplace(struct mddev_dev* devlist, const string& replace, const string& with)
@@ -295,7 +371,7 @@ bool RAIDManager::CreateRAID(const string& mddev, const vector<string>& vDevList
 	*/
 }
 
-bool RAIDManager::AssembleByRAIDUUID(const string& mddev, const string& str_uuid)
+bool RAIDManager::AssembleByRAIDUUID(const string& mddev, const int uuid[4])
 {
 	/*
 		1. Check mddev

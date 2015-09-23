@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
 	//Detail("/dev/md1", &c);
 #endif
 
-#if 0
+#if 1 
 	ret = Detail_ToArrayDetail("/dev/md1", &c, &ad);
 	printf("done\n");
 	printf("RAID State: %s\n", ad.strArrayState);
@@ -96,6 +96,14 @@ int main(int argc, char *argv[])
 		printf("Disk Number: %d\n", ad.arrayDisks[i].diskInfo.number);
 		printf("Disk Major: %d Minor: %d\n", ad.arrayDisks[i].diskInfo.major, ad.arrayDisks[i].diskInfo.minor);
 	}
+
+	unsigned char* p_uuid = ad.uuid;
+	for (i = 0; i < 16; i ++)
+		printf("%02X ", p_uuid[i]);
+
+	for (i = 0; i < 4; i++) 
+		printf("%08X" ,ad.uuid[i]);
+	printf("\n");
 #endif
 #if 0
 	int fd = open_mddev("/dev/md0", 1);
@@ -148,20 +156,25 @@ int main(int argc, char *argv[])
 		printf("%s: Disk Number %d, Activity %s, MD %s, Raid Disks %d, Raid Level %d(%s)\n", result.strDiskDevName, result.iDiskNumber, result.strDiskActivity, result.strMDDevName, result.iMDRaidDiskNum, result.iMDRaidLevel, result.strMDLevel);
 #endif
 
-
+#if 1
 	struct examine_result result;
 	ret = Examine_ToResult(devlist, &c, NULL, &result);
 //	for (result = list; result; result = result->next) {
 	if (result.bIsValid) {
 		printf("State %c, DevName %s, raid lv: %u, raid disk num: %u\n",
 			result.cState, result.strDevName, result.uRaidLevel, result.uRaidDiskNum);
-		for (i = 0; i < 16; i++) {
-			printf("%02X ", result.arrayUUID[i]);
+		unsigned char* p_arrayUUID = (unsigned char*)result.arrayUUID;
+		for (i = 0; i < 16; i++)
+			printf("%02X ", p_arrayUUID[i]);
+		for (i = 0; i < 4; i++) {
+			printf("%08X ", result.arrayUUID[i]);
 
 		}
+
 		printf("\n");
 	}
 //	}
+#endif
 
 	printf("ret = %d\n", ret);
 

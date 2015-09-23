@@ -509,6 +509,7 @@ static void examine_super1_result(struct supertype *st, char *homehost, struct e
 	struct mdp_superblock_1 *sb = st->sb;
 	int role;
 	int i;
+	unsigned char* p_uuid;
 
 	if (result == NULL)
 		return;
@@ -516,9 +517,10 @@ static void examine_super1_result(struct supertype *st, char *homehost, struct e
 	result->bIsValid = 0;
 	if (sb == NULL)
 		return;
-
+	
+	p_uuid = (unsigned char*) result->arrayUUID;
 	for (i=0; i<16; i++) {
-		result->arrayUUID[i] =  sb->set_uuid[i];
+		p_uuid[i] =  sb->set_uuid[i];
 	}
 	result->uRaidLevel = sb->level;
 	result->uRaidDiskNum = sb->raid_disks;

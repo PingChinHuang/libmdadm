@@ -1168,6 +1168,10 @@ extern int Query(char *dev);
 extern int ExamineBadblocks(char *devname, int brief, struct supertype *forcest);
 extern int Examine(struct mddev_dev *devlist, struct context *c,
 		   struct supertype *forcest);
+extern int Examine_ToResult(struct mddev_dev *devlist,
+            struct context *c,
+            struct supertype *forcest,
+            struct examine_result *result);
 extern int Monitor(struct mddev_dev *devlist,
 		   char *mailaddr, char *alert_cmd,
 		   struct context *c,

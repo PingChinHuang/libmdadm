@@ -1231,7 +1231,7 @@ int Detail_ToArrayDetail(char *dev, struct context *c, struct array_detail *ad)
 						strncat(ad->arrayDisks[disk_counter].strState, " rebuilding", 255);
 				}
 			}
-			ad->arrayDisks[d].strState[strlen(ad->arrayDisks[disk_counter].strState)] = '\0';
+			ad->arrayDisks[disk_counter].strState[strlen(ad->arrayDisks[disk_counter].strState)] = '\0';
 		}
 
 		dv=map_dev_preferred(disk.major, disk.minor, 0, c->prefer);

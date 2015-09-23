@@ -3,6 +3,8 @@
 
 #include "mdadm.h"
 
+#include "common/critical_section.h"
+
 #include <string>
 #include <vector>
 #include <iterator>
@@ -10,6 +12,7 @@
 #include <stdint.h>
 
 using namespace std;
+using namespace SYSUTILS_SPACE;
 
 struct RAIDDiskInfo {
 	string		m_strState;
@@ -40,6 +43,7 @@ struct RAIDDiskInfo {
 		m_iState = rhs.diskInfo.state;
 		m_iNumber = rhs.diskInfo.number;
 		m_iRaidDisk = rhs.diskInfo.raid_disk;
+		return *this;
 	}
 
 	RAIDDiskInfo& operator=(const RAIDDiskInfo& rhs)
@@ -142,6 +146,7 @@ struct RAIDInfo {
 		m_bSuperBlockPersistent = rhs.bIsSuperBlockPersistent == 1 ? true : false;
 		m_CreationTime = rhs.arrayInfo.ctime;
 		m_UpdateTime = rhs.arrayInfo.utime;
+		return *this;
 	}
 
 	RAIDInfo& operator=(const RAIDInfo& rhs)
@@ -150,7 +155,7 @@ struct RAIDInfo {
 			return *this;
 
 		m_vDiskList.clear();
-		for (int i = 0; i < rhs.m_vDiskList.size(); i++) {
+		for (size_t i = 0; i < rhs.m_vDiskList.size(); i++) {
 			m_vDiskList.push_back(rhs.m_vDiskList[i]);
 		}
 		
@@ -184,17 +189,25 @@ class RAIDManager {
 private:
 	vector<RAIDInfo> m_vRAIDInfoList;
 	vector<RAIDDiskInfo> m_vRAIDDiskList;
+	
+	CriticalSection m_csRAIDInfoList;
+	CriticalSection m_csRAIDDiskList;
+	CriticalSection m_csUsedMD;
+
 	bool m_bRAIDInfoListUpdating;
+	bool m_bUsedMD[128];
 
 private:
-	vector<RAIDInfo>::iterator SearchDiskBelong2RAID(const string& dev);
+	vector<RAIDInfo>::iterator SearchDiskBelong2RAID(const string& dev, RAIDDiskInfo& devInfo);
 
 	void InitializeShape(struct shape& s, int raiddisks, int level, int chunk = 512, int bitmap_chunk = UnSet, char* bitmap_file = NULL);
 	void InitializeContext(struct context& c, int force = 1, int runstop = 1, int verbose = 0);
-	void InitializeMDDevIdent(struct mddev_ident& ident, int uuid_set, const string& str_uuid, int bitmap_fd = -1, char* bitmap_file = NULL);
+	void InitializeMDDevIdent(struct mddev_ident& ident, int uuid_set, const int uuid[4], int bitmap_fd = -1, char* bitmap_file = NULL);
 	bool InitializeDevList(struct mddev_dev* devlist, const vector<string>& devNameList, int disposition = 0);
 	bool InitializeDevListForReplace(struct mddev_dev* devlist, const string& replace, const string& with);
 	void FreeDevList(struct mddev_dev* devlist);
+
+	bool IsMDUsed(int md);
 
 public:
 	RAIDManager();
@@ -204,7 +217,7 @@ public:
 	bool RemoveRAIDDisk(const string& dev);
 
 	bool CreateRAID(const string& mddev, const vector<string>& vDevList, int level);
-	bool AssembleByRAIDUUID(const string& mddev, const string& str_uuid);
+	bool AssembleByRAIDUUID(const string& mddev, const int uuid[4]);
 	bool AssembleByRAIDDisks(const string& mddev, const vector<string>& vDevList);
 	bool ManageRAIDSubdevs(const string& mddev, const vector<string>& vDevList, int operation);
 	bool RemoveDisksFromRAID(const string& mddev, const vector<string>& vDevList);

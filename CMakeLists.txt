@@ -7,6 +7,8 @@ ADD_DEFINITIONS(-DBINDIR="/sbin" -DDEBUG -g)
 #MESSAGE(${LIB_SRCFILE})
 #ADD_LIBRARY(mdadmobj_s STATIC ${LIB_SRCFILE})
 
+INCLUDE_DIRECTORIES(${SysUtilsPath})
+
 SET(MDADM_SRCFILE 
 	Manage.c
 	Grow.c
@@ -64,6 +66,7 @@ TARGET_LINK_LIBRARIES(
 	raidmgrobj
 
 	${CMAKE_CURRENT_BINARY_DIR}/libmdadmobj.so
+	${CMAKE_CURRENT_BINARY_DIR}/../common/lib/libcommonobj.so
 )
 
 ADD_SUBDIRECTORY(unitest)
