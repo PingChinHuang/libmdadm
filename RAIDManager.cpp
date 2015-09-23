@@ -193,17 +193,41 @@ bool RAIDManager::RemoveRAIDDisk(const string& dev)
 		When a disk is removed, it will be marked faulty.
 		And just keep this status and it should be updated
 		after UpdateRAIDInfo finished.
+	*/
 
-		0. dev is empty -> return false
+	/* 0. dev is empty -> return false */
+	if (dev.empty())
+		return false;
 
+	/*
 		[CS Start] Protect m_vRAIDDiskList
 		1. Exist in m_vRAIDDiskList?
 			1.1 Yes -> Remove from m_vRAIDDiskList -> 2
 			1.2 No -> return true;
 		[CS End]
-
-		2. UpdateRAIDInfo(uuid)
 	*/
+	m_csRAIDDiskList.Lock();
+	vector<RAIDDiskInfo>::iterator it = m_vRAIDDiskList.begin();
+	int uuid[4];
+	while (it != m_vRAIDDiskList.end()) {
+		if (it->m_strDevName == dev) {
+			memcpy(uuid, it->m_RaidUUID, sizeof(int) * 4);
+			break;
+		}
+		it++;
+	}
+
+	if (it == m_vRAIDDiskList.end()) {
+		m_csRAIDDiskList.Unlock();
+		return true;
+	}
+
+	m_vRAIDDiskList.erase(it);
+	m_csRAIDDiskList.Unlock();
+
+	/* 2. UpdateRAIDInfo(uuid) */
+	UpdateRAIDInfo(uuid);
+	return true;
 }
 
 bool RAIDManager::UpdateRAIDInfo(const string& mddev)
@@ -218,7 +242,6 @@ bool RAIDManager::UpdateRAIDInfo(const string& mddev)
 		2. Erase old one and push new one
 		[CS End]
 	*/
-
 }
 
 bool RAIDManager::UpdateRAIDInfo()
