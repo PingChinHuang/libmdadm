@@ -2,6 +2,8 @@
 
 #include "common/file.h"
 
+using namespace SYSUTILS_SPACE;
+
 RAIDManager::RAIDManager()
 : m_bRAIDInfoListUpdating(false)
 {
@@ -15,31 +17,80 @@ RAIDManager::~RAIDManager()
 
 bool RAIDManager::AddRAIDDisk(const string& dev)
 {
-	/*
-		0. dev is empty -> return false
-		1. Check device node exists or not (SYSUTILS::CheckBlockDevice)
-			1.1 Yes -> 2
-			1.2 No -> return false
-		[CS Start] Protect m_vRAIDDiskList
-		2. ret = Examine_ToResult() to check MD superblock
-			2.1 Has MD superblock -> 3
-			2.2 ret == EXAMINE_NO_MD_SUPERBLOCK -> 3
-		3. Exist in m_vRAIDDiskList?
-			3.1 Yes
-				Come from 2.2 return true
-				Come from 2.1 -> 4
-			3.2 No -> Push into m_vRAIDDiskLisit
-				Come from 2.2 return true
-				Come from 2.1 -> 4
-		[CS End]
+	/*0. dev is empty -> return false*/
+	if (dev.empty())
+		return false;
 
-		4. SearchDiskBelong2RAID()
-			4.1 Has Active RAID in m_vRAIDInfoList 
-				4.1.1 Disk is active/spare in RAID -> return true
-				4.1.2 Disk is faulty in RAID -> RemoveDiskFromRAID() -> AddDiskIntoRAID() -> 6
-				4.1.3 ReaddDiskIntoRAID() -> 6
-			4.2 No Active RAID in m_vRAIDInfoList -> 5
-		
+	/*1. Check device node exists or not (SYSUTILS::CheckBlockDevice)
+		1.1 Yes -> 2
+		1.2 No -> return false*/
+	if (!CheckBlockDevice(dev))
+		return false;
+	
+	/*[CS Start] Protect m_vRAIDDiskList*/
+	/*2. ret = Examine_ToResult() to check MD superblock
+		2.1 Has MD superblock -> 3
+		2.2 ret == EXAMINE_NO_MD_SUPERBLOCK -> 3*/
+	vector<string> vDevList;
+	struct examine_result result;
+	struct mddev_dev* devlist;
+	struct context c;
+	int ret = SUCCESS;
+
+	if (!InitializeDevList(devlist, vDevList)) {
+		FreeDevList(devlist); // For Safety;
+		return false;
+	}
+	InitializeContext(c);
+	ret = Examine_ToResult(devlist, &c, NULL, &result);
+
+	/*3. Exist in m_vRAIDDiskList?
+		3.1 Yes
+			Come from 2.2 return true
+			Come from 2.1 -> 4
+		3.2 No -> Push into m_vRAIDDiskLisit
+			Come from 2.2 return true
+			Come from 2.1 -> 4*/
+	vector<RAIDDiskInfo>::iterator it = m_vRAIDDiskList.begin();
+	bool bExist = false;
+	while (it != m_vRAIDDiskList.end()) {
+		if (it->m_strDevName == dev) {
+			bExist = true;
+			break;
+		}
+		it ++;
+	}
+
+		RAIDDiskInfo info;
+	if (!bExist) {
+		RAIDDiskInfo info;
+		// TODO: Copy result content into info
+		m_vRAIDDiskList.push_back(info);
+
+	}
+
+	if (ret == EXAMINE_NO_MD_SUPERBLOCK) {
+		return true;
+	} else if (ret > 0) {
+		// TODO: Write HW Log
+		return false;
+	}
+	/*[CS End]*/
+
+	/*4. SearchDiskBelong2RAID()
+		4.1 Has Active RAID in m_vRAIDInfoList 
+			4.1.1 Disk is active/spare in RAID -> return true
+			4.1.2 Disk is faulty in RAID -> RemoveDiskFromRAID() -> AddDiskIntoRAID() -> 6
+			4.1.3 ReaddDiskIntoRAID() -> 6
+		4.2 No Active RAID in m_vRAIDInfoList -> 5
+	*/
+	vector<RAIDInfo>::iterator raid_it = SearchDiskBelong2RAID(dev);
+	if (raid_it != m_vRAIDInfoList.end()) {
+		// TODO: 4.1
+		// if (raid_it->m_vDiskList.)
+	} 
+
+	/*		
 		5. Check whether there are enough disk for assembling.
 			5.1 enough -> AssembleByRAIDUUID() -> 6
 			5.2 not enough -> return true
