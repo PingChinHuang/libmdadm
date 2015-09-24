@@ -17,6 +17,7 @@ using namespace SYSUTILS_SPACE;
 struct RAIDDiskInfo {
 	string		m_strState;
 	string		m_strDevName;
+	string		m_strSoftLinkName;
 	int32_t		m_RaidUUID[4]; // Get after Examine()
 	int32_t		m_iState;
 	int32_t		m_iNumber;
@@ -184,7 +185,7 @@ struct RAIDInfo {
 		m_UpdateTime = rhs.m_UpdateTime;
 		m_bFormat = rhs.m_bFormat;
 		m_bMount = rhs.m_bMount;
-		m_bFormatProgress = rhs.m_bFormatProgress;
+		m_iFormatProgress = rhs.m_iFormatProgress;
 
 		return *this;
 	}
@@ -212,8 +213,14 @@ private:
 	bool InitializeDevListForReplace(struct mddev_dev* devlist, const string& replace, const string& with);
 	void FreeDevList(struct mddev_dev* devlist);
 
-	bool IsMDUsed(int md);
+	int CreateRAID(const string& mddev, vector<string>& vDevList, int level);
+	int AssembleRAID(const string& mddev, const int uuid[4]);
+	int AssembleRAID(const string& mddev, vector<string>& vDevList);
+	int GetFreeMDNum();
+	void FreeMDNum(int n);
+	void SetMDNum(int n);
 
+	void UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList);
 public:
 	RAIDManager();
 	~RAIDManager();
@@ -221,10 +228,9 @@ public:
 	bool AddRAIDDisk(const string& dev);
 	bool RemoveRAIDDisk(const string& dev);
 
-	bool CreateRAID(const vector<string>& vDevList, int level);
-	int CreateRAID(const string& mddev, const vector<string>& vDevList, int level);
-	bool AssembleByRAIDUUID(const string& mddev, const int uuid[4]);
-	bool AssembleByRAIDDisks(const string& mddev, const vector<string>& vDevList);
+	bool CreateRAID(vector<string>& vDevList, int level, string& strMDName);
+	bool AssembleRAID(const int uuid[4], string& strMDName);
+	bool AssembleRAID(vector<string>& vDevList, string& strMDName);
 	bool ManageRAIDSubdevs(const string& mddev, const vector<string>& vDevList, int operation);
 	bool RemoveDisksFromRAID(const string& mddev, const vector<string>& vDevList);
 	bool MarkFaultyDisksInRAID(const string& mddev, const vector<string>& vDevList);

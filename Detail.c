@@ -763,7 +763,7 @@ int Detail_Platform(struct superswitch *ss, int scan, int verbose, int _export, 
 	return err;
 }
 
-int Detail_ToArrayDetail(char *dev, struct context *c, struct array_detail *ad)
+int Detail_ToArrayDetail(const char *dev, struct context *c, struct array_detail *ad)
 {
 	/*
 	 * Print out details for an md array by using
