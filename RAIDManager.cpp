@@ -149,6 +149,9 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 				// TODO: HW Log
 				return true; // Treat it as normal, and should be solved by manually. We don't need to update list.
 			}
+			
+			m_bUsedMD[freeMD] = true;
+			// TODO: Mount
 		}
 	}
 
@@ -232,34 +235,113 @@ bool RAIDManager::RemoveRAIDDisk(const string& dev)
 
 bool RAIDManager::UpdateRAIDInfo(const string& mddev)
 {
-	/*
-		Update RAID object by mddev name.
-		
-		0. mddev is empty -> return false
+	/* Update RAID object by mddev name.
+	   If the request mddev does not exist in the list,
+	   push the info into the list.*/
 
+	/* 0. dev is empty -> return false */
+	if (mddev.empty())
+		return false;
+		
+	/*
 		[CS Start] Protect m_vRAIDInfoList
 		1. Detail_ToArrayDetail(mddev)
 		2. Erase old one and push new one
 		[CS End]
 	*/
+	struct context c;
+	struct array_detail ad;
+	RAIDInfo info;
+	int ret = SUCCESS;
+
+	InitializeContext(c);
+	ret = Detail_ToArrayDetail(mddev.c_str(), &c, &ad);
+	if (ret != SUCCESS) {
+		// TODO: Write Log
+		return false;
+	}	
+
+	CriticalSectionLock cs(&m_csRAIDInfoList);
+	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
+	while (it != m_vRAIDInfoList.end()) {
+		while (mddev == it->m_strDevNodeName) {
+			*it = ad; // Keep some fixed information like mount point, volumne name
+			return true;
+		}
+
+		it ++;
+	}
+
+	info = ad; // Update new information.
+	m_vRAIDInfoList.push_back(info);
+	return true;
 }
 
 bool RAIDManager::UpdateRAIDInfo()
 {
 	/*
-		Update all RAID objects in m_vRAIDInfoList
+		Update all RAID objects in m_vRAIDInfoList,
+		and we don't add new RAID into list by this method.
 		1. For loop to get m_strDevNodeName
 		2. UpdateRAIDInfo(m_strDevNodeName)
 	*/
+
+	CriticalSectionLock cs(&m_csRAIDInfoList);
+	if (m_vRAIDInfoList.empty())
+		return true;
+
+	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
+	while (it != m_vRAIDInfoList.end()) {
+		struct context c;
+		struct array_detail ad;
+		int ret = SUCCESS;
+
+		InitializeContext(c);
+		ret = Detail_ToArrayDetail(it->m_strDevNodeName.c_str(), &c, &ad);
+		if (ret != SUCCESS) {
+			// TODO: Write Log
+			continue;
+		}
+
+		*it = ad; // Keep some fixed information like mount point, volumne name
+		it ++;
+	}
+
+	return true;
 }
 
 bool RAIDManager::UpdateRAIDInfo(const int uuid[4])
 {
 	/*
 		Update RAID objec by UUID.
+		and we don't add new RAID into list by this method.
 		1. For loop to look up m_strDevNodeName corresponding to the uuid.
 		2. UpdateRAIDInfo(m_strDevNodeName)
 	*/
+	CriticalSectionLock cs(&m_csRAIDInfoList);
+	if (m_vRAIDInfoList.empty())
+		return true;
+
+	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
+	while (it != m_vRAIDInfoList.end()) {
+		if (0 == memcmp(uuid, it->m_UUID, sizeof(int) * 4)) {
+			struct context c;
+			struct array_detail ad;
+			int ret = SUCCESS;
+
+			InitializeContext(c);
+			ret = Detail_ToArrayDetail(it->m_strDevNodeName.c_str(), &c, &ad);
+			if (ret == SUCCESS) {
+				*it = ad;
+				return true;
+			} else {
+				// TODO: Write log
+				break;
+			}
+		}
+	}
+
+	return false;
 }
 
 void RAIDManager::InitializeShape(struct shape& s, int raiddisks, int level, int chunk, int bitmap_chunk, char* bitmap_file)
@@ -365,22 +447,78 @@ void RAIDManager::FreeDevList(struct mddev_dev* devlist)
 	devlist = NULL;
 }
 
-bool RAIDManager::CreateRAID(const string& mddev, const vector<string>& vDevList, int level)
+bool RAIDManager::CreateRAID(const vector<string>& vDevList, int level)
 {
-	/*
-		1. Check mddev
-			empty string -> return false;
-		2. Check devList
-			no device (empty vector) > return false
-		3.[CS] mddev exist in m_vRAIDInfoList or not
-			Yes -> return false 
+	CriticalSectionLock cs_md(&m_csUsedMD);
+	for (size_t i; i < 128; i++) {
+		if (m_vUsedMD[i] == false)) {
+			int ret = CreateRAID(string_format("/dev/md%d", i), vDevList, level);
+			if (ret == SUCCESS) {
+				m_vUsedMD[i] = true;
+				return true;
+			} else if (ret != CREATE_MDDEV_INUSE) {
+				// TODO: HW Log
+				return false;
+			}
+		}
+	}
 
+	// TODO: HW Log, volume number exceeds the limitation.
+	return false;
+}
+
+int RAIDManager::CreateRAID(const string& mddev, const vector<string>& vDevList, int level)
+{
+	/* 1. Check mddev
+		empty string -> return false; */
+	if (mddev.empty())
+		return CREATE_MDDEV_UNSET;
+
+	/*	2. Check devList
+			no device (empty vector) > return false*/
+	if (vDevList.empty())
+		return CREATE_RAID_DEVS_NOT_ENOUGH;
+
+
+	/*	3.[CS] mddev exist in m_vRAIDInfoList or not
+			Yes -> return false */
+	CriticalSectionLock cs(&m_csRAIDInfoList);
+	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
+	while (it != m_vRAIDInfoList.end()) {
+		if (mddev == it->m_strDevNodeName) {
+			return CREATE_MDDEV_INUSE;
+		}
+
+		it ++;
+	}
+
+	/*
 		[CS Start] Protect m_vRAIDDiskList
 		3. Check whether devices in devList exist in m_vRAIDDiskList or not.
-			Any device does not exist in m_vRAIDDiskList -> return false
+		Any device does not exist in m_vRAIDDiskList -> return false
 		[CS End]
+	*/
+	m_csRAIDDiskList.Lock();
+	vector<string>::iterator it_devlist = vDevList.begin();
+	while (it_devlist != vDevList.end()) {
+		bool bInList = false;
+		vector<RAIDDiskInfo>::iterator it_disk = m_vRAIDDiskList.begin();
+		while (it_disk != m_vRAIDInfoList.end()) {
+			if (*it_devlist == it_disk->m_strDevName) {
+				bInList = true;
+				break;
+			}
+			it_disk++;
+		}
 
-		4. InitializeShape(s, vDevList.size(), level, 512)
+		if (!bInList) {
+			m_csRAIDDiskList.Unlock();
+			return CREATE_RAID_DEVS_NOT_EXIST_IN_LIST;
+		}
+	}
+	m_csRAIDDiskList.Unlock();
+
+	/*	4. InitializeShape(s, vDevList.size(), level, 512)
 		5. InitializeContext(c)
 		6. InitializeDevList(devlist, vDevList)
 			6.1 false -> FreeDevList(devlist) -> return false

@@ -163,6 +163,8 @@ struct RAIDInfo {
 		m_strLayout = rhs.m_strLayout;
 		m_strRebuildingOperation = rhs.m_strRebuildingOperation;
 		m_strDevNodeName = rhs.m_strDevNodeName;
+		m_strVolumeName = rhs.m_strVolumeName;
+		m_strMountPoint = rhs.m_strMountPoint;
 		memcpy(m_UUID, rhs.m_UUID, sizeof(m_UUID));
 		m_ullTotalCapacity = rhs.m_ullTotalCapacity;
 		m_iRAIDLevel = rhs.m_iRAIDLevel;
@@ -180,6 +182,9 @@ struct RAIDInfo {
 		m_bSuperBlockPersistent = rhs.m_bSuperBlockPersistent;
 		m_CreationTime = rhs.m_CreationTime;
 		m_UpdateTime = rhs.m_UpdateTime;
+		m_bFormat = rhs.m_bFormat;
+		m_bMount = rhs.m_bMount;
+		m_bFormatProgress = rhs.m_bFormatProgress;
 
 		return *this;
 	}
@@ -216,7 +221,8 @@ public:
 	bool AddRAIDDisk(const string& dev);
 	bool RemoveRAIDDisk(const string& dev);
 
-	bool CreateRAID(const string& mddev, const vector<string>& vDevList, int level);
+	bool CreateRAID(const vector<string>& vDevList, int level);
+	int CreateRAID(const string& mddev, const vector<string>& vDevList, int level);
 	bool AssembleByRAIDUUID(const string& mddev, const int uuid[4]);
 	bool AssembleByRAIDDisks(const string& mddev, const vector<string>& vDevList);
 	bool ManageRAIDSubdevs(const string& mddev, const vector<string>& vDevList, int operation);
