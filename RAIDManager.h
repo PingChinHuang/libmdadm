@@ -209,9 +209,10 @@ private:
 	void InitializeShape(struct shape& s, int raiddisks, int level, int chunk = 512, int bitmap_chunk = UnSet, char* bitmap_file = NULL);
 	void InitializeContext(struct context& c, int force = 1, int runstop = 1, int verbose = 0);
 	void InitializeMDDevIdent(struct mddev_ident& ident, int uuid_set, const int uuid[4], int bitmap_fd = -1, char* bitmap_file = NULL);
-	bool InitializeDevList(struct mddev_dev* devlist, const vector<string>& devNameList, int disposition = 0);
-	bool InitializeDevListForReplace(struct mddev_dev* devlist, const string& replace, const string& with);
+	bool InitializeDevList(struct mddev_dev* devlist, vector<string>& devNameList, int disposition = 0);
+	bool InitializeDevList(struct mddev_dev* devlist, const string& replace, const string& with);
 	void FreeDevList(struct mddev_dev* devlist);
+	int OpenMDDev(const string& mddev);
 
 	int CreateRAID(const string& mddev, vector<string>& vDevList, int level);
 	int AssembleRAID(const string& mddev, const int uuid[4]);
@@ -221,6 +222,7 @@ private:
 	void SetMDNum(int n);
 
 	void UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList);
+	bool ManageRAIDSubdevs(const string& mddev, vector<string>& vDevList, int operation);
 public:
 	RAIDManager();
 	~RAIDManager();
@@ -231,12 +233,11 @@ public:
 	bool CreateRAID(vector<string>& vDevList, int level, string& strMDName);
 	bool AssembleRAID(const int uuid[4], string& strMDName);
 	bool AssembleRAID(vector<string>& vDevList, string& strMDName);
-	bool ManageRAIDSubdevs(const string& mddev, const vector<string>& vDevList, int operation);
-	bool RemoveDisksFromRAID(const string& mddev, const vector<string>& vDevList);
-	bool MarkFaultyDisksInRAID(const string& mddev, const vector<string>& vDevList);
-	bool AddDisksIntoRAID(const string& mddev, const vector<string>& vDevList);
-	bool ReaddDisksIntoRAID(const string& mddev, const vector<string>& vDevList);
-	bool ReplaceDisksInRAID(const string& mddev, const string& replace, const string& with);
+	bool RemoveDisks(const string& mddev, vector<string>& vDevList);
+	bool MarkFaultyDisks(const string& mddev, vector<string>& vDevList);
+	bool AddDisks(const string& mddev, vector<string>& vDevList);
+	bool ReaddDisks(const string& mddev, vector<string>& vDevList);
+	bool ReplaceDisk(const string& mddev, const string& replace, const string& with);
 	bool DeleteRAID(const string& mddev);
 
 	bool GetRAIDInfo(const string& mddev, RAIDInfo& info);
