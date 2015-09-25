@@ -244,6 +244,7 @@ public:
 	bool ReaddDisks(const string& mddev, vector<string>& vDevList);
 	bool ReplaceDisk(const string& mddev, const string& replace, const string& with);
 	bool DeleteRAID(const string& mddev);
+	bool StopRAID(const string& mddev);
 
 	bool GetRAIDInfo(const string& mddev, RAIDInfo& info);
 	void GetRAIDInfo(vector<RAIDInfo>& list);

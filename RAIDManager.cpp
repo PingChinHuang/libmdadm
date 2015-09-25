@@ -1090,6 +1090,74 @@ bool RAIDManager::ReplaceDisk(const string& mddev, const string& replace, const 
 	return ManageRAIDSubdevs(mddev, vDevList, 'R');
 }
 
+bool RAIDManager::StopRAID(const string& mddev)
+{
+	/*
+		1. Check mddev
+			empty -> return false
+	*/
+	if (mddev.empty())
+		return false;
+
+	/*
+		2. If mddev exist in m_vRAIdInfoList
+			No -> return true;
+			Yes -> 3
+	*/
+	m_csRAIDInfoList.Lock();
+	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
+	bool bExist = false;
+	while (it != m_vRAIDInfoList.end()) {
+		if (mddev == it->m_strDevNodeName) {
+			bExist = true;
+			break;
+		}
+
+		it ++;
+	}
+	m_csRAIDInfoList.Unlock();
+
+	if (!bExist) {
+		WriteHWLog(LOG_LOCAL0, LOG_WARNING, LOG_LABEL,
+			   "%s doesn't exist.\n", mddev.c_str());
+		return true;
+	}
+
+	/*
+		3. fd = open_mddev(mddev.c_str(), 1);
+			fd < 0 -> return false;
+	*/
+	int fd = OpenMDDev(mddev);
+	if (fd < 0) 
+		return false;
+
+	/*
+		4. ret = Manage_stop(mddev.c_str(), fd, 1, 0);
+			ret != 0 -> close(fd) -> close(fd);return false;
+			ret == 0 -> 5
+		5. close(fd)
+	*/
+	struct context c;
+	int ret = SUCCESS;
+
+	InitializeContext(c);
+	ret = Manage_stop((char*)mddev.c_str(), fd, c.verbose, 0);
+	close(fd);
+
+	if (ret != SUCCESS) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "Fail to stop volume %s: %d\n", mddev.c_str(), ret);
+		return false;
+	}
+
+	/*
+		6. Remove mddev from m_vRAIDInfoList, keep a RAID disks list copy for later use.
+	*/
+	RAIDInfo info = *it;
+	CriticalSectionLock cs(&m_csRAIDInfoList);	
+	m_vRAIDInfoList.erase(it);
+}
+
 bool RAIDManager::DeleteRAID(const string& mddev)
 {
 	/*
