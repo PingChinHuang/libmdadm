@@ -1151,11 +1151,11 @@ bool RAIDManager::StopRAID(const string& mddev)
 	}
 
 	/*
-		6. Remove mddev from m_vRAIDInfoList, keep a RAID disks list copy for later use.
+		6. Remove mddev from m_vRAIDInfoList
 	*/
-	RAIDInfo info = *it;
 	CriticalSectionLock cs(&m_csRAIDInfoList);	
 	m_vRAIDInfoList.erase(it);
+	return true;
 }
 
 bool RAIDManager::DeleteRAID(const string& mddev)
