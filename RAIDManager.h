@@ -1,7 +1,13 @@
 #ifndef __RAIDMANAGER_H__
 #define __RAIDMANAGER_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 #include "mdadm.h"
+#ifdef __cplusplus
+}
+#endif
 
 #include "common/critical_section.h"
 
