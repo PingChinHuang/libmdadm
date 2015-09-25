@@ -207,7 +207,11 @@ private:
 	vector<RAIDInfo>::iterator SearchDiskBelong2RAID(const string& dev, RAIDDiskInfo& devInfo);
 
 	void InitializeShape(struct shape& s, int raiddisks, int level, int chunk = 512, int bitmap_chunk = UnSet, char* bitmap_file = NULL);
+#ifdef DEBUG
+	void InitializeContext(struct context& c, int force = 1, int runstop = 1, int verbose = 1);
+#else
 	void InitializeContext(struct context& c, int force = 1, int runstop = 1, int verbose = 0);
+#endif
 	void InitializeMDDevIdent(struct mddev_ident& ident, int uuid_set, const int uuid[4], int bitmap_fd = -1, char* bitmap_file = NULL);
 	bool InitializeDevList(struct mddev_dev* devlist, vector<string>& devNameList, int disposition = 0);
 	bool InitializeDevList(struct mddev_dev* devlist, const string& replace, const string& with);
@@ -223,6 +227,7 @@ private:
 
 	void UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList);
 	bool ManageRAIDSubdevs(const string& mddev, vector<string>& vDevList, int operation);
+
 public:
 	RAIDManager();
 	~RAIDManager();
