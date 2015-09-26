@@ -1,4 +1,10 @@
+#if defined (__cplusplus)
+extern "C" {
+#endif
 #include "mdadm.h"
+#if defined (__cplusplus)
+}
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -18,7 +24,7 @@ int main(int argc, char *argv[])
 	//strcpy(sda, "/dev/sdx");
 
 	for (i = 2; i < argc; i ++) {
-		dv = malloc(sizeof(struct mddev_dev));
+		dv = (struct mddev_dev*)malloc(sizeof(struct mddev_dev));
 		if (dv == NULL) {
 			printf("Fail to allocate memory.\n");
 			exit(1);
@@ -97,7 +103,7 @@ int main(int argc, char *argv[])
 		printf("Disk Major: %d Minor: %d\n", ad.arrayDisks[i].diskInfo.major, ad.arrayDisks[i].diskInfo.minor);
 	}
 
-	unsigned char* p_uuid = ad.uuid;
+	unsigned char* p_uuid = (unsigned char*)ad.uuid;
 	for (i = 0; i < 16; i ++)
 		printf("%02X ", p_uuid[i]);
 

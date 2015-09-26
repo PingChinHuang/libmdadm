@@ -1,15 +1,39 @@
 #include "RAIDManager.h"
 
+#ifdef NUUO
 #include "common/file.h"
 #include "common/string.h"
 #include "common/nusyslog.h"
+#endif
 
 #define LOG_LABEL "RAIDManager"
+
+#ifndef NUUO
+#include <syslog.h>
+#include <stdarg.h>
+#define	WriteHWLog(facility, level, label, fmt, ...) \
+	do {\
+		printf("[%s][%s][%s] " fmt, #facility, #level, label, ##__VA_ARGS__); \
+	} while (0);
+
+string string_format(const char* fmt, ...)
+{
+	va_list args;
+	char buf[64];
+	va_start(args, fmt);
+	int len = snprintf(buf, 63, fmt, args);
+	buf[len] = '\0';
+	va_end(args);
+	return buf;
+}
+#endif
 
 RAIDManager::RAIDManager()
 : m_bRAIDInfoListUpdating(false)
 {
+#ifdef NUUO
 	CriticalSectionLock cs(&m_csUsedMD);
+#endif
 	for (int i = 0; i < 128; i++)
 		m_bUsedMD[i] = false;
 }
@@ -21,7 +45,9 @@ RAIDManager::~RAIDManager()
 
 int RAIDManager::GetFreeMDNum()
 {
+#ifdef NUUO
 	CriticalSectionLock cs_md(&m_csUsedMD);
+#endif
 	for (int i = 0 ; i < 128; i++) {
 		if (!m_bUsedMD[i]) {
 			m_bUsedMD[i] = true; // Pre-allocated, if you don't use it or any error happened, you have to free.
@@ -37,7 +63,9 @@ void RAIDManager::FreeMDNum(int n)
 	if (n < 0 || n > 127)
 		return;
 
+#ifdef NUUO
 	CriticalSectionLock cs_md(&m_csUsedMD);
+#endif
 	m_bUsedMD[n] = false;
 }
 
@@ -46,8 +74,68 @@ void RAIDManager::SetMDNum(int n)
 	if (n < 0 || n > 127)
 		return;
 
+#ifdef NUUO
 	CriticalSectionLock cs_md(&m_csUsedMD);
+#endif
 	m_bUsedMD[n] = true;
+}
+
+vector<RAIDInfo>::iterator RAIDManager::IsMDDevInRAIDInfoList(const string &mddev, RAIDInfo& info)
+{
+#ifdef NUUO
+	CriticalSectionLock cs(&m_csRAIDInfoList);
+#endif
+	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
+	while (it != m_vRAIDInfoList.end()) {
+		if (mddev == it->m_strDevNodeName) {
+			info = *it;
+			break;
+		}
+
+		it ++;
+	}
+
+	return it;
+}
+
+vector<RAIDInfo>::iterator RAIDManager::IsMDDevInRAIDInfoList(const string &mddev)
+{
+	RAIDInfo info;
+	return IsMDDevInRAIDInfoList(mddev, info);
+}
+
+bool RAIDManager::IsDiskExistInRAIDDiskList(const string& dev)
+{
+#ifdef NUUO
+	CrititcalSectionLock (&m_csRAIDDiskList);
+#endif
+	vector<RAIDDiskInfo>::iterator it_disk = m_vRAIDDiskList.begin();
+	while (it_disk != m_vRAIDDiskList.end()) {
+		// Compare both soft link name and actual device node name.
+		// In case of soft link name is not the same, but the disk
+		// actually is in the list....
+		if (dev == it_disk->m_strSoftLinkName ||
+		    dev == it_disk->m_strDevName) {
+			return true;
+		}
+		it_disk++;
+	}
+
+	return false;
+}
+
+bool RAIDManager::IsDiskExistInRAIDDiskList(vector<string>& vDevList)
+{
+	vector<string>::iterator it_devlist = vDevList.begin();
+	while (it_devlist != vDevList.end()) {
+		if(!IsDiskExistInRAIDDiskList(*it_devlist)) {
+			return false; // Some device in the list is not in m_vRAIDDiskList.
+		}
+
+		it_devlist++;
+	}
+
+	return true;
 }
 
 bool RAIDManager::AddRAIDDisk(const string& dev)
@@ -59,11 +147,13 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 	/*1. Check device node exists or not (SYSUTILS::CheckBlockDevice)
 		1.1 Yes -> 2
 		1.2 No -> return false*/
+#ifdef NUUO
 	if (!CheckBlockDevice(dev)) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "%s is not a block device.\n", dev.c_str());
 		return false;
 	}
+#endif
 	
 	/*2. ret = Examine_ToResult() to check MD superblock
 		2.1 Has MD superblock -> 3
@@ -75,14 +165,12 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 	int ret = SUCCESS;
 
 	if (!InitializeDevList(devlist, vDevList)) {
-		FreeDevList(devlist); // For Safety;
 		return false;
 	}
 	InitializeContext(c);
 	ret = Examine_ToResult(devlist, &c, NULL, &result);
 
 	/*[CS Start] Protect m_vRAIDDiskList*/
-	m_csRAIDDiskList.Lock();
 	/*3. Exist in m_vRAIDDiskList?
 		3.1 Yes
 			Come from 2.2 return true
@@ -91,26 +179,22 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 			Come from 2.2 return true
 			Come from 2.1 -> 4*/
 	RAIDDiskInfo info;
-	vector<RAIDDiskInfo>::iterator it = m_vRAIDDiskList.begin();
-	while (it != m_vRAIDDiskList.end()) {
-		if (it->m_strSoftLinkName == dev ||
-		    it->m_strDevName == dev) {
-			break;
-		}
-		it ++;
-	}
-
-	if (it == m_vRAIDDiskList.end()) {
+	bool bExist = IsDiskExistInRAIDDiskList(dev);
+	if (!bExist) {
 		info.m_strSoftLinkName = dev;
 		info.m_strDevName = result.strDevName;
 		info.m_iNumber = result.uDevRole;
 		info.m_iRaidDisk = result.uRaidDiskNum;
 		memcpy(info.m_RaidUUID, result.arrayUUID, sizeof(int) * 4);
+
+		// FIXME: Maybe the critical section should protect following code since checking the disk existence. 
+#ifdef NUUO
+		CriticalSectionLock cs(&ms_csRAIDDiskList);
+#endif
 		m_vRAIDDiskList.push_back(info);
 	} 
 
 	/*[CS End]*/
-	m_csRAIDDiskList.Unlock();
 
 	if (ret == EXAMINE_NO_MD_SUPERBLOCK) {
 		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
@@ -174,7 +258,9 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 				5.1 enough -> AssembleByRAIDUUID() -> 6
 				5.2 not enough -> return true	*/
 		int counter = 1; // count disk has the same uuid. Initial value is 1 for this newly added disk.
+#ifdef NUUO
 		CriticalSectionLock cs_disk(&m_csRAIDDiskList);
+#endif
 		for (size_t i = 0; i < m_vRAIDDiskList.size(); i++) {
 			if (info.m_strDevName == m_vRAIDDiskList[i].m_strDevName) // Bypass itself
 				continue;
@@ -216,7 +302,10 @@ vector<RAIDInfo>::iterator RAIDManager::SearchDiskBelong2RAID(const string& dev,
 			1.2 Not exist a RAID return m_vRAIDInfoList.end()
 		[CS End]		
 	*/
+
+#ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDInfoList);
+#endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
 		vector<RAIDDiskInfo>::iterator it_disk = it->m_vDiskList.begin();
@@ -253,7 +342,9 @@ bool RAIDManager::RemoveRAIDDisk(const string& dev)
 			1.2 No -> return true;
 		[CS End]
 	*/
+#ifdef NUUO
 	m_csRAIDDiskList.Lock();
+#endif
 	vector<RAIDDiskInfo>::iterator it = m_vRAIDDiskList.begin();
 	int uuid[4];
 	while (it != m_vRAIDDiskList.end()) {
@@ -266,14 +357,18 @@ bool RAIDManager::RemoveRAIDDisk(const string& dev)
 	}
 
 	if (it == m_vRAIDDiskList.end()) {
+#ifdef NUUO
 		m_csRAIDDiskList.Unlock();
+#endif
 		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 			   "%s removed successfully .\n", dev.c_str());
 		return true;
 	}
 
 	m_vRAIDDiskList.erase(it);
+#ifdef NUUO
 	m_csRAIDDiskList.Unlock();
+#endif
 
 	/* 2. UpdateRAIDInfo(uuid) */
 	UpdateRAIDInfo(uuid);
@@ -286,9 +381,11 @@ void RAIDManager::UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList)
 {
 	vector<RAIDDiskInfo>::iterator it = vRAIDDiskInfoList.begin();
 
-	CriticalSectionLock cs(&m_csRAIDDiskList);
 	while (it != vRAIDDiskInfoList.end()) {
 		bool bExist = false;
+#ifdef NUUO
+		CriticalSectionLock cs(&m_csRAIDDiskList);
+#endif
 		vector<RAIDDiskInfo>::iterator it_all = m_vRAIDDiskList.begin();
 		while(it_all != m_vRAIDDiskList.end()) {
 			if (it->m_strDevName == it_all->m_strDevName) {
@@ -342,7 +439,9 @@ bool RAIDManager::UpdateRAIDInfo(const string& mddev)
 		return false;
 	}	
 
+#ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDInfoList);
+#endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
 		while (mddev == it->m_strDevNodeName) {
@@ -369,7 +468,9 @@ bool RAIDManager::UpdateRAIDInfo()
 		2. UpdateRAIDInfo(m_strDevNodeName)
 	*/
 
+#ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDInfoList);
+#endif
 	if (m_vRAIDInfoList.empty())
 		return true;
 
@@ -407,7 +508,9 @@ bool RAIDManager::UpdateRAIDInfo(const int uuid[4])
 	if (uuid == NULL)
 		return false;
 
+#ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDInfoList);
+#endif
 	if (m_vRAIDInfoList.empty())
 		return true;
 
@@ -497,6 +600,7 @@ bool RAIDManager::InitializeDevList(struct mddev_dev* devlist, const string& rep
 
 	dv = (struct mddev_dev*)malloc(sizeof(struct mddev_dev));
 	if (dv == NULL) {
+		FreeDevList(devlist);
 		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
 			   "[%d] Fail to allocate memory.\n", __LINE__);
 		return false;
@@ -521,6 +625,7 @@ bool RAIDManager::InitializeDevList(struct mddev_dev* devlist, vector<string>& d
 	for (size_t i = 0; i < devNameList.size(); i ++) {
 		dv = (struct mddev_dev*)malloc(sizeof(struct mddev_dev));
 		if (dv == NULL) {
+			FreeDevList(devlist);
 			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
 				   "[%d] Fail to allocate memory.\n", __LINE__);
 			return false;
@@ -557,26 +662,34 @@ int RAIDManager::OpenMDDev(const string& mddev)
 	return fd;
 }
 
+int RAIDManager::GenerateMDDevName(string& name)
+{
+	int iFreeMD = GetFreeMDNum();
+	if (iFreeMD < 0) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+		   	   "No free volume number.\n");
+		return -1;
+	}
+	name = string_format("/dev/md%d", iFreeMD);
+	return iFreeMD;
+}
+
 bool RAIDManager::CreateRAID(vector<string>& vDevList, int level, string& strMDName)
 {
 	int ret = SUCCESS;
 
 	do {
-		int iFreeMD = GetFreeMDNum();
-		if (iFreeMD < 0) {
-			WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   	   "No free volume number.\n");
+		int freeMD = -1;
+		if ((freeMD = GenerateMDDevName(strMDName)) < 0)
 			return false;
-		}
 
-		strMDName = string_format("/dev/md%d", iFreeMD);
 		ret = CreateRAID(strMDName, vDevList, level);
 		if (ret == SUCCESS) {
 			WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 			   	   "%s created successfully.\n", strMDName.c_str());
 			return true;
 		} else if (ret == CREATE_MDDEV_INUSE) {
-			SetMDNum(iFreeMD);
+			SetMDNum(freeMD);
 			// next loop retry
 		}
 	} while (ret == CREATE_MDDEV_INUSE);
@@ -601,19 +714,14 @@ int RAIDManager::CreateRAID(const string& mddev, vector<string>& vDevList, int l
 
 	/*	3.[CS] mddev exist in m_vRAIDInfoList or not
 			Yes -> return false */
-	m_csRAIDInfoList.Lock();
-	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
-	while (it != m_vRAIDInfoList.end()) {
-		if (mddev == it->m_strDevNodeName) {
-			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
-		   		   "[%d] Create Error Code: (%d)\n", __LINE__, CREATE_MDDEV_INUSE);
-			m_csRAIDInfoList.Unlock();
-			return CREATE_MDDEV_INUSE;
-		}
+	
+	vector<RAIDInfo>::iterator it = IsMDDevInRAIDInfoList(mddev);
+	if (it != m_vRAIDInfoList.end()) {
+		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
+	   		   "[%d] Create Error Code: (%d)\n", __LINE__, CREATE_MDDEV_INUSE);
 
-		it ++;
+		return CREATE_MDDEV_INUSE;
 	}
-	m_csRAIDInfoList.Unlock();
 
 	/*
 		[CS Start] Protect m_vRAIDDiskList
@@ -621,29 +729,11 @@ int RAIDManager::CreateRAID(const string& mddev, vector<string>& vDevList, int l
 		Any device does not exist in m_vRAIDDiskList -> return false
 		[CS End]
 	*/
-	m_csRAIDDiskList.Lock();
-	vector<string>::iterator it_devlist = vDevList.begin();
-	while (it_devlist != vDevList.end()) {
-		bool bInList = false;
-		vector<RAIDDiskInfo>::iterator it_disk = m_vRAIDDiskList.begin();
-		while (it_disk != m_vRAIDDiskList.end()) {
-			// Compare both soft link name and actual device node name.
-			// In case of soft link name is not the same, but the disk
-			// actually is in the list....
-			if (*it_devlist == it_disk->m_strSoftLinkName ||
-				*it_devlist == it_disk->m_strDevName) {
-				bInList = true;
-				break;
-			}
-			it_disk++;
-		}
-
-		if (!bInList) {
-			m_csRAIDDiskList.Unlock();
-			return CREATE_RAID_DEVS_NOT_EXIST_IN_LIST;
-		}
+	if (!IsDiskExistInRAIDDiskList(vDevList)) {
+		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
+			   "[%d] Create Error Code: (%d)\n", __LINE__, CREATE_RAID_DEVS_NOT_EXIST_IN_LIST);
+		return CREATE_RAID_DEVS_NOT_EXIST_IN_LIST;
 	}
-	m_csRAIDDiskList.Unlock();
 
 	/*	4. InitializeShape(s, vDevList.size(), level, 512) */
 	struct shape s;
@@ -669,7 +759,6 @@ int RAIDManager::CreateRAID(const string& mddev, vector<string>& vDevList, int l
 	if (ret != SUCCESS) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 		   	   "Fail to create volume %s: (%d)\n", mddev.c_str(), ret);
-		FreeDevList(devlist);
 		return ret;
 	}
 
@@ -689,14 +778,10 @@ bool RAIDManager::AssembleRAID(const int uuid[4], string& strMDName)
 	int ret = SUCCESS;
 
 	do {
-		int iFreeMD = GetFreeMDNum();
-		if (iFreeMD < 0) {
-			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
-		   		   "[%d] No free volume number\n", __LINE__);
+		int freeMD = -1;
+		if ((freeMD = GenerateMDDevName(strMDName)) < 0)
 			return false;
-		}
 
-		strMDName = string_format("/dev/md%d", iFreeMD);
 		ret = AssembleRAID(strMDName, uuid);
 		if (ret == SUCCESS) {
 			unsigned char* p_uuid = (unsigned char*) uuid;
@@ -710,7 +795,7 @@ bool RAIDManager::AssembleRAID(const int uuid[4], string& strMDName)
 			   	   "%s assembled successfully.\n", strMDName.c_str());
 			return true;
 		} else if (ret == ASSEMBLE_MDDEV_INUSE) {
-			SetMDNum(iFreeMD);
+			SetMDNum(freeMD);
 			// next loop retry
 		}
 	} while (ret == ASSEMBLE_MDDEV_INUSE);
@@ -740,19 +825,18 @@ int RAIDManager::AssembleRAID(const string& mddev, const int uuid[4])
 		3. [CS] Check mddev exists in m_vRAIDInfoList or not
 			Yes -> return false
 	*/
-	m_csRAIDInfoList.Lock();
-	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
-	while (it != m_vRAIDInfoList.end()) {
-		if (mddev == it->m_strDevNodeName) {
-			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
-				   "[%d] Assemble Error Code: (%d)\n", __LINE__, ASSEMBLE_MDDEV_INUSE);
-			m_csRAIDInfoList.Unlock();
-			return ASSEMBLE_MDDEV_INUSE;
+	RAIDInfo info;
+	vector<RAIDInfo>::iterator it = IsMDDevInRAIDInfoList(mddev, info);
+	if (it != m_vRAIDInfoList.end()) {
+		int ret = ASSEMBLE_MDDEV_INUSE;
+		if (0 == memcmp(uuid, info.m_UUID, sizeof(info.m_UUID))) {
+			ret = ASSEMBLE_MD_ALREADY_ACTIVE;
 		}
 
-		it ++;
+		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
+			   "[%d] Assemble Error Code: (%d)\n", __LINE__, ret);
+		return ret;
 	}
-	m_csRAIDInfoList.Unlock();
 
 	/*
 		4. InitializeMDDevIdent(ident, 1, str_uuid)
@@ -785,14 +869,10 @@ bool RAIDManager::AssembleRAID(vector<string>& vDevList, string& strMDName)
 	int ret = SUCCESS;
 
 	do {
-		int iFreeMD = GetFreeMDNum();
-		if (iFreeMD < 0) {
-			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
-		   		   "[%d] No free volume number\n", __LINE__);
+		int freeMD = -1;
+		if ((freeMD = GenerateMDDevName(strMDName)) < 0)
 			return false;
-		}
 
-		strMDName = string_format("/dev/md%d", iFreeMD);
 		ret = AssembleRAID(strMDName, vDevList);
 		if (ret == SUCCESS) {
 			string strDevList("");
@@ -805,7 +885,7 @@ bool RAIDManager::AssembleRAID(vector<string>& vDevList, string& strMDName)
 			   	   "%s assembled successfully.\n", strMDName.c_str());
 			return true;
 		} else if (ret == ASSEMBLE_MDDEV_INUSE) {
-			SetMDNum(iFreeMD);
+			SetMDNum(freeMD);
 			// next loop retry
 		}
 	} while (ret == ASSEMBLE_MDDEV_INUSE);
@@ -834,20 +914,18 @@ int RAIDManager::AssembleRAID(const string& mddev, vector<string>& vDevList)
 	/*
 		3. [CS] Check mddev exists in m_vRAIDInfoList or not
 			Yes -> return false
+		
+		FIXME: We only check that md device node exist or not,
+			but maybe we also need to check whether the disks is already
+			belong to this md device.
 	*/
-	m_csRAIDInfoList.Lock();
-	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
-	while (it != m_vRAIDInfoList.end()) {
-		if (mddev == it->m_strDevNodeName) {
-			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
-				   "[%d] Assemble Error Code: (%d)\n", __LINE__, ASSEMBLE_MDDEV_INUSE);
-			m_csRAIDInfoList.Unlock();
-			return ASSEMBLE_MDDEV_INUSE;
-		}
+	vector<RAIDInfo>::iterator it = IsMDDevInRAIDInfoList(mddev);
+	if (it != m_vRAIDInfoList.end()) {
+		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
+			   "[%d] Assemble Error Code: (%d)\n", __LINE__, ASSEMBLE_MDDEV_INUSE);
 
-		it ++;
+		return ASSEMBLE_MDDEV_INUSE;
 	}
-	m_csRAIDInfoList.Unlock();
 
 	/*
 		[CS Start] Protect m_vRAIDDiskList
@@ -855,28 +933,11 @@ int RAIDManager::AssembleRAID(const string& mddev, vector<string>& vDevList)
 			Any device does not exist in m_vRAIDDiskList -> return false
 		[CS End]
 	*/
-	m_csRAIDDiskList.Lock();
-	vector<string>::iterator it_devlist = vDevList.begin();
-	while (it_devlist != vDevList.end()) {
-		bool bInList = false;
-		vector<RAIDDiskInfo>::iterator it_disk = m_vRAIDDiskList.begin();
-		while (it_disk != m_vRAIDDiskList.end()) {
-			if (*it_devlist == it_disk->m_strSoftLinkName ||
-			    *it_devlist == it_disk->m_strDevName) {
-				bInList = true;
-				break;
-			}
-			it_disk++;
-		}
-
-		if (!bInList) {
-			m_csRAIDDiskList.Unlock();
-			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
-				   "[%d] Assemble Error Code: (%d)\n", __LINE__, ASSEMBLE_RAID_DEVS_NOT_EXIST_IN_LIST);
-			return ASSEMBLE_RAID_DEVS_NOT_EXIST_IN_LIST;
-		}
+	if (!IsDiskExistInRAIDDiskList(vDevList)) {
+		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
+			   "[%d] Assemble Error Code: (%d)\n", __LINE__, ASSEMBLE_RAID_DEVS_NOT_EXIST_IN_LIST);
+		return ASSEMBLE_RAID_DEVS_NOT_EXIST_IN_LIST;
 	}
-	m_csRAIDDiskList.Unlock();
 
 	/*
 		5. InitializeMDDevIdent(ident, 0, "");
@@ -890,7 +951,6 @@ int RAIDManager::AssembleRAID(const string& mddev, vector<string>& vDevList)
 	*/
 	struct mddev_dev* devlist = NULL;
 	if(!InitializeDevList(devlist, vDevList)) {
-		FreeDevList(devlist);
 		return ASSEMBLE_INITIALIZE_DEV_LIST_FAIL;
 	}
 
@@ -940,20 +1000,8 @@ bool RAIDManager::ManageRAIDSubdevs(const string& mddev, vector<string>& vDevLis
 		3. [CS] Check mddev exists in m_vRAIDInfoList or not
 			No -> return false
 	*/
-	m_csRAIDInfoList.Lock();
-	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
-	bool bExist = false;
-	while (it != m_vRAIDInfoList.end()) {
-		if (mddev == it->m_strDevNodeName) {
-			bExist = true;
-			break;
-		}
-
-		it ++;
-	}
-	m_csRAIDInfoList.Unlock();
-
-	if (!bExist) {
+	vector<RAIDInfo>::iterator it = IsMDDevInRAIDInfoList(mddev);
+	if (it == m_vRAIDInfoList.end()) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "%s doesn't exist.\n", mddev.c_str());
 		return false;
@@ -965,28 +1013,11 @@ bool RAIDManager::ManageRAIDSubdevs(const string& mddev, vector<string>& vDevLis
 			Any device does not exist in m_vRAIDDiskList -> return false
 		[CS End]
 */
-	m_csRAIDDiskList.Lock();
-	vector<string>::iterator it_devlist = vDevList.begin();
-	while (it_devlist != vDevList.end()) {
-		bool bInList = false;
-		vector<RAIDDiskInfo>::iterator it_disk = m_vRAIDDiskList.begin();
-		while (it_disk != m_vRAIDDiskList.end()) {
-			if (*it_devlist == it_disk->m_strSoftLinkName ||
-			    *it_devlist == it_disk->m_strDevName) {
-				bInList = true;
-				break;
-			}
-			it_disk++;
-		}
-
-		if (!bInList) {
-			m_csRAIDDiskList.Unlock();
-			WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-				   "%s doesn't belong to %s.\n", it_devlist->c_str(), mddev.c_str());
-			return false;
-		}
+	if (!IsDiskExistInRAIDDiskList(vDevList)) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "Some disks doesn't belong to %s.\n", mddev.c_str());
+		return false;
 	}
-	m_csRAIDDiskList.Unlock();
 
 /*
 		5. fd = open_mddev(mddev.c_str(), 1)
@@ -1017,13 +1048,11 @@ bool RAIDManager::ManageRAIDSubdevs(const string& mddev, vector<string>& vDevLis
 		}
 
 		if (!InitializeDevList(devlist, vDevList[0], vDevList[1])) {
-			FreeDevList(devlist);
 			return false;
 		}
 		break;
 	default:
 		if (!InitializeDevList(devlist, vDevList, operation)) {
-			FreeDevList(devlist);
 			return false;
 		}
 	}
@@ -1104,20 +1133,8 @@ bool RAIDManager::StopRAID(const string& mddev)
 			No -> return true;
 			Yes -> 3
 	*/
-	m_csRAIDInfoList.Lock();
-	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
-	bool bExist = false;
-	while (it != m_vRAIDInfoList.end()) {
-		if (mddev == it->m_strDevNodeName) {
-			bExist = true;
-			break;
-		}
-
-		it ++;
-	}
-	m_csRAIDInfoList.Unlock();
-
-	if (!bExist) {
+	vector<RAIDInfo>::iterator it = IsMDDevInRAIDInfoList(mddev);
+	if (it == m_vRAIDInfoList.end()) {
 		WriteHWLog(LOG_LOCAL0, LOG_WARNING, LOG_LABEL,
 			   "%s doesn't exist.\n", mddev.c_str());
 		return true;
@@ -1153,7 +1170,9 @@ bool RAIDManager::StopRAID(const string& mddev)
 	/*
 		6. Remove mddev from m_vRAIDInfoList
 	*/
-	CriticalSectionLock cs(&m_csRAIDInfoList);	
+#ifdef NUUO
+	CriticalSectionLock cs(&m_csRAIDInfoList);
+#endif	
 	m_vRAIDInfoList.erase(it);
 	return true;
 }
@@ -1172,20 +1191,8 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 			No -> return true;
 			Yes -> 3
 	*/
-	m_csRAIDInfoList.Lock();
-	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
-	bool bExist = false;
-	while (it != m_vRAIDInfoList.end()) {
-		if (mddev == it->m_strDevNodeName) {
-			bExist = true;
-			break;
-		}
-
-		it ++;
-	}
-	m_csRAIDInfoList.Unlock();
-
-	if (!bExist) {
+	vector<RAIDInfo>::iterator it = IsMDDevInRAIDInfoList(mddev);
+	if (it == m_vRAIDInfoList.end()) {
 		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 			   "Delete volume %s\n", mddev.c_str());
 		return true;
@@ -1222,9 +1229,13 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 		6. Remove mddev from m_vRAIDInfoList, keep a RAID disks list copy for later use.
 	*/
 	RAIDInfo info = *it;
+#ifdef NUUO
 	m_csRAIDInfoList.Lock();
+#endif
 	m_vRAIDInfoList.erase(it);
+#ifdef NUUO
 	m_csRAIDInfoList.Unlock();
+#endif
 
 	/*
 		7. InitializeContext(c)
@@ -1258,12 +1269,16 @@ bool RAIDManager::GetRAIDInfo(const string& mddev, RAIDInfo& info)
 		[CS End]
 		3. return false (not found)
 	*/
+#ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDInfoList);
+#endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
 		if (it->m_strDevNodeName == mddev) {
 			break;
 		}
+
+		it++;
 	}
 
 	if (it == m_vRAIDInfoList.end()) {
@@ -1278,9 +1293,12 @@ bool RAIDManager::GetRAIDInfo(const string& mddev, RAIDInfo& info)
 
 void RAIDManager::GetRAIDInfo(vector<RAIDInfo>& list)
 {
+#ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDInfoList);
+#endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
 		list.push_back(*it);
+		it++;
 	}
 }

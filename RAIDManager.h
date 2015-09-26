@@ -9,7 +9,10 @@ extern "C" {
 }
 #endif
 
+#ifdef NUUO
 #include "common/critical_section.h"
+using namespace SYSUTILS_SPACE;
+#endif
 
 #include <string>
 #include <vector>
@@ -18,7 +21,6 @@ extern "C" {
 #include <stdint.h>
 
 using namespace std;
-using namespace SYSUTILS_SPACE;
 
 struct RAIDDiskInfo {
 	string		m_strState;
@@ -202,9 +204,11 @@ private:
 	vector<RAIDInfo> m_vRAIDInfoList;
 	vector<RAIDDiskInfo> m_vRAIDDiskList;
 	
+#ifdef NUUO
 	CriticalSection m_csRAIDInfoList;
 	CriticalSection m_csRAIDDiskList;
 	CriticalSection m_csUsedMD;
+#endif
 
 	bool m_bRAIDInfoListUpdating;
 	bool m_bUsedMD[128];
@@ -233,6 +237,11 @@ private:
 
 	void UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList);
 	bool ManageRAIDSubdevs(const string& mddev, vector<string>& vDevList, int operation);
+	vector<RAIDInfo>::iterator IsMDDevInRAIDInfoList(const string &mddev);
+	vector<RAIDInfo>::iterator IsMDDevInRAIDInfoList(const string &mddev, RAIDInfo& info);
+	bool IsDiskExistInRAIDDiskList(const string& dev);
+	bool IsDiskExistInRAIDDiskList(vector<string>& vDevList);
+	int GenerateMDDevName(string& name);
 
 public:
 	RAIDManager();
