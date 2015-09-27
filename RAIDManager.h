@@ -19,6 +19,8 @@ using namespace SYSUTILS_SPACE;
 #include <iterator>
 
 #include <stdint.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -55,11 +57,38 @@ struct RAIDDiskInfo {
 		return *this;
 	}
 
+	void Dump()
+	{
+		printf("Soft Link: %s\nDevice Node: %s\n"
+			"State: %s\nDisk Order: %d\n",
+			m_strSoftLinkName.c_str(), m_strDevName.c_str(),
+			m_strState.c_str(), m_iNumber);
+	}
+
+	void HandleDevName(const string& name)
+	{
+		struct stat s;
+		if (lstat(name.c_str(), &s) >= 0) {
+			if (S_ISLNK(s.st_mode) == 1) {
+				char buf[128];
+				int len = 0;
+				if ((len = readlink(name.c_str(), buf, sizeof(buf) - 1)) >= 0) {
+					buf[len] = '\0';
+					m_strSoftLinkName = name;
+					m_strDevName = buf;
+					return;
+				}
+			}
+		}
+		m_strDevName = name;
+		m_strSoftLinkName = name;
+	}
+
 	RAIDDiskInfo& operator=(const RAIDDiskInfo& rhs)
 	{
 		if (this == &rhs)
 			return *this;
-
+		m_strSoftLinkName = rhs.m_strSoftLinkName;
 		m_strState = rhs.m_strState;
 		m_strDevName = rhs.m_strDevName;
 		m_iState = rhs.m_iState;
@@ -220,6 +249,10 @@ struct RAIDInfo {
 			m_bRebuilding?"Yes":"No", m_iRebuildingProgress,
 			m_iChunkSize
 			);
+
+		for (size_t i =0 ; i < m_vDiskList.size(); i++) {
+			m_vDiskList[i].Dump();
+		}
 	}
 };
 

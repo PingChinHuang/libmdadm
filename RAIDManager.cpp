@@ -183,8 +183,9 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 	RAIDDiskInfo info;
 	bool bExist = IsDiskExistInRAIDDiskList(dev);
 	if (!bExist) {
-		info.m_strSoftLinkName = dev;
-		info.m_strDevName = result.strDevName;
+		//info.m_strSoftLinkName = dev;
+		//info.m_strDevName = result.strDevName;
+		info.HandleDevName(dev);
 		info.m_iNumber = result.uDevRole;
 		info.m_iRaidDisk = result.uRaidDiskNum;
 		memcpy(info.m_RaidUUID, result.arrayUUID, sizeof(int) * 4);
@@ -381,7 +382,6 @@ bool RAIDManager::RemoveRAIDDisk(const string& dev)
 void RAIDManager::UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList)
 {
 	vector<RAIDDiskInfo>::iterator it = vRAIDDiskInfoList.begin();
-
 	while (it != vRAIDDiskInfoList.end()) {
 		bool bExist = false;
 #ifdef NUUO
@@ -393,6 +393,7 @@ void RAIDManager::UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList)
 				string strSoftLinkName = it_all->m_strSoftLinkName; // Keep this because it doesn't have this information.
 				*it_all = *it;
 				it_all->m_strSoftLinkName = strSoftLinkName; // Write back
+				it->m_strSoftLinkName = strSoftLinkName; // Write back
 				bExist = true;
 				break;
 			}
