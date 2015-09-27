@@ -13,7 +13,7 @@
 #include <stdarg.h>
 #define	WriteHWLog(facility, level, label, fmt, ...) \
 	do {\
-		printf("[%s][%s][%s] " fmt, #facility, #level, label, ##__VA_ARGS__); \
+		printf("[%d][%s][%s][%s] " fmt, __LINE__, #facility, #level, label, ##__VA_ARGS__); \
 	} while (0);
 
 string string_format(const char* fmt, ...)
@@ -21,8 +21,7 @@ string string_format(const char* fmt, ...)
 	va_list args;
 	char buf[64];
 	va_start(args, fmt);
-	int len = snprintf(buf, 63, fmt, args);
-	buf[len] = '\0';
+	vsnprintf(buf, 63, fmt, args);
 	va_end(args);
 	return buf;
 }
@@ -164,11 +163,14 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 	struct context c;
 	int ret = SUCCESS;
 
-	if (!InitializeDevList(devlist, vDevList)) {
+	vDevList.push_back(dev);
+	if (NULL == (devlist = InitializeDevList(vDevList))) {
 		return false;
 	}
+
 	InitializeContext(c);
 	ret = Examine_ToResult(devlist, &c, NULL, &result);
+	FreeDevList(devlist);
 
 	/*[CS Start] Protect m_vRAIDDiskList*/
 	/*3. Exist in m_vRAIDDiskList?
@@ -270,9 +272,10 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 				counter++;
 		}
 		
+	unsigned char* p_uuid = (unsigned char*)info.m_RaidUUID;
+	for (int i = 0; i < 16; i ++)
 		if (counter >= info.m_iRaidDisk) {
-			string strMDName;
-			if (!AssembleRAID(info.m_RaidUUID, strMDName)) {
+			if (!AssembleRAID(info.m_RaidUUID, mddev)) {
 				WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 					   "%s added successfully .\n", dev.c_str());
 				return true;
@@ -567,6 +570,7 @@ void RAIDManager::InitializeContext(struct context& c, int force, int runstop, i
 
 void RAIDManager::InitializeMDDevIdent(struct mddev_ident& ident, int uuid_set, const int uuid[4], int bitmap_fd, char* bitmap_file)
 {
+	memset(&ident, 0x00, sizeof(struct mddev_ident));
 	ident.uuid_set = uuid_set;
 	ident.super_minor = UnSet;
 	ident.level = UnSet;
@@ -574,21 +578,29 @@ void RAIDManager::InitializeMDDevIdent(struct mddev_ident& ident, int uuid_set, 
 	ident.spare_disks = UnSet;
 	ident.bitmap_fd = bitmap_fd;
 	ident.bitmap_file = bitmap_file;
-	if (uuid_set)
+	if (uuid_set) {
 		memcpy(ident.uuid, uuid, sizeof(int) * 4);
+		for (int i = 0; i < 4; i++) {
+			ident.uuid[i] = __be32_to_cpu(ident.uuid[i]);
+		}
+	}
 }
 
-bool RAIDManager::InitializeDevList(struct mddev_dev* devlist, const string& replace, const string& with)
+struct mddev_dev* RAIDManager::InitializeDevList(const string& replace, const string& with)
 {
+	struct mddev_dev* devlist = NULL;
 	struct mddev_dev** devlistend = &devlist;
 	struct mddev_dev* dv = NULL;
+
+	if (replace.empty() || with.empty())
+		return NULL;
 
 	devlist = NULL;
 	dv = (struct mddev_dev*)malloc(sizeof(struct mddev_dev));
 	if (dv == NULL) {
 		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
 			   "[%d] Fail to allocate memory.\n", __LINE__);
-		return false;
+		return NULL;
 	}
 	dv->devname = (char*)replace.c_str();
 	dv->disposition = 'R';
@@ -603,7 +615,7 @@ bool RAIDManager::InitializeDevList(struct mddev_dev* devlist, const string& rep
 		FreeDevList(devlist);
 		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
 			   "[%d] Fail to allocate memory.\n", __LINE__);
-		return false;
+		return NULL;
 	}
 	dv->devname = (char*)with.c_str();
 	dv->disposition = 'w';
@@ -613,25 +625,28 @@ bool RAIDManager::InitializeDevList(struct mddev_dev* devlist, const string& rep
 	*devlistend = dv;
 	devlistend = &dv->next;
 
-	return true;
+	return devlist;
 }
 
-bool RAIDManager::InitializeDevList(struct mddev_dev* devlist, vector<string>& devNameList, int disposition)
+struct mddev_dev* RAIDManager::InitializeDevList(vector<string>& devNameList, int disposition)
 {
+	struct mddev_dev* devlist = NULL;
 	struct mddev_dev** devlistend = &devlist;
 	struct mddev_dev* dv = NULL;
 
-	devlist = NULL;
+	if (devNameList.empty())
+		return NULL;
+
 	for (size_t i = 0; i < devNameList.size(); i ++) {
 		dv = (struct mddev_dev*)malloc(sizeof(struct mddev_dev));
 		if (dv == NULL) {
 			FreeDevList(devlist);
 			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
 				   "[%d] Fail to allocate memory.\n", __LINE__);
-			return false;
+			return NULL;
 		}
 		dv->devname = (char*)devNameList[i].c_str();
-		dv->disposition = 0;
+		dv->disposition = disposition;
 		dv->writemostly = 0;
 		dv->used = 0;
 		dv->next = NULL;
@@ -639,7 +654,7 @@ bool RAIDManager::InitializeDevList(struct mddev_dev* devlist, vector<string>& d
 		devlistend = &dv->next;
 	}
 
-	return true;
+	return devlist;
 }
 
 void RAIDManager::FreeDevList(struct mddev_dev* devlist)
@@ -671,6 +686,9 @@ int RAIDManager::GenerateMDDevName(string& name)
 		return -1;
 	}
 	name = string_format("/dev/md%d", iFreeMD);
+	//name = "/dev/md0";
+	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+		   "MD Name: %s\n", name.c_str()); 
 	return iFreeMD;
 }
 
@@ -747,8 +765,9 @@ int RAIDManager::CreateRAID(const string& mddev, vector<string>& vDevList, int l
 		6. InitializeDevList(devlist, vDevList) 
 			6.1 false -> FreeDevList(devlist) -> return false
 	*/
-	struct mddev_dev* devlist = NULL;
-	InitializeDevList(devlist, vDevList);
+	struct mddev_dev* devlist = InitializeDevList(vDevList);
+	if (devlist == NULL)
+		return false;
 
 	/*
 		7. ret = Create(NULL, mddev.c_str(), "\0", NULL, vDevList.size(), devlist, &s, &c, INVALID_SECTORS)
@@ -843,6 +862,7 @@ int RAIDManager::AssembleRAID(const string& mddev, const int uuid[4])
 	*/
 	struct mddev_ident ident;
 	InitializeMDDevIdent(ident, 1, uuid);
+	unsigned char* p_uuid = (unsigned char*)ident.uuid;
 
 	/*
 		5. ret = Assemble(NULL, mddev.c_str(), &ident, NULL, &c);
@@ -949,8 +969,8 @@ int RAIDManager::AssembleRAID(const string& mddev, vector<string>& vDevList)
 		6. InitalizeDevList(devlist, vDevList);
 			6.1 false -> FreeDevlist(devlist) -> return false
 	*/
-	struct mddev_dev* devlist = NULL;
-	if(!InitializeDevList(devlist, vDevList)) {
+	struct mddev_dev* devlist = InitializeDevList(vDevList);
+	if(devlist == NULL) {
 		return ASSEMBLE_INITIALIZE_DEV_LIST_FAIL;
 	}
 
@@ -1047,12 +1067,12 @@ bool RAIDManager::ManageRAIDSubdevs(const string& mddev, vector<string>& vDevLis
 			return false;
 		}
 
-		if (!InitializeDevList(devlist, vDevList[0], vDevList[1])) {
+		if (NULL == (devlist = InitializeDevList(vDevList[0], vDevList[1]))) {
 			return false;
 		}
 		break;
 	default:
-		if (!InitializeDevList(devlist, vDevList, operation)) {
+		if (NULL == (devlist = InitializeDevList(vDevList, operation))) {
 			return false;
 		}
 	}

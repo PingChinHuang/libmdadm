@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 	//Detail("/dev/md1", &c);
 #endif
 
-#if 1 
+#if 0 
 	ret = Detail_ToArrayDetail("/dev/md1", &c, &ad);
 	printf("done\n");
 	printf("RAID State: %s\n", ad.strArrayState);
@@ -129,13 +129,25 @@ int main(int argc, char *argv[])
 	uuid[32] = '\0';
 	parse_uuid(uuid, ident.uuid);
 #endif
-#if 0
+#if 1
+unsigned char myuuid[16] = {0x5F, 0x3E, 0x55, 0xDA, 0x4F, 0x7E, 0x42, 0xF9, 0x75, 0x9F, 0x8E, 0x52, 0x90, 0x21, 0x72, 0xA8};
 	ident.super_minor = UnSet;
 	ident.level = UnSet;
 	ident.raid_disks = UnSet;
 	ident.spare_disks = UnSet;
 	ident.bitmap_fd = -1;
-	ret = Assemble(NULL, "/dev/md1", &ident, devlist, &c); 
+	ident.uuid_set = 1;
+	//memcpy(ident.uuid, uuid, sizeof(int) * 4);
+	char uuid[128];
+	snprintf(uuid, 127,"5f3e55da4f7e42f9759f8e52902172a8");
+	uuid[32] = '\0';
+	parse_uuid(uuid, ident.uuid);
+	int *p_myuuid = (int*) myuuid;
+	for (int i = 0; i < 4 ; i ++) {
+			printf("%08X %08X\n", ident.uuid[i], p_myuuid[i]);
+
+			}
+	ret = Assemble(NULL, "/dev/md1", &ident, NULL, &c); 
 #endif
 #if 0
 	int fd = open_mddev("/dev/md1", 1);
@@ -162,7 +174,7 @@ int main(int argc, char *argv[])
 		printf("%s: Disk Number %d, Activity %s, MD %s, Raid Disks %d, Raid Level %d(%s)\n", result.strDiskDevName, result.iDiskNumber, result.strDiskActivity, result.strMDDevName, result.iMDRaidDiskNum, result.iMDRaidLevel, result.strMDLevel);
 #endif
 
-#if 1
+#if 0
 	struct examine_result result;
 	ret = Examine_ToResult(devlist, &c, NULL, &result);
 //	for (result = list; result; result = result->next) {

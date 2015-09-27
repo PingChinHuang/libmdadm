@@ -223,8 +223,8 @@ private:
 	void InitializeContext(struct context& c, int force = 1, int runstop = 1, int verbose = 0);
 #endif
 	void InitializeMDDevIdent(struct mddev_ident& ident, int uuid_set, const int uuid[4], int bitmap_fd = -1, char* bitmap_file = NULL);
-	bool InitializeDevList(struct mddev_dev* devlist, vector<string>& devNameList, int disposition = 0);
-	bool InitializeDevList(struct mddev_dev* devlist, const string& replace, const string& with);
+	struct mddev_dev* InitializeDevList(vector<string>& devNameList, int disposition = 0);
+	struct mddev_dev* InitializeDevList(const string& replace, const string& with);
 	void FreeDevList(struct mddev_dev* devlist);
 	int OpenMDDev(const string& mddev);
 
