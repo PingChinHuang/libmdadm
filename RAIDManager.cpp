@@ -272,8 +272,6 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 				counter++;
 		}
 		
-	unsigned char* p_uuid = (unsigned char*)info.m_RaidUUID;
-	for (int i = 0; i < 16; i ++)
 		if (counter >= info.m_iRaidDisk) {
 			if (!AssembleRAID(info.m_RaidUUID, mddev)) {
 				WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
@@ -457,7 +455,7 @@ bool RAIDManager::UpdateRAIDInfo(const string& mddev)
 	}
 
 	info = ad; // Update new information.
-	UpdateRAIDDiskList(it->m_vDiskList);
+	UpdateRAIDDiskList(info.m_vDiskList);
 	m_vRAIDInfoList.push_back(info);
 	return true;
 }

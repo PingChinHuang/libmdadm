@@ -124,7 +124,7 @@ struct RAIDInfo {
 	RAIDInfo& operator=(const struct array_detail& rhs)
 	{
 		m_vDiskList.clear();
-		for (int i = 0; i < MAX_DISK_NUM; i++) {
+		for (int i = 0; i < rhs.arrayInfo.nr_disks; i++) {
 			RAIDDiskInfo info;
 			if (rhs.arrayDisks[i].diskInfo.major == 0 &&
 			    rhs.arrayDisks[i].diskInfo.minor == 0)
@@ -196,6 +196,30 @@ struct RAIDInfo {
 		m_iFormatProgress = rhs.m_iFormatProgress;
 
 		return *this;
+	}
+
+	void Dump()
+	{
+		printf("State: %s\nLayout:%s\n"
+			"Rebuild: %s\nDevice Node: %s\n"
+			"Volume Name:%s\nMount Point: %s\n"
+			"Total Capacity: %ld\nLevel: %d\n"
+			"Total Disk: %d (R: %d/A: %d/W: %d/F: %d/S: %d)\n"
+			"Createtion Time: %.24s\nUpdate Time:%.24s\n"
+			"Format: %s(%d%%)\nMount: %s\nActive: %s\n"
+			"Rebuilding: %s (%d%%)\nChunk Size: %d\n",
+			m_strState.c_str(), m_strLayout.c_str(),
+			m_strRebuildingOperation.c_str(), m_strDevNodeName.c_str(),
+			m_strVolumeName.c_str(), m_strMountPoint.c_str(),
+			m_ullTotalCapacity, m_iRAIDLevel,
+			m_iTotalDiskNum, m_iRAIDDiskNum, m_iActiveDiskNum,
+			m_iWorkingDiskNum, m_iFailedDiskNum, m_iSpareDiskNum,
+			ctime(&m_CreationTime), ctime(&m_UpdateTime),
+			m_bFormat?"Yes":"No", m_iFormatProgress,
+			m_bMount?"Yes":"No:", m_bInactive?"No":"Yes",
+			m_bRebuilding?"Yes":"No", m_iRebuildingProgress,
+			m_iChunkSize
+			);
 	}
 };
 
