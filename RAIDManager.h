@@ -252,7 +252,7 @@ struct RAIDInfo {
 			"Total Capacity: %ld\nLevel: %d\n"
 			"Total Disk: %d (R: %d/A: %d/W: %d/F: %d/S: %d)\n"
 			"Createtion Time: %.24s\nUpdate Time:%.24s\n"
-			"Format: %s(%d%%)\nMount: %s\nActive: %s\n"
+			"Format: %s (%d%%)\nMount: %s\nActive: %s\n"
 			"Rebuilding: %s (%d%%)\nChunk Size: %d\n",
 			m_strState.c_str(), m_strLayout.c_str(),
 			m_strRebuildingOperation.c_str(), m_strDevNodeName.c_str(),
@@ -263,7 +263,7 @@ struct RAIDInfo {
 			ctime(&m_CreationTime), ctime(&m_UpdateTime),
 			m_bFormat?"Yes":"No", m_iFormatProgress,
 			m_bMount?"Yes":"No:", m_bInactive?"No":"Yes",
-			m_bRebuilding?"Yes":"No", m_iRebuildingProgress,
+			m_bRebuilding?"Yes":"No", (m_iRebuildingProgress < 0)?100:m_iRebuildingProgress,
 			m_iChunkSize
 			);
 

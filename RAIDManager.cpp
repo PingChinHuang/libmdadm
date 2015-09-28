@@ -1311,6 +1311,7 @@ bool RAIDManager::GetRAIDInfo(const string& mddev, RAIDInfo& info)
 
 void RAIDManager::GetRAIDInfo(vector<RAIDInfo>& list)
 {
+	list.clear();
 #ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDInfoList);
 #endif
