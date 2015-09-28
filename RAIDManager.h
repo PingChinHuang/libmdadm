@@ -36,6 +36,7 @@ struct RAIDDiskInfo {
 	RAIDDiskInfo()
 	: m_strState("")
 	, m_strDevName("")
+	, m_strSoftLinkName("")
 	, m_iState(0)
 	, m_iNumber(0)
 	, m_iRaidDisk(0)
@@ -99,11 +100,8 @@ struct RAIDDiskInfo {
 
 	bool operator==(const RAIDDiskInfo& rhs) const
 	{
-		return (m_strState == rhs.m_strState &&
-			m_strDevName == rhs.m_strDevName &&
-			m_iState == rhs.m_iState &&
-			m_iNumber == rhs.m_iNumber &&
-			m_iRaidDisk == rhs.m_iRaidDisk);
+		return (m_strSoftLinkName == rhs.m_strSoftLinkName &&
+			m_strDevName == rhs.m_strDevName);
 	}
 };
 
@@ -140,9 +138,28 @@ struct RAIDInfo {
 	: m_strVolumeName("")
 	, m_strDevNodeName("")
 	, m_strMountPoint("")
+	, m_strState("")
+	, m_strLayout("")
+	, m_strRebuildingOperation("")
+	, m_CreationTime(0)
+	, m_UpdateTime(0)
 	, m_ullTotalCapacity(0ull)
 	, m_iRAIDLevel(UnSet)
 	, m_iTotalDiskNum(0)
+	, m_iRAIDDiskNum(0)
+	, m_iActiveDiskNum(0)
+	, m_iWorkingDiskNum(0)
+	, m_iFailedDiskNum(0)
+	, m_iSpareDiskNum(0)
+	, m_iState(0)
+	, m_iChunkSize(512)
+	, m_iRebuildingProgress(0)
+	, m_iFormatProgress(0)
+	, m_bSuperBlockPersistent(false)
+	, m_bInactive(false)
+	, m_bRebuilding(false)
+	, m_bFormat(false)
+	, m_bMount(false)
 	{
 		for (int i = 0; i < 4; i ++)
 			m_UUID[i] = 0;
@@ -267,7 +284,6 @@ private:
 	CriticalSection m_csUsedMD;
 #endif
 
-	bool m_bRAIDInfoListUpdating;
 	bool m_bUsedMD[128];
 
 private:

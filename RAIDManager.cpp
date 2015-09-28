@@ -28,7 +28,6 @@ string string_format(const char* fmt, ...)
 #endif
 
 RAIDManager::RAIDManager()
-: m_bRAIDInfoListUpdating(false)
 {
 #ifdef NUUO
 	CriticalSectionLock cs(&m_csUsedMD);
