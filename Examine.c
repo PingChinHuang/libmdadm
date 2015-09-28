@@ -312,8 +312,10 @@ int Examine_ToResult(struct mddev_dev *devlist,
 			continue;
 
 		strncpy(result->strDevName, devlist->devname, 31);
-		st->ss->examine_super_result(st, c->homehost, result);
-		st->ss->free_super(st);
+		if (st->ss->examine_super_result != NULL) {
+			st->ss->examine_super_result(st, c->homehost, result);
+			st->ss->free_super(st);
+		}
 	}
 
 	return rv;
