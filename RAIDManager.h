@@ -31,7 +31,7 @@ struct RAIDDiskInfo {
 	int32_t		m_RaidUUID[4]; // Get after Examine()
 	int32_t		m_iState;
 	int32_t		m_iNumber;
-	int32_t		m_iRaidDisk;
+	int32_t		m_iRaidDiskNum;
 
 	RAIDDiskInfo()
 	: m_strState("")
@@ -39,7 +39,7 @@ struct RAIDDiskInfo {
 	, m_strSoftLinkName("")
 	, m_iState(0)
 	, m_iNumber(0)
-	, m_iRaidDisk(0)
+	, m_iRaidDiskNum(0)
 	{
 		for (int i = 0; i < 4; i++) {
 			m_RaidUUID[i] = 0;
@@ -54,7 +54,7 @@ struct RAIDDiskInfo {
 		m_strDevName = rhs.strDevName;
 		m_iState = rhs.diskInfo.state;
 		m_iNumber = rhs.diskInfo.number;
-		m_iRaidDisk = rhs.diskInfo.raid_disk;
+		m_iRaidDiskNum = rhs.diskInfo.raid_disk;
 		return *this;
 	}
 
@@ -94,14 +94,18 @@ struct RAIDDiskInfo {
 		m_strDevName = rhs.m_strDevName;
 		m_iState = rhs.m_iState;
 		m_iNumber = rhs.m_iNumber;
-		m_iRaidDisk = rhs.m_iRaidDisk;
+		m_iRaidDiskNum = rhs.m_iRaidDiskNum;
 		return *this;
 	}
 
 	bool operator==(const RAIDDiskInfo& rhs) const
 	{
-		return (m_strSoftLinkName == rhs.m_strSoftLinkName &&
-			m_strDevName == rhs.m_strDevName);
+		return (m_strDevName == rhs.m_strDevName);
+	}
+
+	bool operator==(const string& rhs) const
+	{
+		return (rhs == m_strDevName);
 	}
 };
 
@@ -242,6 +246,16 @@ struct RAIDInfo {
 		m_iFormatProgress = rhs.m_iFormatProgress;
 
 		return *this;
+	}
+
+	bool operator==(const RAIDInfo& rhs) const
+	{
+		return (m_strDevNodeName == rhs.m_strDevNodeName);
+	}
+
+	bool operator==(const string& rhs) const
+	{
+		return (m_strDevNodeName == rhs);
 	}
 
 	void Dump()

@@ -112,8 +112,8 @@ bool RAIDManager::IsDiskExistInRAIDDiskList(const string& dev)
 		// Compare both soft link name and actual device node name.
 		// In case of soft link name is not the same, but the disk
 		// actually is in the list....
-		if (dev == it_disk->m_strSoftLinkName ||
-		    dev == it_disk->m_strDevName) {
+		if (*it_disk == dev /*dev == it_disk->m_strSoftLinkName ||
+		    dev == it_disk->m_strDevName*/) {
 			return true;
 		}
 		it_disk++;
@@ -186,7 +186,7 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 		//info.m_strDevName = result.strDevName;
 		info.HandleDevName(dev);
 		info.m_iNumber = result.uDevRole;
-		info.m_iRaidDisk = result.uRaidDiskNum;
+		info.m_iRaidDiskNum = result.uRaidDiskNum;
 		memcpy(info.m_RaidUUID, result.arrayUUID, sizeof(int) * 4);
 
 		// FIXME: Maybe the critical section should protect following code since checking the disk existence. 
@@ -272,7 +272,7 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 				counter++;
 		}
 		
-		if (counter >= info.m_iRaidDisk) {
+		if (counter >= info.m_iRaidDiskNum) {
 			if (!AssembleRAID(info.m_RaidUUID, mddev)) {
 				WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 					   "%s added successfully .\n", dev.c_str());
@@ -311,8 +311,8 @@ vector<RAIDInfo>::iterator RAIDManager::SearchDiskBelong2RAID(const string& dev,
 	while (it != m_vRAIDInfoList.end()) {
 		vector<RAIDDiskInfo>::iterator it_disk = it->m_vDiskList.begin();
 		while (it_disk != it->m_vDiskList.end()) {
-			if (it_disk->m_strDevName == dev ||
-			    it_disk->m_strSoftLinkName == dev) {
+			if (*it_disk == dev/*it_disk->m_strDevName == dev ||
+			    it_disk->m_strSoftLinkName == dev*/) {
 				devInfo = *it_disk;
 				return it;
 			}
@@ -349,8 +349,8 @@ bool RAIDManager::RemoveRAIDDisk(const string& dev)
 	vector<RAIDDiskInfo>::iterator it = m_vRAIDDiskList.begin();
 	int uuid[4];
 	while (it != m_vRAIDDiskList.end()) {
-		if (it->m_strSoftLinkName == dev ||
-		    it->m_strDevName == dev) {
+		if (*it == dev /*it->m_strSoftLinkName == dev ||
+		    it->m_strDevName == dev*/) {
 			memcpy(uuid, it->m_RaidUUID, sizeof(int) * 4);
 			break;
 		}
@@ -388,7 +388,7 @@ void RAIDManager::UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList)
 #endif
 		vector<RAIDDiskInfo>::iterator it_all = m_vRAIDDiskList.begin();
 		while(it_all != m_vRAIDDiskList.end()) {
-			if (it->m_strDevName == it_all->m_strDevName) {
+			if (*it == *it_all /*it->m_strDevName == it_all->m_strDevName*/) {
 				string strSoftLinkName = it_all->m_strSoftLinkName; // Keep this because it doesn't have this information.
 				*it_all = *it;
 				it_all->m_strSoftLinkName = strSoftLinkName; // Write back
@@ -445,7 +445,7 @@ bool RAIDManager::UpdateRAIDInfo(const string& mddev)
 #endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
-		while (mddev == it->m_strDevNodeName) {
+		while (/*mddev == it->m_strDevNodeName*/ *it == mddev) {
 			*it = ad; // Keep some fixed information like mount point, volumne name
 			UpdateRAIDDiskList(it->m_vDiskList);
 			return true;

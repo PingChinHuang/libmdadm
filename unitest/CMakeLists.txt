@@ -17,6 +17,7 @@ TARGET_LINK_LIBRARIES(mdadm_unitest
 
 SET(RAIDMANAGER_SRC
 	RAIDManager_test.cpp
+	TestingLoop.cpp
 )
 
 ADD_EXECUTABLE(RAIDManager_test
