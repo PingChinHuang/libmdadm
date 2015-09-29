@@ -925,12 +925,12 @@ static int start_array(int mdfd,
 	if (rv && !err_ok) {
 		pr_err("failed to set array info for %s: %s\n",
 		       mddev, strerror(errno));
-		return 1;
+		return ASSEMBLE_FAIL_TO_SET_ARRAY_INFO;
 	}
 	if (ident->bitmap_fd >= 0) {
 		if (ioctl(mdfd, SET_BITMAP_FILE, ident->bitmap_fd) != 0) {
 			pr_err("SET_BITMAP_FILE failed.\n");
-			return 1;
+			return ASSEMBLE_FAIL_TO_SET_BITMAP_FILE;
 		}
 	} else if (ident->bitmap_file) {
 		/* From config file */
@@ -938,12 +938,12 @@ static int start_array(int mdfd,
 		if (bmfd < 0) {
 			pr_err("Could not open bitmap file %s\n",
 			       ident->bitmap_file);
-			return 1;
+			return ASSEMBLE_FAIL_TO_OPEN_BITMAP_FILE;
 		}
 		if (ioctl(mdfd, SET_BITMAP_FILE, bmfd) != 0) {
 			pr_err("Failed to set bitmapfile for %s\n", mddev);
 			close(bmfd);
-			return 1;
+			return  ASSEMBLE_FAIL_TO_SET_BITMAP_FILE;
 		}
 		close(bmfd);
 	}
@@ -1059,7 +1059,7 @@ static int start_array(int mdfd,
 				if (c->update &&
 				    strcmp(c->update, "revert-reshape") == 0)
 					pr_err("(Don't specify --update=revert-reshape again, that part succeeded.)\n");
-				return 1;
+				return ASSEMBLE_NEED_BACKUP_FILE;
 			}
 			rv = sysfs_set_str(content, NULL,
 					   "array_state", "readonly");
@@ -1151,7 +1151,7 @@ static int start_array(int mdfd,
 			       "start the array while not clean "
 			       "- consider --force.\n");
 
-		return 1;
+		return ASSEMBLE_RAID_DEVS_NOT_ENOUGH;
 	}
 	if (c->runstop == -1) {
 		pr_err("%s assembled from %d drive%s",
@@ -1159,7 +1159,7 @@ static int start_array(int mdfd,
 		if (okcnt != (unsigned)content->array.raid_disks)
 			fprintf(stderr, " (out of %d)", content->array.raid_disks);
 		fprintf(stderr, ", but not started.\n");
-		return 2;
+		return ASSEMBLE_RAID_DEVS_NOT_ENOUGH;
 	}
 	if (c->verbose >= -1) {
 		pr_err("%s assembled from %d drive%s", mddev, okcnt, okcnt==1?"":"s");
@@ -1185,7 +1185,7 @@ static int start_array(int mdfd,
 			fprintf(stderr, " (use --run to insist).\n");
 		}
 	}
-	return 1;
+	return ASSEMBLE_UNDEFINED_ERROR;
 }
 
 int Assemble(struct supertype *st, char *mddev,
@@ -1769,7 +1769,7 @@ try_again:
 			 clean, avail, start_partial_ok,
 			 pre_exist != NULL,
 			 was_forced);
-	if (rv == 1 && !pre_exist)
+	if (rv > 0 && !pre_exist)
 		ioctl(mdfd, STOP_ARRAY, NULL);
 	free(devices);
 	map_unlock(&map);

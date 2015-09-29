@@ -163,6 +163,19 @@ static void HandleREPLACEMDDISK (const char* content)
 #endif 
 static void HandleASSEMBLERAID (const char* content, RAIDManager& raid_mgr)
 {
+	char type[5];
+	char info[1024];
+	sscanf(content, "%4[^,],%1023s", type, info);
+
+	printf("type = %s\n", type);
+	if (strncmp("disk", type, strlen("disk")) == 0) {
+		vector<string> vdisks;
+		string strMDName;
+		tokenize(info, vdisks);
+		raid_mgr.AssembleRAID(vdisks, strMDName);
+	} else if (strncmp("uuid", type, strlen("uuid")) == 0) {
+
+	}
 }
 
 static void HandleDONOTHING (const char* content, RAIDManager& raid_mgr)

@@ -85,7 +85,7 @@ vector<RAIDInfo>::iterator RAIDManager::IsMDDevInRAIDInfoList(const string &mdde
 #endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
-		if (mddev == it->m_strDevNodeName) {
+		if (/*mddev == it->m_strDevNodeName*/*it == mddev) {
 			info = *it;
 			break;
 		}
@@ -872,14 +872,15 @@ int RAIDManager::AssembleRAID(const string& mddev, const int uuid[4])
 	if (ret != SUCCESS) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "Fail to assemble volume %s: (%d)\n", mddev.c_str(), ret);
-		return ret;
+		if ( ret != ASSEMBLE_RAID_DEVS_NOT_ENOUGH)
+			return ret;
 	}
 
 	/*
 		6. return UpdateRAIDInfo(mddev)
 	*/
 	UpdateRAIDInfo(mddev);
-	return SUCCESS;
+	return ret;
 }
 
 bool RAIDManager::AssembleRAID(vector<string>& vDevList, string& strMDName)
@@ -984,7 +985,8 @@ int RAIDManager::AssembleRAID(const string& mddev, vector<string>& vDevList)
 	if (ret != 0) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "Fail to assemble volume %s: (%d)\n", mddev.c_str(), ret);
-		return ret;
+		if ( ret != ASSEMBLE_RAID_DEVS_NOT_ENOUGH)
+			return ret;
 	}
 
 	/*
@@ -995,7 +997,7 @@ int RAIDManager::AssembleRAID(const string& mddev, vector<string>& vDevList)
 			return UpdateRAIDInfo(mddev)
 	*/
 	UpdateRAIDInfo(mddev);
-	return SUCCESS;
+	return ret;
 }
 
 bool RAIDManager::ManageRAIDSubdevs(const string& mddev, vector<string>& vDevList, int operation)
@@ -1292,7 +1294,7 @@ bool RAIDManager::GetRAIDInfo(const string& mddev, RAIDInfo& info)
 #endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
-		if (it->m_strDevNodeName == mddev) {
+		if (/*it->m_strDevNodeName == mddev*/ *it == mddev) {
 			break;
 		}
 
