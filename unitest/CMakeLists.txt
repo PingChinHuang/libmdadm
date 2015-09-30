@@ -34,6 +34,6 @@ TARGET_LINK_LIBRARIES(
 IF (${NUUO})
 TARGET_LINK_LIBRARIES(
 	RAIDManager_test
-	# libcommonobj.so
+	${CMAKE_CURRENT_BINARY_DIR}/../../common/lib/libcommonobj.so
 )
 ENDIF (${NUUO})

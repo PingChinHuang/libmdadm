@@ -105,7 +105,7 @@ vector<RAIDInfo>::iterator RAIDManager::IsMDDevInRAIDInfoList(const string &mdde
 bool RAIDManager::IsDiskExistInRAIDDiskList(const string& dev)
 {
 #ifdef NUUO
-	CrititcalSectionLock (&m_csRAIDDiskList);
+	CriticalSectionLock cs(&m_csRAIDDiskList);
 #endif
 	vector<RAIDDiskInfo>::iterator it_disk = m_vRAIDDiskList.begin();
 	while (it_disk != m_vRAIDDiskList.end()) {
@@ -191,7 +191,7 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 
 		// FIXME: Maybe the critical section should protect following code since checking the disk existence. 
 #ifdef NUUO
-		CriticalSectionLock cs(&ms_csRAIDDiskList);
+		CriticalSectionLock cs(&m_csRAIDDiskList);
 #endif
 		m_vRAIDDiskList.push_back(info);
 	} 
@@ -261,7 +261,7 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 				5.2 not enough -> return true	*/
 		int counter = 1; // count disk has the same uuid. Initial value is 1 for this newly added disk.
 #ifdef NUUO
-		CriticalSectionLock cs_disk(&m_csRAIDDiskList);
+		m_csRAIDDiskList.Lock();
 #endif
 		for (size_t i = 0; i < m_vRAIDDiskList.size(); i++) {
 			if (info.m_strDevName == m_vRAIDDiskList[i].m_strDevName) // Bypass itself
@@ -271,6 +271,9 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 			if (0 == memcmp(info.m_RaidUUID, m_vRAIDDiskList[i].m_RaidUUID, sizeof(int) * 4))
 				counter++;
 		}
+#ifdef NUUO
+		m_csRAIDDiskList.Unlock();
+#endif
 		
 		if (counter >= info.m_iRaidDiskNum) {
 			if (!AssembleRAID(info.m_RaidUUID, mddev)) {
@@ -316,6 +319,8 @@ vector<RAIDInfo>::iterator RAIDManager::SearchDiskBelong2RAID(const string& dev,
 				devInfo = *it_disk;
 				return it;
 			}
+
+			it_disk++;
 		}
 
 		it ++;
