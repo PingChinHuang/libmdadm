@@ -263,7 +263,7 @@ struct RAIDInfo {
 		printf("State: %s\nLayout:%s\n"
 			"Rebuild: %s\nDevice Node: %s\n"
 			"Volume Name:%s\nMount Point: %s\n"
-			"Total Capacity: %ld\nLevel: %d\n"
+			"Total Capacity: %llu\nLevel: %d\n"
 			"Total Disk: %d (R: %d/A: %d/W: %d/F: %d/S: %d)\n"
 			"Createtion Time: %.24s\nUpdate Time:%.24s\n"
 			"Format: %s (%d%%)\nMount: %s\nActive: %s\n"
