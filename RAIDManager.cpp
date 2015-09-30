@@ -712,6 +712,8 @@ bool RAIDManager::CreateRAID(vector<string>& vDevList, int level, string& strMDN
 		} else if (ret == CREATE_MDDEV_INUSE) {
 			SetMDNum(freeMD);
 			// next loop retry
+		} else {
+			FreeMDNum(freeMD);	
 		}
 	} while (ret == CREATE_MDDEV_INUSE);
 
@@ -819,6 +821,8 @@ bool RAIDManager::AssembleRAID(const int uuid[4], string& strMDName)
 		} else if (ret == ASSEMBLE_MDDEV_INUSE) {
 			SetMDNum(freeMD);
 			// next loop retry
+		} else if (ret != ASSEMBLE_RAID_DEVS_NOT_ENOUGH) {
+			FreeMDNum(freeMD);
 		}
 	} while (ret == ASSEMBLE_MDDEV_INUSE);
 
@@ -911,6 +915,8 @@ bool RAIDManager::AssembleRAID(vector<string>& vDevList, string& strMDName)
 		} else if (ret == ASSEMBLE_MDDEV_INUSE) {
 			SetMDNum(freeMD);
 			// next loop retry
+		} else if (ret != ASSEMBLE_RAID_DEVS_NOT_ENOUGH) {
+			FreeMDNum(freeMD);
 		}
 	} while (ret == ASSEMBLE_MDDEV_INUSE);
 
