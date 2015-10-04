@@ -10,8 +10,6 @@ extern "C"
 }
 #endif
 
-#include "apr/apr_thread_worker.h"
-
 #include <string>
 
 using namespace std;
