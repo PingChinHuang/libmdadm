@@ -28,13 +28,16 @@ class FilesystemManager
 #endif
 {
 private:
+#ifdef NUUO
 	CriticalSection m_csFormat;
+#endif
 	mke2fs_handle m_mkfsHandle;
 	//fsck_handle m_fsckHandle;
 
 	string m_strMountPoint;
 	string m_strDevNode;
-	//uuid_t m_uuid;
+	string m_strUUID;
+	string m_strFSType;
 	int m_iFormatingState;
 	int m_iFormatProgress;
 	bool m_bFormat;
@@ -51,6 +54,7 @@ private:
 	void GenerateUUIDFile();
 	bool CreateDefaultFolders();
 	void InitializeMke2fsHandle();
+	int blkid();
 
 public:
 	FilesystemManager(const string& dev);

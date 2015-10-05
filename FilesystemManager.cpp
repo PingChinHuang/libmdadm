@@ -41,10 +41,12 @@ bool FilesystemManager::Initialize()
 	return true;
 }
 
+#ifdef NUUO
 void FilesystemManager::ThreadProc()
 {
 
 }
+#endif
 
 bool FilesystemManager::Format()
 {
@@ -126,3 +128,51 @@ bool FilesystemManager::CreateDefaultFolders()
 {
 
 }
+
+int FilesystemManager::blkid()
+{
+	blkid_cache cache = NULL;
+	int retval = 0;
+	if (retval = blkid_get_cache(&cache, NULL) < 0) {
+		return retval;
+	}
+
+	blkid_dev dev = blkid_get_dev(cache, m_strDevNode.c_str(), BLKID_DEV_NORMAL);
+	m_strDevNode = blkid_dev_devname(dev);
+	if (access(m_strDevNode.c_str(), F_OK))
+		return retval;
+
+	blkid_tag_iterate iter;
+	const char* type = NULL;
+	const char* value = NULL;
+	iter = blkid_tag_iterate_begin(dev);
+	while (blkid_tag_next(iter, &type, &value) == 0) {
+		if (!strcmp(type, "UUID"))
+			m_strUUID = value;
+		if (!strcmp(type, "TYPE"))
+			m_strFSType = value;
+		if (!strcmp(type, "LABEL"))
+			continue;
+	}
+	blkid_tag_iterate_end(iter);
+
+	char mtpt[256];
+
+	int mount_flags = 0;
+	retval = ext2fs_check_mount_point(m_strDevNode.c_str(), &mount_flags,
+					  mtpt, sizeof(mtpt));
+	if (retval == 0) {
+		m_strMountPoint = mtpt;
+		if (mount_flags & EXT2_MF_MOUNTED) {
+			m_bMount = true;
+		} else if (mount_flags & EXT2_MF_BUSY) {
+			m_bMount = true;
+		} else {
+			m_bMount = false;
+		}
+	}
+
+	return 0;
+}
+
+
