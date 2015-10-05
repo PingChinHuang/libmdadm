@@ -112,8 +112,8 @@ bool RAIDManager::IsDiskExistInRAIDDiskList(const string& dev)
 		// Compare both soft link name and actual device node name.
 		// In case of soft link name is not the same, but the disk
 		// actually is in the list....
-		if (*it_disk == dev /*dev == it_disk->m_strSoftLinkName ||
-		    dev == it_disk->m_strDevName*/) {
+		if (/**it_disk == dev*/ dev == it_disk->m_strSoftLinkName ||
+		    dev == it_disk->m_strDevName) {
 			return true;
 		}
 		it_disk++;

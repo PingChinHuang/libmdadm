@@ -288,7 +288,7 @@ _("Warning: the backup superblock/group descriptors at block %u contain\n"
 	ext2fs_badblocks_list_iterate_end(bb_iter);
 }
 
-static int write_inode_tables(ext2_filsys fs, int lazy_flag, int itable_zeroed)
+static int write_inode_tables(ext2_filsys fs, int lazy_flag, int itable_zeroed, struct mke2fs_handle* handle)
 {
 	errcode_t	retval;
 	blk64_t		blk;
@@ -300,8 +300,17 @@ static int write_inode_tables(ext2_filsys fs, int lazy_flag, int itable_zeroed)
 				     _("Writing inode tables: "),
 				     fs->group_desc_count);
 
+	if (handle && handle->cb_func)
+		handle->cb_func(handle->pData, WRITE_INODE_TABLES_INIT,
+				0, 0);
+
 	for (i = 0; i < fs->group_desc_count; i++) {
 		ext2fs_numeric_progress_update(fs, &progress, i);
+
+		if (handle && handle->cb_func)
+			handle->cb_func(handle->pData,
+					WRITE_INODE_TABLES_WRITING, i,
+					fs->group_desc_count);
 
 		blk = ext2fs_inode_table_loc(fs, i);
 		num = fs->inode_blocks_per_group;
@@ -322,6 +331,12 @@ static int write_inode_tables(ext2_filsys fs, int lazy_flag, int itable_zeroed)
 				fprintf(stderr, _("\nCould not write %d "
 					"blocks in inode table starting at %llu: %s\n"),
 					num, blk, error_message(retval));
+
+			if (handle && handle->cb_func)
+				handle->cb_func(handle->pData,
+						WRITE_INODE_TABLES_ERROR,
+						0, 0);
+			
 			return MKE2FS_COULD_NOT_WRITE_BLOCKS_IN_INODE_TABLES;
 		}
 		if (sync_kludge) {
@@ -334,6 +349,9 @@ static int write_inode_tables(ext2_filsys fs, int lazy_flag, int itable_zeroed)
 	ext2fs_zero_blocks2(0, 0, 0, 0, 0);
 	ext2fs_numeric_progress_close(fs, &progress,
 				      _("done                            \n"));
+	if (handle && handle->cb_func)
+		handle->cb_func(handle->pData, WRITE_INODE_TABLES_DONE,
+				0, 0);
 }
 
 static int create_root_dir(ext2_filsys fs)
@@ -924,27 +942,27 @@ static void syntax_err_report(const char *filename, long err, int line_num)
 
 static const char *config_fn[] = {  "/etc/mke2fs.conf", 0 };
 
-static void edit_feature(const char *str, __u32 *compat_array)
+static int edit_feature(const char *str, __u32 *compat_array)
 {
 	if (!str)
-		return;
+		return MKE2FS_EMPTY_STRING;
 
 	if (e2p_edit_feature(str, compat_array, ok_features)) {
 		fprintf(stderr, _("Invalid filesystem option set: %s\n"),
 			str);
-		exit(1);
+		return MKE2FS_INVALID_FS_OPTIONS;
 	}
 }
 
-static void edit_mntopts(const char *str, __u32 *mntopts)
+static int edit_mntopts(const char *str, __u32 *mntopts)
 {
 	if (!str)
-		return;
+		return MKE2FS_EMPTY_STRING;
 
 	if (e2p_edit_mntopts(str, mntopts, ~0)) {
 		fprintf(stderr, _("Invalid mount option set: %s\n"),
 			str);
-		exit(1);
+		return MKE2FS_INVALID_MOUNT_OPTIONS;
 	}
 }
 
@@ -1082,16 +1100,19 @@ static char **parse_fs_type(const char *fs_type,
 
 	if (!profile_has_subsection(profile, "fs_types", ext_type) &&
 	    strcmp(ext_type, "ext2")) {
-		printf(_("\nYour mke2fs.conf file does not define the "
-			 "%s filesystem type.\n"), ext_type);
+		if (verbose)
+			printf(_("\nYour mke2fs.conf file does not define the "
+				 "%s filesystem type.\n"), ext_type);
 		if (!strcmp(ext_type, "ext3") || !strcmp(ext_type, "ext4") ||
 		    !strcmp(ext_type, "ext4dev")) {
-			printf("%s", _("You probably need to install an "
-				       "updated mke2fs.conf file.\n\n"));
+			if (verbose)
+				printf("%s", _("You probably need to install an "
+					       "updated mke2fs.conf file.\n\n"));
 		}
 		if (!force) {
-			printf("%s", _("Aborting...\n"));
-			exit(1);
+			if (verbose)
+				printf("%s", _("Aborting...\n"));
+			return MKE2FS_ABORT_CHECK_PROFILE;
 		}
 	}
 
@@ -1490,14 +1511,14 @@ profile_error:
 			com_err(program_name, retval,
 				_("while trying to open journal device %s\n"),
 				journal_device);
-			exit(1);
+			return MKE2FS_FAIL_TO_OPEN_JOURNAL_DEV;
 		}
 		if ((blocksize < 0) && (jfs->blocksize < (unsigned) (-blocksize))) {
 			com_err(program_name, 0,
 				_("Journal dev blocksize (%d) smaller than "
 				  "minimum blocksize %d\n"), jfs->blocksize,
 				-blocksize);
-			exit(1);
+			return MKE2FS_JOURNAL_BLOCKSIZE_SMALLER_THAN_MINIMUM_BLOCKSIZE;
 		}
 		blocksize = jfs->blocksize;
 		printf(_("Using journal device's blocksize: %d\n"), blocksize);
@@ -1537,7 +1558,7 @@ profile_error:
 	if (retval && (retval != EXT2_ET_UNIMPLEMENTED)) {
 		com_err(program_name, retval, "%s",
 			_("while trying to determine filesystem size"));
-		exit(1);
+		return MKE2FS_FAIL_TO_DETERMINE_FS_SIZE;
 	}
 	if (!fs_blocks_count) {
 		if (retval == EXT2_ET_UNIMPLEMENTED) {
@@ -1545,7 +1566,7 @@ profile_error:
 				_("Couldn't determine device size; you "
 				"must specify\nthe size of the "
 				"filesystem\n"));
-			exit(1);
+			return MKE2FS_COULD_NOT_DETERMINE_DEV_SIZE;
 		} else {
 			if (dev_size == 0) {
 				com_err(program_name, 0, "%s",
@@ -1557,7 +1578,7 @@ profile_error:
 				  "and in use.  You may need to reboot\n\t"
 				  "to re-read your partition table.\n"
 				  ));
-				exit(1);
+				return MKE2FS_DEVICE_SIZE_REPORT_TO_BE_0;
 			}
 			fs_blocks_count = dev_size;
 			if (sys_page_size > EXT2_BLOCK_SIZE(&fs_param))
@@ -2437,7 +2458,10 @@ int mke2fs(struct mke2fs_handle *handle)
 	if (fs->super->s_feature_incompat &
 	    EXT3_FEATURE_INCOMPAT_JOURNAL_DEV) {
 		create_journal_dev(fs);
-		exit(ext2fs_close(fs) ? MKE2FS_EXT2FS_CLOSE_ERROR : 0);
+		if (ext2fs_close(fs))
+			return MKE2FS_EXT2FS_CLOSE_ERROR;
+		else
+			return 0;
 	}
 
 	if (bad_blocks_filename)
@@ -2507,7 +2531,7 @@ int mke2fs(struct mke2fs_handle *handle)
 				_("while zeroing block %llu at end of filesystem"),
 				ret_blk);
 		}
-		write_inode_tables(fs, lazy_itable_init, itable_zeroed);
+		write_inode_tables(fs, lazy_itable_init, itable_zeroed, handle);
 		create_root_dir(fs);
 		//create_lost_and_found(fs);
 		reserve_inodes(fs);
