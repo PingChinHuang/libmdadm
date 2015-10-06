@@ -27,14 +27,56 @@ ADD_DEPENDENCIES(
 	raidmgrobj mdadmobj
 )
 
+
+SET(FILESYSTEMMANAGER_SRC
+	FilesystemManager_test.cpp
+)
+
+ADD_EXECUTABLE(FSManager_test
+	${FILESYSTEMMANAGER_SRC}
+)
+
+TARGET_LINK_LIBRARIES(
+	FSManager_test
+
+	pthread
+	ext2fs
+	blkid
+	com_err
+	e2p
+	uuid
+	
+	${CMAKE_CURRENT_BINARY_DIR}/../libfsmgrobj.so
+)
+
+ADD_DEPENDENCIES(
+	RAIDManager_test
+	fsmgrobj
+)
+
 IF (${NUUO})
 TARGET_LINK_LIBRARIES(
 	RAIDManager_test
 	${CMAKE_CURRENT_BINARY_DIR}/../../common/lib/libcommonobj.so
 )
 
+TARGET_LINK_LIBRARIES(
+	FSManager_test
+	${CMAKE_CURRENT_BINARY_DIR}/../../common/lib/libcommonobj.so
+	${CMAKE_CURRENT_BINARY_DIR}/../../apr/lib/libaprobj.so
+)
+
 ADD_DEPENDENCIES(
 	RAIDManager_test
 	commonobj
 )
+
+ADD_DEPENDENCIES(
+	FSManager_test
+	commonobj aprobj
+)
+
+SET(Target FSManager_test)
+SET(USE_APR1 "1")
+INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../../../../thirdparty_cmake.txt)
 ENDIF (${NUUO})

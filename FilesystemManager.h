@@ -30,6 +30,7 @@ class FilesystemManager
 private:
 #ifdef NUUO
 	CriticalSection m_csFormat;
+	CriticalSection m_csMount;
 #endif
 	mke2fs_handle m_mkfsHandle;
 	//fsck_handle m_fsckHandle;
@@ -51,8 +52,6 @@ protected:
 private:
 	FilesystemManager() {}
 
-	void GenerateUUIDFile();
-	bool CreateDefaultFolders();
 	void InitializeMke2fsHandle();
 	int blkid();
 
@@ -71,12 +70,21 @@ public:
 	//bool Recovery();
 	//void Status();
 
-	bool Mount();
+	bool Mount(const string& strMountPoint);
 	bool Unmount();
 
 	bool IsFormated();
 	bool IsFormating(int& iFormatProgress);
 	bool IsMounted(string& strMountPoint);
+
+	void GenerateUUIDFile();
+	bool CreateDefaultFolders();
+
+	void Dump();
+
+	static bool dostat(const string& path, struct stat *st,
+			   int do_lstat, int quiet);
+	static bool IsMountPoint(const string& path);
 };
 
 #endif // __FILESYSTEM_MANAGER_H__
