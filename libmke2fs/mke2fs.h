@@ -123,7 +123,7 @@ struct e2fs_cfg {
 typedef void (*mke2fs_cb_func)(void *pData, int stat, int current, int total);
 
 struct mke2fs_handle {
-	ext2_filsys fs;
+	//ext2_filsys fs;
 	struct e2fs_cfg cfg;
 	char device_name[32];
 	char *buf;

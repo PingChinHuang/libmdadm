@@ -378,3 +378,24 @@ bool FilesystemManager::IsMountPoint(const string& path)
 
 	return false;
 }
+
+void FilesystemManager::InitializeMke2fsHandle()
+{
+	memset(&m_mkfsHandle.cfg, 0x00, sizeof(struct e2fs_cfg));
+	strncpy(m_mkfsHandle.device_name, m_strDevNode.c_str(),
+		sizeof(m_mkfsHandle.device_name));
+	//m_mkfsHandle.cb_func = MakeFilesystemProgress;
+	m_mkfsHandle.buf = NULL;
+	m_mkfsHandle.pData = NULL;
+
+	m_mkfsHandle.cfg.reserved_ratio = 1;
+	m_mkfsHandle.cfg.r_opt = -1;
+	m_mkfsHandle.cfg.force = 1;
+#ifdef DEBUG
+	m_mkfsHandle.cfg.verbose = 1;
+#else
+	m_mkfsHandle.cfg.verbose = 0;
+#endif
+	m_mkfsHandle.cfg.creator_os = EXT2_OS_LINUX;
+	strncpy(m_mkfsHandle.cfg.fs_type, "ext4", strlen("ext4"));
+}
