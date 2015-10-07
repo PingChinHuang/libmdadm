@@ -1,6 +1,8 @@
 #include "FilesystemManager.h"
 
+#ifdef NUUO
 #include "common/file.h"
+#endif
 
 #include <algorithm>
 #include <sys/mount.h>
@@ -31,16 +33,41 @@ bool FilesystemManager::Initialize()
 	return true;
 }
 
+void FilesystemManager::SpecifyMountPoint(const string &mountpoint)
+{
+	m_strMountPoint = mountpoint;
+}
+
 #ifdef NUUO
 void FilesystemManager::ThreadProc()
 {
+	if (!Format()) {
+		return;
+	}
 
+	if (!Mount(m_strMountPoint)) {
+		return;
+	}
+
+	GenerateUUIDFile();
+	CreateDefaultFolders();
+	Dump();
 }
 #endif
 
-bool FilesystemManager::Format()
+bool FilesystemManager::Format(bool force)
 {
+#ifdef NUUO
+	CriticalSectionLock cs(&m_csFormat);
+#endif
+	if (m_bFormat && !force)
+		return true;	
 
+	InitializeMke2fsHandle();
+	if (0 != mke2fs(&m_mkfsHandle))
+		return false;
+
+	return true;
 }
 
 bool FilesystemManager::Mount(const string& strMountPoint)
@@ -67,12 +94,12 @@ bool FilesystemManager::Mount(const string& strMountPoint)
 	CriticalSectionLock cs_mount(&m_csMount);
 #endif
 
-	if (m_bMount &&
-	    !m_strMountPoint.empty() && 
-	    m_strMountPoint == strMountPoint &&
+	if (m_bMount
+	    && !m_strMountPoint.empty()
+	    && m_strMountPoint == strMountPoint
 #ifdef NUUO
-	    CheckDirectoryExist(m_strMountPoint) &&
-	    ROOTFS_PROTECT(m_strMountPoint.c_str())
+	    && CheckDirectoryExist(m_strMountPoint)
+	    && ROOTFS_PROTECT(m_strMountPoint.c_str())
 #endif
 	) {
 		return true;
@@ -90,12 +117,13 @@ bool FilesystemManager::Mount(const string& strMountPoint)
 	if (!CheckDirectoryExist(strMountPoint)) {
 		if (!MakeDirectory(strMountPoint))
 			return false;	
-	} else if (IsMountPoint(strMountPoint)) {
+	} else
+#endif
+	if (IsMountPoint(strMountPoint)) {
 		// If the directoy exists and it is a mount point
 		// do nothing and return false for safety.
 		return false;
 	}
-#endif
 
 	if (mount(m_strDevNode.c_str(), strMountPoint.c_str(),
 		  m_strFSType.c_str(), 0, "") < 0) {
@@ -141,18 +169,11 @@ bool FilesystemManager::Unmount()
 
 bool FilesystemManager::IsFormated()
 {
-#ifdef NUUO
-	CriticalSectionLock cs(&m_csFormat);
-#endif
-	bool ret = m_bFormat;
-	return ret;
+	return m_bFormat;
 }
 
 bool FilesystemManager::IsFormating(int& iFormatProgress)
 {
-#ifdef NUUO
-	CriticalSectionLock cs(&m_csFormat);
-#endif
 	iFormatProgress = m_iFormatProgress;
 	if (m_iFormatingState == WRITE_INODE_TABLES_WRITING ||
 	    m_iFormatingState == WRITE_INODE_TABLES_INIT)
@@ -170,30 +191,33 @@ bool FilesystemManager::IsMounted(string& strMountPoint)
 	return m_bMount;
 }
 
+void FilesystemManager::SetFormatInfo(bool format, int progress, int stat)
+{
+	m_bFormat = format;
+	m_iFormatProgress = progress;
+	m_iFormatingState = stat;
+}
+
 void FilesystemManager::MakeFilesystemProgress(void *pData, int stat,
 					       int current, int total)
 {
-#ifdef NUUO
-	CriticalSectionLock cs(&m_csFormat);
-#endif
-	m_iFormatingState = stat;
+	if (pData == NULL)
+		return;
+
+	FilesystemManager *pFSMgr = (FilesystemManager*) pData; 
 
 	switch (stat) {
 	case WRITE_INODE_TABLES_INIT:
-		m_bFormat = false;
-		m_iFormatProgress = 0;
+		pFSMgr->SetFormatInfo(false, 0, stat);
 		break;
 	case WRITE_INODE_TABLES_WRITING:
-		m_bFormat = false;
-		m_iFormatProgress = (int)((double)current / (double)total * 100);
+		pFSMgr->SetFormatInfo(false, (int)((double)current / (double)total * 100), stat);
 		break;
 	case WRITE_INODE_TABLES_DONE:
-		m_bFormat = true;
-		m_iFormatProgress = 100;
+		pFSMgr->SetFormatInfo(true, 100, stat);
 		break;
 	case WRITE_INODE_TABLES_ERROR:
-		m_bFormat = false;
-		m_iFormatProgress = 0;
+		pFSMgr->SetFormatInfo(false, 0, stat);
 		break;
 	}	
 }
@@ -204,10 +228,9 @@ void FilesystemManager::GenerateUUIDFile()
 	CriticalSectionLock cs_mount(&m_csMount);
 #endif
 
-	if (!m_bMount || 
-	    m_strMountPoint.empty() ||
+	if (!m_bMount || m_strMountPoint.empty() 
 #ifdef NUUO
-	    !CheckDirectoryExist(m_strMountPoint) ||
+	    || !CheckDirectoryExist(m_strMountPoint) ||
 	    !ROOTFS_PROTECT(m_strMountPoint.c_str())
 #endif
 	)
@@ -239,10 +262,9 @@ bool FilesystemManager::CreateDefaultFolders()
 	CriticalSectionLock cs(&m_csMount);
 #endif
 
-	if (!m_bMount || 
-	    m_strMountPoint.empty() ||
+	if (!m_bMount || m_strMountPoint.empty()
 #ifdef NUUO
-	    !CheckDirectoryExist(m_strMountPoint) ||
+	    || !CheckDirectoryExist(m_strMountPoint) ||
 	    !ROOTFS_PROTECT(m_strMountPoint.c_str())
 #endif
 	)
@@ -384,9 +406,9 @@ void FilesystemManager::InitializeMke2fsHandle()
 	memset(&m_mkfsHandle.cfg, 0x00, sizeof(struct e2fs_cfg));
 	strncpy(m_mkfsHandle.device_name, m_strDevNode.c_str(),
 		sizeof(m_mkfsHandle.device_name));
-	//m_mkfsHandle.cb_func = MakeFilesystemProgress;
+	m_mkfsHandle.cb_func = MakeFilesystemProgress;
 	m_mkfsHandle.buf = NULL;
-	m_mkfsHandle.pData = NULL;
+	m_mkfsHandle.pData = this;
 
 	m_mkfsHandle.cfg.reserved_ratio = 1;
 	m_mkfsHandle.cfg.r_opt = -1;

@@ -61,11 +61,11 @@ public:
 
 	bool Initialize();
 
-	void MakeFilesystemProgress(void *pData, int stat,
-				    int current, int total);
+	static void MakeFilesystemProgress(void *pData, int stat,
+					   int current, int total);
 	//static void CheckFilesystemProgress();
 
-	bool Format();
+	bool Format(bool force = true);
 	//bool Check();
 	//bool Recovery();
 	//void Status();
@@ -76,6 +76,8 @@ public:
 	bool IsFormated();
 	bool IsFormating(int& iFormatProgress);
 	bool IsMounted(string& strMountPoint);
+	void SetFormatInfo(bool format, int progress,
+			   int stat);
 
 	void GenerateUUIDFile();
 	bool CreateDefaultFolders();
