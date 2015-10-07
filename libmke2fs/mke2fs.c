@@ -350,8 +350,9 @@ static int write_inode_tables(ext2_filsys fs, int lazy_flag, int itable_zeroed, 
 	ext2fs_numeric_progress_close(fs, &progress,
 				      _("done                            \n"));
 	if (handle && handle->cb_func)
-		handle->cb_func(handle->pData, WRITE_INODE_TABLES_DONE,
-				0, 0);
+		handle->cb_func(handle->pData,
+				WRITE_INODE_TABLES_WRITING_DONE,
+				i, fs->group_desc_count);
 }
 
 static int create_root_dir(ext2_filsys fs)
@@ -1395,8 +1396,8 @@ profile_error:
 		fs_param.s_rev_level = 0;
 #endif
 
-	blocksize = handle->blocksize; 
-	b = (blocksize > 0) ? blocksize : -blocksize;
+	//blocksize = handle->blocksize; 
+	/*b = (blocksize > 0) ? blocksize : -blocksize;
 	if (b < EXT2_MIN_BLOCK_SIZE ||
 	    b > EXT2_MAX_BLOCK_SIZE) {
 		com_err(program_name, 0,
@@ -1409,62 +1410,62 @@ profile_error:
 			blocksize);
 	if (blocksize > 0)
 		fs_param.s_log_block_size =
-			int_log2(blocksize >>  EXT2_MIN_BLOCK_LOG_SIZE);
+			int_log2(blocksize >>  EXT2_MIN_BLOCK_LOG_SIZE);*/
 	
 	cflag = handle->cflag;
-	cluster_size = handle->cluster_size; 
-	if (cluster_size <= EXT2_MIN_CLUSTER_SIZE ||
+	//cluster_size = handle->cluster_size; 
+	/*if (cluster_size <= EXT2_MIN_CLUSTER_SIZE ||
 	    cluster_size > EXT2_MAX_CLUSTER_SIZE) {
 		com_err(program_name, 0,
 			_("invalid cluster size - %d"),
 			cluster_size);
 		return MKE2FS_INVALID_CLUSTER_SIZE;
-	}
+	}*/
 
-	direct_io = handle->direct_io;
+	//direct_io = handle->direct_io;
 	force = handle->force;
 
-	fs_param.s_blocks_per_group = handle->blocks_per_group;
-	if ((fs_param.s_blocks_per_group % 8) != 0) {
-		com_err(program_name, 0, "%s",
-		_("blocks per group must be multiple of 8"));
-		return MKE2FS_BLOCKS_PER_GROUP_NOT_MULTIPLE_OF_8;
-	}
+	//fs_param.s_blocks_per_group = handle->blocks_per_group;
+	//if ((fs_param.s_blocks_per_group % 8) != 0) {
+	//	com_err(program_name, 0, "%s",
+	//	_("blocks per group must be multiple of 8"));
+	//	return MKE2FS_BLOCKS_PER_GROUP_NOT_MULTIPLE_OF_8;
+	//}
 
-	flex_bg_size = handle->flex_bg_size;
-	if (flex_bg_size < 1 ||
+	//flex_bg_size = handle->flex_bg_size;
+	/*if (flex_bg_size < 1 ||
 	    (flex_bg_size & (flex_bg_size-1)) != 0) {
 		com_err(program_name, 0, "%s",
 		_("flex_bg size must be a power of 2"));
 		return MKE2FS_FLEX_BG_SIZE_NOT_POWER_OF_2;
-	}
+	}*/
 
-	inode_ratio = handle->inode_ratio;
-	if (inode_ratio < EXT2_MIN_BLOCK_SIZE ||
+	//inode_ratio = handle->inode_ratio;
+	/*if (inode_ratio < EXT2_MIN_BLOCK_SIZE ||
 	    inode_ratio > EXT2_MAX_BLOCK_SIZE * 1024) {
 		com_err(program_name, 0,
 			_("invalid inode ratio %d (min %d/max %d)"),
 			inode_ratio, EXT2_MIN_BLOCK_SIZE,
 			EXT2_MAX_BLOCK_SIZE * 1024);
 		return MKE2FS_INVALID_INODE_RATIO;
-	}
+	}*/
 			
-	inode_size = handle->inode_size;
+	//inode_size = handle->inode_size;
 
-	if (!handle->journal_size)
-		journal_size = -1;
+	//if (!handle->journal_size)
+	//	journal_size = -1;
 	//parse_journal_opts(optarg);
 
-	bad_blocks_filename = realloc(bad_blocks_filename,
-					strlen(handle->bad_blocks_filename) + 1);
-	if (!bad_blocks_filename) {
-		com_err(program_name, ENOMEM, "%s",
-			_("in malloc for bad_blocks_filename"));
-		return MKE2FS_FAIL_TO_ALLOCATE_MEMORY;	
-	}
-	strcpy(bad_blocks_filename, handle->bad_blocks_filename);
+	//bad_blocks_filename = realloc(bad_blocks_filename,
+	//				strlen(handle->bad_blocks_filename) + 1);
+	//if (!bad_blocks_filename) {
+	//	com_err(program_name, ENOMEM, "%s",
+	//		_("in malloc for bad_blocks_filename"));
+	//	return MKE2FS_FAIL_TO_ALLOCATE_MEMORY;	
+	//}
+	//strcpy(bad_blocks_filename, handle->bad_blocks_filename);
 	
-	volume_label = handle->volume_label;
+	//volume_label = handle->volume_label;
 	
 	reserved_ratio = handle->reserved_ratio;
 	if (reserved_ratio > 50 ||
@@ -1475,18 +1476,18 @@ profile_error:
 		return MKE2FS_INVALID_RESERVED_RATIO;	
 	}
 
-	mount_dir = handle->mount_dir;
-	noaction = handle->noaction;
-	num_inodes = handle->num_inodes;
-	fs_features = handle->fs_features;
-	quiet = handle->quiet;
-	r_opt = handle->r_opt;
-	fs_param.s_rev_level = r_opt;
+	//mount_dir = handle->mount_dir;
+	//noaction = handle->noaction;
+	//num_inodes = handle->num_inodes;
+	//fs_features = handle->fs_features;
+	//quiet = handle->quiet;
+	//r_opt = handle->r_opt;
+	//fs_param.s_rev_level = r_opt;
 	//s_opt = handle->s_opt;
-	super_only = handle->super_only;
+	//super_only = handle->super_only;
 	fs_type = strdup(handle->fs_type);
-	usage_types = strdup(handle->usage_types);
-	fs_uuid = handle->fs_uuid;
+	//usage_types = strdup(handle->usage_types);
+	//fs_uuid = handle->fs_uuid;
 	device_name = name;
 
 	/*
@@ -1900,10 +1901,10 @@ profile_error:
 
 	/*if (extended_opts)
 		parse_extended_opts(&fs_param, extended_opts);*/
-	fs_param.s_raid_stride = handle->ext_opts.stride;
-	fs_param.s_raid_stripe_width = handle->ext_opts.stripe_width;
-	fs_param.s_desc_size = handle->ext_opts.desc_size;
-	fs_param.s_mmp_update_interval = handle->ext_opts.mmp_update_interval;
+	//fs_param.s_raid_stride = handle->ext_opts.stride;
+	//fs_param.s_raid_stripe_width = handle->ext_opts.stripe_width;
+	//fs_param.s_desc_size = handle->ext_opts.desc_size;
+	//fs_param.s_mmp_update_interval = handle->ext_opts.mmp_update_interval;
 
 	/* Can't support bigalloc feature without extents feature */
 	if ((fs_param.s_feature_ro_compat & EXT4_FEATURE_RO_COMPAT_BIGALLOC) &&
@@ -2292,8 +2293,8 @@ int mke2fs(struct mke2fs_handle *handle)
 #endif
 		io_ptr = unix_io_manager;
 
-	if (should_do_undo(device_name)) {
-		retval = mke2fs_setup_tdb(device_name, &io_ptr);
+	if (should_do_undo(handle->device_name)) {
+		retval = mke2fs_setup_tdb(handle->device_name, &io_ptr);
 		if (retval)
 			return MKE2FS_SETUP_TDB_ERROR;
 	}
@@ -2315,9 +2316,9 @@ int mke2fs(struct mke2fs_handle *handle)
 	 */
 	if (!quiet)
 		flags |= EXT2_FLAG_PRINT_PROGRESS;
-	retval = ext2fs_initialize(device_name, flags, &fs_param, io_ptr, &fs);
+	retval = ext2fs_initialize(handle->device_name, flags, &fs_param, io_ptr, &fs);
 	if (retval) {
-		com_err(device_name, retval, "%s",
+		com_err(handle->device_name, retval, "%s",
 			_("while setting up superblock"));
 		return MKE2FS_FAIL_TO_INITIALIZE_SUPERBLOCK;
 	}
@@ -2367,7 +2368,7 @@ int mke2fs(struct mke2fs_handle *handle)
 	 */
 	if (fs_uuid) {
 		if (uuid_parse(fs_uuid, fs->super->s_uuid) !=0) {
-			com_err(device_name, 0, "could not parse UUID: %s\n",
+			com_err(handle->device_name, 0, "could not parse UUID: %s\n",
 				fs_uuid);
 			return MKE2FS_COULD_NOT_PARSE_UUID;
 		}
@@ -2648,6 +2649,9 @@ no_journal:
 		printf("%s", _("done\n\n"));
 		if (!getenv("MKE2FS_SKIP_CHECK_MSG"))
 			print_check_message(max_mnt_count, checkinterval);
+		if (handle && handle->cb_func)
+			handle->cb_func(handle->pData, WRITE_INODE_TABLES_DONE,
+					0, 0);
 	}
 
 	remove_error_table(&et_ext2_error_table);

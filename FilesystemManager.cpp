@@ -64,8 +64,10 @@ bool FilesystemManager::Format(bool force)
 		return true;	
 
 	InitializeMke2fsHandle();
-	if (0 != mke2fs(&m_mkfsHandle))
+	int ret = mke2fs(&m_mkfsHandle);
+	if (0 != ret) {
 		return false;
+	}
 
 	return true;
 }
@@ -172,10 +174,12 @@ bool FilesystemManager::IsFormated()
 	return m_bFormat;
 }
 
-bool FilesystemManager::IsFormating(int& iFormatProgress)
+bool FilesystemManager::IsFormating(int& progress, int& stat)
 {
-	iFormatProgress = m_iFormatProgress;
+	progress = m_iFormatProgress;
+	stat = m_iFormatingState;
 	if (m_iFormatingState == WRITE_INODE_TABLES_WRITING ||
+	    m_iFormatingState == WRITE_INODE_TABLES_WRITING_DONE ||
 	    m_iFormatingState == WRITE_INODE_TABLES_INIT)
 		return true;
 
@@ -203,7 +207,6 @@ void FilesystemManager::MakeFilesystemProgress(void *pData, int stat,
 {
 	if (pData == NULL)
 		return;
-
 	FilesystemManager *pFSMgr = (FilesystemManager*) pData; 
 
 	switch (stat) {
@@ -211,6 +214,7 @@ void FilesystemManager::MakeFilesystemProgress(void *pData, int stat,
 		pFSMgr->SetFormatInfo(false, 0, stat);
 		break;
 	case WRITE_INODE_TABLES_WRITING:
+	case WRITE_INODE_TABLES_WRITING_DONE:
 		pFSMgr->SetFormatInfo(false, (int)((double)current / (double)total * 100), stat);
 		break;
 	case WRITE_INODE_TABLES_DONE:
@@ -302,9 +306,9 @@ int FilesystemManager::blkid()
 	m_csFormat.Lock();
 #endif
 	blkid_dev dev = blkid_get_dev(cache, m_strDevNode.c_str(), BLKID_DEV_NORMAL);
-	string devname = blkid_dev_devname(dev);
+	const char *devname = blkid_dev_devname(dev);
 #ifdef NUUO
-	if (!CheckBlockDevice(devname.c_str()))
+	if (!CheckBlockDevice(m_strDevNode))
 		return MKE2FS_NOT_BLOCK_DEV;
 #endif
 
@@ -410,6 +414,7 @@ void FilesystemManager::InitializeMke2fsHandle()
 	m_mkfsHandle.buf = NULL;
 	m_mkfsHandle.pData = this;
 
+	m_mkfsHandle.cfg.blocksize = 4096;
 	m_mkfsHandle.cfg.reserved_ratio = 1;
 	m_mkfsHandle.cfg.r_opt = -1;
 	m_mkfsHandle.cfg.force = 1;

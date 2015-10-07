@@ -70,11 +70,12 @@ public:
 	//bool Recovery();
 	//void Status();
 
+	void SpecifyMountPoint(const string &mountpoint);
 	bool Mount(const string& strMountPoint);
 	bool Unmount();
 
 	bool IsFormated();
-	bool IsFormating(int& iFormatProgress);
+	bool IsFormating(int& progress, int& stat);
 	bool IsMounted(string& strMountPoint);
 	void SetFormatInfo(bool format, int progress,
 			   int stat);
