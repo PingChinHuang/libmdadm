@@ -26,6 +26,7 @@
 //#include "nls-enable.h"
 #include "blkid/blkid.h"
 #include "util.h"
+#include "mke2fs_err.h"
 #define _(a) (gettext (a))
 
 /*
@@ -114,7 +115,7 @@ void check_plausibility(const char *device)
 #endif
 }
 
-void check_mount(const char *device, int force, const char *type)
+int check_mount(const char *device, int force, const char *type)
 {
 	errcode_t	retval;
 	int		mount_flags;
@@ -124,28 +125,30 @@ void check_mount(const char *device, int force, const char *type)
 		com_err("ext2fs_check_if_mount", retval,
 			_("while determining whether %s is mounted."),
 			device);
-		return;
+		return MKE2FS_FAIL_TO_DETERMINE_MOUNT_STATUS;
 	}
 	if (mount_flags & EXT2_MF_MOUNTED) {
 		fprintf(stderr, _("%s is mounted; "), device);
-		if (force >= 2) {
+		/*if (force >= 2) {
 			fputs(_("mke2fs forced anyway.  Hope /etc/mtab is "
 				"incorrect.\n"), stderr);
 			return;
-		}
+		}*/
 	abort_mke2fs:
 		fprintf(stderr, _("will not make a %s here!\n"), type);
-		exit(1);
+		return MKE2FS_MOUNTED;
 	}
 	if (mount_flags & EXT2_MF_BUSY) {
 		fprintf(stderr, _("%s is apparently in use by the system; "),
 			device);
-		if (force >= 2) {
+		/*if (force >= 2) {
 			fputs(_("mke2fs forced anyway.\n"), stderr);
 			return;
-		}
+		}*/
 		goto abort_mke2fs;
 	}
+
+	return 0;
 }
 
 void parse_journal_opts(const char *opts)

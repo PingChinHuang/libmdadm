@@ -3,6 +3,7 @@
 #ifdef NUUO
 #include "common/file.h"
 #include "common/nusyslog.h"
+#include "common/string.h"
 #else
 #include "test_utils.h"
 #endif
@@ -34,7 +35,7 @@ bool FilesystemManager::Initialize()
 {
 	if (m_strDevNode.empty()) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-		 	   "Device is no specified.")
+		 	   "Device is no specified.");
 		return false;
 	}
 	
@@ -43,7 +44,7 @@ bool FilesystemManager::Initialize()
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 		 	   "%s is not a block device.",
 		   	   m_strDevNode.c_str());
-		return false
+		return false;
 	}
 #endif
 
@@ -132,11 +133,11 @@ bool FilesystemManager::Mount(const string& strMountPoint)
 
 #ifdef NUUO
 	if (!CheckBlockDevice(m_strDevNode.c_str())) {
-		strErrLog = "The device is not a block device.";
+		strErrorLog = "The device is not a block device.";
 		goto mount_err;
 	}
 
-	CriticalSectionLock cs_mount(&m_csMount);
+	m_csMount.Lock();
 #endif
 
 	if (m_bMount
@@ -147,11 +148,7 @@ bool FilesystemManager::Mount(const string& strMountPoint)
 	    && ROOTFS_PROTECT(m_strMountPoint.c_str())
 #endif
 	) {
-		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
-			   "%s has be mounted to %s successfully.",
-			   m_strDevNode.c_str(),
-			   m_strMountPoint.c_str());
-		return true;
+		goto mount_ok;
 	}
 
 	if (m_bMount &&
@@ -187,8 +184,10 @@ bool FilesystemManager::Mount(const string& strMountPoint)
 		goto mount_err;
 	}
 
+mount_ok:
 	m_bMount = true;
 	m_strMountPoint = strMountPoint;
+	m_csMount.Unlock();
 	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 		   "%s has be mounted to %s successfully.",
 		   m_strDevNode.c_str(),
@@ -197,6 +196,7 @@ bool FilesystemManager::Mount(const string& strMountPoint)
 	return true;
 
 mount_err:
+	m_csMount.Unlock();
 	WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 		   "%s", strErrorLog.c_str());
 	return false; 
@@ -494,6 +494,7 @@ void FilesystemManager::InitializeMke2fsHandle()
 	m_mkfsHandle.cfg.reserved_ratio = 1;
 	m_mkfsHandle.cfg.r_opt = -1;
 	m_mkfsHandle.cfg.force = 1;
+	m_mkfsHandle.cfg.quiet = 1;
 #ifdef DEBUG
 	m_mkfsHandle.cfg.verbose = 1;
 #else

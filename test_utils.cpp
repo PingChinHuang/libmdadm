@@ -1,5 +1,6 @@
 #include "test_utils.h"
 
+#ifndef NUUO
 string string_format(const char* fmt, ...)
 {
 	va_list args;
@@ -9,3 +10,4 @@ string string_format(const char* fmt, ...)
 	va_end(args);
 	return buf;
 }
+#endif

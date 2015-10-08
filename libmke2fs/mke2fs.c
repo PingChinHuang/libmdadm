@@ -1275,7 +1275,7 @@ out:
 }
 #endif
 
-static void PRS(struct e2fs_cfg* handle, const char* name)
+static int PRS(struct e2fs_cfg* handle, const char* name)
 {
 	int		b, c;
 	int		cluster_size = 0;
@@ -1545,7 +1545,10 @@ profile_error:
 
 	if (!force)
 		check_plausibility(device_name);
-	check_mount(device_name, force, _("filesystem"));
+	retval = check_mount(device_name, force, _("filesystem"));
+	if (retval != 0)
+		return retval;
+		
 
 	/* Determine the size of the device (if possible) */
 	if (noaction && fs_blocks_count) {
@@ -2283,7 +2286,9 @@ int mke2fs(struct mke2fs_handle *handle)
 	textdomain(NLS_CAT_NAME);
 	set_com_err_gettext(gettext);
 #endif
-	PRS(&handle->cfg, handle->device_name);
+	retval = PRS(&handle->cfg, handle->device_name);
+	if (retval != 0)
+		return retval;
 
 #ifdef CONFIG_TESTIO_DEBUG
 	if (getenv("TEST_IO_FLAGS") || getenv("TEST_IO_BLOCK")) {
