@@ -39,6 +39,9 @@ ADD_EXECUTABLE(FSManager_test
 TARGET_LINK_LIBRARIES(
 	FSManager_test
 
+	${CMAKE_CURRENT_BINARY_DIR}/../libfsmgrobj.so
+	${CMAKE_CURRENT_BINARY_DIR}/../libmke2fs/libmke2fsobj.so
+
 	pthread
 	ext2fs
 	blkid
@@ -46,8 +49,8 @@ TARGET_LINK_LIBRARIES(
 	e2p
 	uuid
 	
-	${CMAKE_CURRENT_BINARY_DIR}/../libfsmgrobj.so
-	${CMAKE_CURRENT_BINARY_DIR}/../libmke2fs/libmke2fsobj.so
+	#${CMAKE_CURRENT_BINARY_DIR}/../libfsmgrobj.so
+	#${CMAKE_CURRENT_BINARY_DIR}/../libmke2fs/libmke2fsobj.so
 
 )
 

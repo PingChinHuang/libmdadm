@@ -14,10 +14,12 @@ ENDIF (${NUUO})
 
 SET(RAIDMANAGER_SRCFILE
 	RAIDManager.cpp
+	test_utils.cpp
 )
 
 SET(FILESYSTEMMANAGER_SRCFILE
 	FilesystemManager.cpp
+	test_utils.cpp
 )
 
 ADD_LIBRARY(raidmgrobj SHARED ${RAIDMANAGER_SRCFILE})

@@ -2,12 +2,17 @@
 
 #ifdef NUUO
 #include "common/file.h"
+#include "common/nusyslog.h"
+#else
+#include "test_utils.h"
 #endif
 
 #include <algorithm>
 #include <sys/mount.h>
 #include <sys/stat.h>
 #include <errno.h>
+
+#define LOG_LABEL "FSManager"
 
 FilesystemManager::FilesystemManager(const string& dev)
 : m_strMountPoint("")
@@ -27,8 +32,27 @@ FilesystemManager::~FilesystemManager()
 
 bool FilesystemManager::Initialize()
 {
-	if (blkid() != 0)
+	if (m_strDevNode.empty()) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+		 	   "Device is no specified.")
 		return false;
+	}
+	
+#ifdef NUUO
+	if (!CheckBlockDevice(m_strDevNode.c_str())) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+		 	   "%s is not a block device.",
+		   	   m_strDevNode.c_str());
+		return false
+	}
+#endif
+
+	if (blkid() != 0) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+		 	   "%s initialize failed.",
+			   m_strDevNode.c_str());
+		return false;
+	}
 
 	return true;
 }
@@ -57,41 +81,60 @@ void FilesystemManager::ThreadProc()
 
 bool FilesystemManager::Format(bool force)
 {
+	int ret = 0;
 #ifdef NUUO
 	CriticalSectionLock cs(&m_csFormat);
 #endif
 	if (m_bFormat && !force)
-		return true;	
+		goto format_done;	
 
 	InitializeMke2fsHandle();
-	int ret = mke2fs(&m_mkfsHandle);
+	ret = mke2fs(&m_mkfsHandle);
 	if (0 != ret) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "Fail to format %s [%d]\n", m_strDevNode.c_str(), ret);
 		return false;
 	}
 
+format_done:
+	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+		   "Format %s successfully.\n", m_strDevNode.c_str());
 	return true;
 }
 
 bool FilesystemManager::Mount(const string& strMountPoint)
 {
-	if (strMountPoint.empty())
-		return false;
+	string strErrorLog;
 
-	if (m_strDevNode.empty())
-		return false;
+	if (strMountPoint.empty()) {
+		strErrorLog = "Invalid mount point.";
+		goto mount_err;
+	}
+
+	if (m_strDevNode.empty()) {
+		strErrorLog = "Invalid device.";
+		goto mount_err;
+	}
 
 #ifdef NUUO
 	m_csFormat.Lock();
 #endif
-	if (!m_bFormat)
-		return false;
+	if (!m_bFormat) {
+		strErrorLog = "The device isn't formated.";
+#ifdef NUUO
+		m_csFormat.Unlock();
+#endif
+		goto mount_err;
+	}
 #ifdef NUUO
 	m_csFormat.Unlock();
 #endif
 
 #ifdef NUUO
-	if (!CheckBlockDevice(m_strDevNode.c_str()))
-		return false;
+	if (!CheckBlockDevice(m_strDevNode.c_str())) {
+		strErrLog = "The device is not a block device.";
+		goto mount_err;
+	}
 
 	CriticalSectionLock cs_mount(&m_csMount);
 #endif
@@ -104,6 +147,10 @@ bool FilesystemManager::Mount(const string& strMountPoint)
 	    && ROOTFS_PROTECT(m_strMountPoint.c_str())
 #endif
 	) {
+		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+			   "%s has be mounted to %s successfully.",
+			   m_strDevNode.c_str(),
+			   m_strMountPoint.c_str());
 		return true;
 	}
 
@@ -112,30 +159,47 @@ bool FilesystemManager::Mount(const string& strMountPoint)
 	    m_strMountPoint != strMountPoint) {
 		// Filesystem has already mounted,
 		// why request to mount again with another mount point?
-		return false;
+		strErrorLog = "The device has already be mounted. Why request to mount again with a different mount point?";
+		goto mount_err;
 	}
 
 #ifdef NUUO	
 	if (!CheckDirectoryExist(strMountPoint)) {
-		if (!MakeDirectory(strMountPoint))
-			return false;	
+		if (!MakeDirectory(strMountPoint)) {
+			strErrorLog = "Fail to create mount point.";
+			goto mount_err;	
+		}
 	} else
 #endif
 	if (IsMountPoint(strMountPoint)) {
 		// If the directoy exists and it is a mount point
 		// do nothing and return false for safety.
-		return false;
+		strErrorLog = "The mount point is using by another device..";
+		goto mount_err;
 	}
 
 	if (mount(m_strDevNode.c_str(), strMountPoint.c_str(),
 		  m_strFSType.c_str(), 0, "") < 0) {
-		return false;
+		strErrorLog = string_format("Fail to mount %s to %s. (%s)",
+					  m_strDevNode.c_str(),
+					  m_strMountPoint.c_str(),
+					  strerror(errno));
+		goto mount_err;
 	}
 
 	m_bMount = true;
 	m_strMountPoint = strMountPoint;
+	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+		   "%s has be mounted to %s successfully.",
+		   m_strDevNode.c_str(),
+		   m_strMountPoint.c_str());
 
-	return true; 
+	return true;
+
+mount_err:
+	WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+		   "%s", strErrorLog.c_str());
+	return false; 
 }
 
 bool FilesystemManager::Unmount()
@@ -145,26 +209,31 @@ bool FilesystemManager::Unmount()
 #endif
 
 	if (!m_bMount)
-		return true;
+		goto unmount_done;
 
 	if (m_strMountPoint.empty())
-		return true;
+		goto unmount_done;
 
 #ifdef NUUO
 	if (!CheckDirectoryExist(m_strMountPoint))
-		return true;
+		goto unmount_done;
 #endif
 	
 	if (!IsMountPoint(m_strMountPoint))
-		return true;	
+		goto unmount_done;	
 
 	if (umount2(m_strMountPoint.c_str(), UMOUNT_NOFOLLOW | MNT_DETACH) < 0) {
-		fprintf(stderr, "%s, %d, %s\n", __func__, __LINE__, strerror(errno));
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL, "Fail to unmount %s (%s)\n",
+			   m_strMountPoint.c_str(), strerror(errno));
 		return false;
 	}
 
+unmount_done:
 	m_bMount = false;
 	m_strMountPoint = "";
+	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+		   "%s has be unmounted successfully.",
+		   m_strMountPoint.c_str());
 
 	return true;
 }
@@ -299,6 +368,8 @@ int FilesystemManager::blkid()
 	int retval = 0;
 
 	if (retval = blkid_get_cache(&cache, NULL) < 0) {
+		WriteHWLog(LOG_LOCAL1, LOG_ERR, LOG_LABEL,
+			   "[%d] Fail to get blkid cache.", __LINE__);
 		return MKE2FS_FAIL_TO_GET_BLKID_CACHE;
 	}
 
@@ -308,8 +379,11 @@ int FilesystemManager::blkid()
 	blkid_dev dev = blkid_get_dev(cache, m_strDevNode.c_str(), BLKID_DEV_NORMAL);
 	const char *devname = blkid_dev_devname(dev);
 #ifdef NUUO
-	if (!CheckBlockDevice(m_strDevNode))
+	if (!CheckBlockDevice(m_strDevNode)) {
+		WriteHWLog(LOG_LOCAL1, LOG_ERR, LOG_LABEL,
+			   "[%d] %s is not a block device.", __LINE__, m_strDevNode.c_str());
 		return MKE2FS_NOT_BLOCK_DEV;
+	}
 #endif
 
 	blkid_tag_iterate iter;
@@ -352,6 +426,8 @@ int FilesystemManager::blkid()
 			m_bMount = false;
 		}
 	} else {
+		WriteHWLog(LOG_LOCAL1, LOG_ERR, LOG_LABEL,
+			   "[%d] Fail to check mount point.", __LINE__);
 		return MKE2FS_CHECK_MOUNT_POINT_FAIL;
 	}
 

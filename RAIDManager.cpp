@@ -4,28 +4,11 @@
 #include "common/file.h"
 #include "common/string.h"
 #include "common/nusyslog.h"
+#else
+#include "test_utils.h"
 #endif
 
 #define LOG_LABEL "RAIDManager"
-
-#ifndef NUUO
-#include <syslog.h>
-#include <stdarg.h>
-#define	WriteHWLog(facility, level, label, fmt, ...) \
-	do {\
-		printf("[%d][%s][%s][%s] " fmt, __LINE__, #facility, #level, label, ##__VA_ARGS__); \
-	} while (0);
-
-string string_format(const char* fmt, ...)
-{
-	va_list args;
-	char buf[64];
-	va_start(args, fmt);
-	vsnprintf(buf, 63, fmt, args);
-	va_end(args);
-	return buf;
-}
-#endif
 
 RAIDManager::RAIDManager()
 {
