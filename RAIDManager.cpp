@@ -3,9 +3,6 @@
 #ifdef NUUO
 #include "common/file.h"
 #include "common/string.h"
-#include "common/nusyslog.h"
-#else
-#include "test_utils.h"
 #endif
 
 #define LOG_LABEL "RAIDManager"
@@ -17,6 +14,8 @@ RAIDManager::RAIDManager()
 #endif
 	for (int i = 0; i < 128; i++)
 		m_bUsedMD[i] = false;
+	for (int i = 0; i < 128; i++)
+		m_bUsedVolume[i] = false;
 }
 
 RAIDManager::~RAIDManager()
@@ -59,6 +58,43 @@ void RAIDManager::SetMDNum(int n)
 	CriticalSectionLock cs_md(&m_csUsedMD);
 #endif
 	m_bUsedMD[n] = true;
+}
+
+int RAIDManager::GetFreeVolumeNum()
+{
+#ifdef NUUO
+	CriticalSectionLock cs_md(&m_csUsedVolume);
+#endif
+	for (int i = 0 ; i < 128; i++) {
+		if (!m_bUsedVolume[i]) {
+			m_bUsedVolume[i] = true; // Pre-allocated, if you don't use it or any error happened, you have to free.
+			return i + 1;
+		}
+	}
+
+	return -1; // No valid number
+}
+
+void RAIDManager::FreeVolumeNum(int n)
+{
+	if (n < 1 || n > 128)
+		return;
+
+#ifdef NUUO
+	CriticalSectionLock cs_md(&m_csUsedVolume);
+#endif
+	m_bUsedVolume[n - 1] = false;
+}
+
+void RAIDManager::SetVolumeNum(int n)
+{
+	if (n < 1 || n > 128)
+		return;
+
+#ifdef NUUO
+	CriticalSectionLock cs_md(&m_csUsedVolume);
+#endif
+	m_bUsedVolume[n - 1] = true;
 }
 
 vector<RAIDInfo>::iterator RAIDManager::IsMDDevInRAIDInfoList(const string &mddev, RAIDInfo& info)
@@ -259,13 +295,12 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 #endif
 		
 		if (counter >= info.m_iRaidDiskNum) {
-			if (!AssembleRAID(info.m_RaidUUID, mddev)) {
+			if (AssembleRAID(info.m_RaidUUID, mddev)) {
 				WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 					   "%s added successfully .\n", dev.c_str());
+				Mount(mddev);
 				return true;
 			}
-			
-			// TODO: Mount
 		}
 	}
 
@@ -443,6 +478,7 @@ bool RAIDManager::UpdateRAIDInfo(const string& mddev)
 	}
 
 	info = ad; // Update new information.
+	info.InitializeFSManager();
 	UpdateRAIDDiskList(info.m_vDiskList);
 	m_vRAIDInfoList.push_back(info);
 	return true;
@@ -668,7 +704,7 @@ int RAIDManager::GenerateMDDevName(string& name)
 	int iFreeMD = GetFreeMDNum();
 	if (iFreeMD < 0) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-		   	   "No free volume number.\n");
+		   	   "No free MD number.\n");
 		return -1;
 	}
 	name = string_format("/dev/md%d", iFreeMD);
@@ -676,6 +712,20 @@ int RAIDManager::GenerateMDDevName(string& name)
 	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 		   "MD Name: %s\n", name.c_str()); 
 	return iFreeMD;
+}
+
+int RAIDManager::GenerateVolumeName(string& name)
+{
+	int iFreeVolume = GetFreeVolumeNum();
+	if (iFreeVolume < 0) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+		   	   "No free volume number.\n");
+		return -1;
+	}
+	name = string_format("/mnt/VOLUME%d", iFreeVolume);
+	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+		   "Volume Name: %s\n", name.c_str()); 
+	return iFreeVolume;
 }
 
 bool RAIDManager::CreateRAID(vector<string>& vDevList, int level, string& strMDName)
@@ -1154,6 +1204,8 @@ bool RAIDManager::StopRAID(const string& mddev)
 		return true;
 	}
 
+	Unmount(mddev);
+
 	/*
 		3. fd = open_mddev(mddev.c_str(), 1);
 			fd < 0 -> return false;
@@ -1211,6 +1263,8 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 			   "Delete volume %s\n", mddev.c_str());
 		return true;
 	}
+
+	Unmount(mddev);
 
 	/*
 		3. fd = open_mddev(mddev.c_str(), 1);
@@ -1316,4 +1370,207 @@ void RAIDManager::GetRAIDInfo(vector<RAIDInfo>& list)
 		list.push_back(*it);
 		it++;
 	}
+}
+
+bool RAIDManager::Format(const string& mddev)
+{
+	if (mddev.empty()) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "[%d] Unknown MD device.\n", __LINE__);
+		return false;
+	}
+
+	RAIDInfo info;
+	if (IsMDDevInRAIDInfoList(mddev, info) == m_vRAIDInfoList.end()) {
+		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+			   "%s doesn't exist.\n", mddev.c_str());
+		return false;
+	}
+
+	if (info.m_fsMgr.get() == NULL) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "FilesystemManager is not initialized for %s\n",
+			   mddev.c_str());
+		return false;
+	}
+
+	int num = GetFreeVolumeNum();
+	if (num < 0) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "Exceed maximal volume limitation.\n");
+		return false;
+	}
+
+	info.m_fsMgr->SetVolumeNum(num);
+	info.m_fsMgr->CreateThread();
+
+	return true;
+}
+
+bool RAIDManager::Mount(const string& mddev)
+{
+	if (mddev.empty()) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "[%d] Unknown MD device.\n", __LINE__);
+		return false;
+	}
+
+	RAIDInfo info;
+	if (IsMDDevInRAIDInfoList(mddev, info) == m_vRAIDInfoList.end()) {
+		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+			   "%s doesn't exist.\n", mddev.c_str());
+		return false;
+	}
+
+	if (info.m_fsMgr.get() == NULL) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "FilesystemManager is not initialized for %s\n",
+			   mddev.c_str());
+		return false;
+	}
+
+	if (!info.m_fsMgr->IsFormated()) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "%s is not formated.\n",
+			   mddev.c_str());
+		return false;
+	}
+
+	int num = -1;
+	if (!info.m_fsMgr->IsMounted(num)) {
+		string strMountPoint;
+		if (num < 1) {
+			int num = GetFreeVolumeNum();
+			if (num < 0) {
+				WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+					   "Exceed maximal volume limitation.\n");
+				return false;
+			}
+			info.m_fsMgr->SetVolumeNum(num);
+		}	
+
+		info.m_fsMgr->IsMounted(strMountPoint); // Get mount point name
+		if (!info.m_fsMgr->Mount(strMountPoint)) {
+			FreeVolumeNum(num);
+			return false;
+		}
+	}
+
+	// In case of some necessary files and folders do not exist.
+	info.m_fsMgr->GenerateUUIDFile();
+	info.m_fsMgr->CreateDefaultFolders();
+
+	return true;
+}
+
+bool RAIDManager::Unmount(const string& mddev)
+{
+	if (mddev.empty()) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "[%d] Unknown MD device.\n", __LINE__);
+		return false;
+	}
+
+	RAIDInfo info;
+	if (IsMDDevInRAIDInfoList(mddev, info) == m_vRAIDInfoList.end()) {
+		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+			   "%s doesn't exist.\n", mddev.c_str());
+		return false;
+	}
+
+	if (info.m_fsMgr.get() == NULL) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "FilesystemManager is not initialized for %s\n",
+			   mddev.c_str());
+		return false;
+	}
+
+	int num = -1;
+	if (info.m_fsMgr->IsMounted(num)) {
+		if (info.m_fsMgr->Unmount()) {
+			FreeVolumeNum(num);
+			return true;
+		} else {
+			// FIXME: Should I free volume num...
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool RAIDManager::GetFormatProgress(const string& mddev,
+				    int& stat, int& progress)
+{
+	if (mddev.empty()) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "[%d] Unknown MD device.\n", __LINE__);
+		return false;
+	}
+
+	RAIDInfo info;
+	if (IsMDDevInRAIDInfoList(mddev, info) == m_vRAIDInfoList.end()) {
+		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+			   "%s doesn't exist.\n", mddev.c_str());
+		return false;
+	}
+
+	if (info.m_fsMgr.get() == NULL) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "FilesystemManager is not initialized for %s\n",
+			   mddev.c_str());
+		return false;
+	}
+
+	return info.m_fsMgr->IsFormating(progress, stat);
+}
+
+bool RAIDManager::IsMounted(const string& mddev, int &num)
+{
+	if (mddev.empty()) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "[%d] Unknown MD device.\n", __LINE__);
+		return false;
+	}
+
+	RAIDInfo info;
+	if (IsMDDevInRAIDInfoList(mddev, info) == m_vRAIDInfoList.end()) {
+		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+			   "%s doesn't exist.\n", mddev.c_str());
+		return false;
+	}
+
+	if (info.m_fsMgr.get() == NULL) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "FilesystemManager is not initialized for %s\n",
+			   mddev.c_str());
+		return false;
+	}
+
+	return info.m_fsMgr->IsMounted(num);
+}
+
+bool RAIDManager::IsFormated(const string& mddev)
+{
+	if (mddev.empty()) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "[%d] Unknown MD device.\n", __LINE__);
+		return false;
+	}
+
+	RAIDInfo info;
+	if (IsMDDevInRAIDInfoList(mddev, info) == m_vRAIDInfoList.end()) {
+		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+			   "%s doesn't exist.\n", mddev.c_str());
+		return false;
+	}
+
+	if (info.m_fsMgr.get() == NULL) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "FilesystemManager is not initialized for %s\n",
+			   mddev.c_str());
+		return false;
+	}
+	
+	return info.m_fsMgr->IsFormated();
 }

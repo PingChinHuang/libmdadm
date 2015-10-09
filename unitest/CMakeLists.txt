@@ -20,11 +20,20 @@ TARGET_LINK_LIBRARIES(
 	pthread
 	${CMAKE_CURRENT_BINARY_DIR}/../libraidmgrobj.so
 	${CMAKE_CURRENT_BINARY_DIR}/../libmdadm/libmdadmobj.so
+	${CMAKE_CURRENT_BINARY_DIR}/../libfsmgrobj.so
+	${CMAKE_CURRENT_BINARY_DIR}/../libmke2fs/libmke2fsobj.so
+
+	ext2fs
+	blkid
+	com_err
+	e2p
+	uuid
 )
 
 ADD_DEPENDENCIES(
 	RAIDManager_test
 	raidmgrobj mdadmobj
+	fsmgrobj mke2fsobj
 )
 
 
@@ -56,13 +65,14 @@ TARGET_LINK_LIBRARIES(
 
 ADD_DEPENDENCIES(
 	RAIDManager_test
-	fsmgrobj
+	fsmgrobj mke2fsobj
 )
 
 IF (${NUUO})
 TARGET_LINK_LIBRARIES(
 	RAIDManager_test
 	${CMAKE_CURRENT_BINARY_DIR}/../../common/lib/libcommonobj.so
+	${CMAKE_CURRENT_BINARY_DIR}/../../apr/lib/libaprobj.so
 )
 
 TARGET_LINK_LIBRARIES(
@@ -73,8 +83,11 @@ TARGET_LINK_LIBRARIES(
 
 ADD_DEPENDENCIES(
 	RAIDManager_test
-	commonobj
+	commonobj aprobj
 )
+SET(Target RAIDManager_test)
+SET(USE_APR1 "1")
+INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../../../../thirdparty_cmake.txt)
 
 ADD_DEPENDENCIES(
 	FSManager_test
@@ -82,6 +95,7 @@ ADD_DEPENDENCIES(
 )
 
 SET(Target FSManager_test)
-SET(USE_APR1 "1")
+#SET(USE_APR1 "1")
 INCLUDE(${CMAKE_CURRENT_SOURCE_DIR}/../../../../thirdparty_cmake.txt)
+
 ENDIF (${NUUO})

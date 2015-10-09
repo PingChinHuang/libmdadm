@@ -9,14 +9,21 @@ extern "C" {
 }
 #endif
 
+#include "FilesystemManager.h"
+
 #ifdef NUUO
 #include "common/critical_section.h"
+#include "common/nusyslog.h"
+#include "common/smart_pointer.h"
 using namespace SYSUTILS_SPACE;
+#else
+#include "test_utils.h"
 #endif
 
 #include <string>
 #include <vector>
 #include <iterator>
+#include <memory>
 
 #include <stdint.h>
 #include <sys/stat.h>
@@ -110,10 +117,9 @@ struct RAIDDiskInfo {
 };
 
 struct RAIDInfo {
+	smart_ptr<FilesystemManager> m_fsMgr;
 	vector<RAIDDiskInfo>	m_vDiskList;
-	string			m_strVolumeName;
 	string			m_strDevNodeName;
-	string			m_strMountPoint;
 	string			m_strState;
 	string			m_strLayout;
 	string			m_strRebuildingOperation;
@@ -131,17 +137,14 @@ struct RAIDInfo {
 	int32_t			m_iState;
 	int32_t			m_iChunkSize;
 	int32_t			m_iRebuildingProgress;
-	int32_t			m_iFormatProgress;
+	int32_t			m_iMDNum;
 	bool			m_bSuperBlockPersistent;
 	bool			m_bInactive;
 	bool			m_bRebuilding;
-	bool			m_bFormat;
-	bool			m_bMount;
 	
 	RAIDInfo()
-	: m_strVolumeName("")
+	: m_fsMgr(NULL)
 	, m_strDevNodeName("")
-	, m_strMountPoint("")
 	, m_strState("")
 	, m_strLayout("")
 	, m_strRebuildingOperation("")
@@ -158,18 +161,36 @@ struct RAIDInfo {
 	, m_iState(0)
 	, m_iChunkSize(512)
 	, m_iRebuildingProgress(0)
-	, m_iFormatProgress(0)
+	, m_iMDNum(-1)
 	, m_bSuperBlockPersistent(false)
 	, m_bInactive(false)
 	, m_bRebuilding(false)
-	, m_bFormat(false)
-	, m_bMount(false)
 	{
 		for (int i = 0; i < 4; i ++)
 			m_UUID[i] = 0;
 	}
 
-	~RAIDInfo() {}
+	~RAIDInfo() {
+		m_fsMgr = NULL;
+	}
+
+	bool InitializeFSManager() {
+		try {
+			m_fsMgr = new FilesystemManager;
+			if (!m_fsMgr->SetDeviceNode(m_strDevNodeName)) {
+				WriteHWLog(LOG_LOCAL0, LOG_ERR, "RAIDInfo",
+					   "Iniitialize FilesystemManager failed.");
+				return false;
+			}
+		} catch (bad_alloc&) {
+			m_fsMgr = NULL;
+			WriteHWLog(LOG_LOCAL0, LOG_ERR, "RAIDInfo",
+				   "Allocate memory failed.");
+			return false;
+		}
+
+		return true;
+	}	
 
 	RAIDInfo& operator=(const struct array_detail& rhs)
 	{
@@ -205,6 +226,7 @@ struct RAIDInfo {
 		m_bSuperBlockPersistent = rhs.bIsSuperBlockPersistent == 1 ? true : false;
 		m_CreationTime = rhs.arrayInfo.ctime;
 		m_UpdateTime = rhs.arrayInfo.utime;
+
 		return *this;
 	}
 
@@ -222,8 +244,6 @@ struct RAIDInfo {
 		m_strLayout = rhs.m_strLayout;
 		m_strRebuildingOperation = rhs.m_strRebuildingOperation;
 		m_strDevNodeName = rhs.m_strDevNodeName;
-		m_strVolumeName = rhs.m_strVolumeName;
-		m_strMountPoint = rhs.m_strMountPoint;
 		memcpy(m_UUID, rhs.m_UUID, sizeof(m_UUID));
 		m_ullTotalCapacity = rhs.m_ullTotalCapacity;
 		m_iRAIDLevel = rhs.m_iRAIDLevel;
@@ -241,9 +261,8 @@ struct RAIDInfo {
 		m_bSuperBlockPersistent = rhs.m_bSuperBlockPersistent;
 		m_CreationTime = rhs.m_CreationTime;
 		m_UpdateTime = rhs.m_UpdateTime;
-		m_bFormat = rhs.m_bFormat;
-		m_bMount = rhs.m_bMount;
-		m_iFormatProgress = rhs.m_iFormatProgress;
+		m_fsMgr = rhs.m_fsMgr;
+		m_iMDNum = rhs.m_iMDNum;
 
 		return *this;
 	}
@@ -262,21 +281,17 @@ struct RAIDInfo {
 	{
 		printf("State: %s\nLayout:%s\n"
 			"Rebuild: %s\nDevice Node: %s\n"
-			"Volume Name:%s\nMount Point: %s\n"
 			"Total Capacity: %llu\nLevel: %d\n"
 			"Total Disk: %d (R: %d/A: %d/W: %d/F: %d/S: %d)\n"
 			"Createtion Time: %.24s\nUpdate Time:%.24s\n"
-			"Format: %s (%d%%)\nMount: %s\nActive: %s\n"
+			"Active: %s\n"
 			"Rebuilding: %s (%d%%)\nChunk Size: %d\n",
 			m_strState.c_str(), m_strLayout.c_str(),
 			m_strRebuildingOperation.c_str(), m_strDevNodeName.c_str(),
-			m_strVolumeName.c_str(), m_strMountPoint.c_str(),
 			m_ullTotalCapacity, m_iRAIDLevel,
 			m_iTotalDiskNum, m_iRAIDDiskNum, m_iActiveDiskNum,
 			m_iWorkingDiskNum, m_iFailedDiskNum, m_iSpareDiskNum,
-			ctime(&m_CreationTime), ctime(&m_UpdateTime),
-			m_bFormat?"Yes":"No", m_iFormatProgress,
-			m_bMount?"Yes":"No:", m_bInactive?"No":"Yes",
+			ctime(&m_CreationTime), ctime(&m_UpdateTime), m_bInactive?"No":"Yes",
 			m_bRebuilding?"Yes":"No", (m_iRebuildingProgress < 0)?100:m_iRebuildingProgress,
 			m_iChunkSize
 			);
@@ -284,6 +299,9 @@ struct RAIDInfo {
 		for (size_t i =0 ; i < m_vDiskList.size(); i++) {
 			m_vDiskList[i].Dump();
 		}
+
+		if (m_fsMgr.get() != NULL)
+			m_fsMgr->Dump();
 	}
 };
 
@@ -296,9 +314,11 @@ private:
 	CriticalSection m_csRAIDInfoList;
 	CriticalSection m_csRAIDDiskList;
 	CriticalSection m_csUsedMD;
+	CriticalSection m_csUsedVolume;
 #endif
 
 	bool m_bUsedMD[128];
+	bool m_bUsedVolume[128];
 
 private:
 	vector<RAIDInfo>::iterator SearchDiskBelong2RAID(const string& dev, RAIDDiskInfo& devInfo);
@@ -321,6 +341,9 @@ private:
 	int GetFreeMDNum();
 	void FreeMDNum(int n);
 	void SetMDNum(int n);
+	int GetFreeVolumeNum();
+	void FreeVolumeNum(int n);
+	void SetVolumeNum(int n);
 
 	void UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList);
 	bool ManageRAIDSubdevs(const string& mddev, vector<string>& vDevList, int operation);
@@ -329,6 +352,7 @@ private:
 	bool IsDiskExistInRAIDDiskList(const string& dev);
 	bool IsDiskExistInRAIDDiskList(vector<string>& vDevList);
 	int GenerateMDDevName(string& name);
+	int GenerateVolumeName(string& name);
 
 public:
 	RAIDManager();
@@ -359,9 +383,13 @@ public:
 	bool DoFileSystemRecovery();
 	bool GetFileSystemStatus();
 
-	bool Format();
-	bool Mount();
-	bool Unmount();
+	bool Format(const string& mddev);
+	bool Mount(const string& mddev);
+	bool Unmount(const string& mddev);
+	bool GetFormatProgress(const string& mddev,
+			       int& stat, int& progress);
+	bool IsMounted(const string& mddev, int &num);
+	bool IsFormated(const string& mddev);
 }; 
 
 

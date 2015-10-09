@@ -18,6 +18,9 @@
 FilesystemManager::FilesystemManager(const string& dev)
 : m_strMountPoint("")
 , m_strDevNode(dev)
+, m_strUUID("")
+, m_strFSType("")
+, m_iVolumeNum(-1)
 , m_iFormatingState(WRITE_INODE_TABLES_UNKNOWN)
 , m_iFormatProgress(0)
 , m_bFormat(false)
@@ -26,9 +29,28 @@ FilesystemManager::FilesystemManager(const string& dev)
 	Initialize();
 }
 
+FilesystemManager::FilesystemManager()
+: m_strMountPoint("")
+, m_strDevNode("")
+, m_strUUID("")
+, m_strFSType("")
+, m_iVolumeNum(-1)
+, m_iFormatingState(WRITE_INODE_TABLES_UNKNOWN)
+, m_iFormatProgress(0)
+, m_bFormat(false)
+, m_bMount(false)
+{
+}
+
 FilesystemManager::~FilesystemManager()
 {
 
+}
+
+bool FilesystemManager::SetDeviceNode(const string &dev)
+{
+	m_strDevNode = dev;
+	return Initialize();
 }
 
 bool FilesystemManager::Initialize()
@@ -58,7 +80,7 @@ bool FilesystemManager::Initialize()
 	return true;
 }
 
-void FilesystemManager::SpecifyMountPoint(const string &mountpoint)
+void FilesystemManager::SetMountPoint(const string &mountpoint)
 {
 	m_strMountPoint = mountpoint;
 }
@@ -229,11 +251,11 @@ bool FilesystemManager::Unmount()
 	}
 
 unmount_done:
-	m_bMount = false;
-	m_strMountPoint = "";
 	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 		   "%s has be unmounted successfully.",
 		   m_strMountPoint.c_str());
+	m_bMount = false;
+	m_strMountPoint = "";
 
 	return true;
 }
@@ -261,6 +283,15 @@ bool FilesystemManager::IsMounted(string& strMountPoint)
 	CriticalSectionLock cs(&m_csMount);
 #endif
 	strMountPoint = m_strMountPoint;
+	return m_bMount;
+}
+
+bool FilesystemManager::IsMounted(int& num)
+{
+#ifdef NUUO
+	CriticalSectionLock cs(&m_csMount);
+#endif
+	num = m_iVolumeNum;
 	return m_bMount;
 }
 
@@ -502,4 +533,10 @@ void FilesystemManager::InitializeMke2fsHandle()
 #endif
 	m_mkfsHandle.cfg.creator_os = EXT2_OS_LINUX;
 	strncpy(m_mkfsHandle.cfg.fs_type, "ext4", strlen("ext4"));
+}
+
+void FilesystemManager::SetVolumeNum(const int &num)
+{
+	m_iVolumeNum = num;
+	m_strMountPoint = string_format("/mnt/VOLUME%d", m_iVolumeNum);
 }

@@ -39,6 +39,7 @@ private:
 	string m_strDevNode;
 	string m_strUUID;
 	string m_strFSType;
+	int m_iVolumeNum;
 	int m_iFormatingState;
 	int m_iFormatProgress;
 	bool m_bFormat;
@@ -50,16 +51,14 @@ protected:
 #endif
 
 private:
-	FilesystemManager() {}
-
 	void InitializeMke2fsHandle();
+	bool Initialize();
 	int blkid();
 
 public:
+	FilesystemManager();
 	FilesystemManager(const string& dev);
 	virtual ~FilesystemManager();
-
-	bool Initialize();
 
 	static void MakeFilesystemProgress(void *pData, int stat,
 					   int current, int total);
@@ -69,14 +68,17 @@ public:
 	//bool Check();
 	//bool Recovery();
 	//void Status();
-
-	void SpecifyMountPoint(const string &mountpoint);
+	
+	bool SetDeviceNode(const string &dev);
+	void SetMountPoint(const string &mountpoint);
+	void SetVolumeNum(const int &num);
 	bool Mount(const string& strMountPoint);
 	bool Unmount();
 
 	bool IsFormated();
 	bool IsFormating(int& progress, int& stat);
 	bool IsMounted(string& strMountPoint);
+	bool IsMounted(int& num);
 	void SetFormatInfo(bool format, int progress,
 			   int stat);
 

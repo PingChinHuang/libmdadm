@@ -7,7 +7,7 @@
 int main(int argc, char *argv[])
 {
 	FilesystemManager fs_mgr("/dev/md0");
-	fs_mgr.SpecifyMountPoint("/mnt/VOLUME0");
+	fs_mgr.SetMountPoint("/mnt/VOLUME0");
 #ifdef NUUO
 	fs_mgr.CreateThread();
 #endif
