@@ -335,8 +335,11 @@ private:
 	void FreeDevList(struct mddev_dev* devlist);
 	int OpenMDDev(const string& mddev);
 
+	int CreateRAID(const int& mdnum, string& mddev, vector<string>& vDevList, int level);
 	int CreateRAID(const string& mddev, vector<string>& vDevList, int level);
+	int AssembleRAID(const int& mdnum, string& mddev, const int uuid[4]);
 	int AssembleRAID(const string& mddev, const int uuid[4]);
+	int AssembleRAID(const int& mdnum, string& mddev, vector<string>& vDevList);
 	int AssembleRAID(const string& mddev, vector<string>& vDevList);
 	int GetFreeMDNum();
 	void FreeMDNum(int n);
@@ -351,7 +354,7 @@ private:
 	vector<RAIDInfo>::iterator IsMDDevInRAIDInfoList(const string &mddev, RAIDInfo& info);
 	bool IsDiskExistInRAIDDiskList(const string& dev);
 	bool IsDiskExistInRAIDDiskList(vector<string>& vDevList);
-	int GenerateMDDevName(string& name);
+	string GenerateMDDevName(int num);
 	int GenerateVolumeName(string& name);
 
 public:
@@ -376,7 +379,7 @@ public:
 	void GetRAIDInfo(vector<RAIDInfo>& list);
 
 	bool UpdateRAIDInfo(); // May need for periodically update.
-	bool UpdateRAIDInfo(const string& mddev);
+	bool UpdateRAIDInfo(const string& mddev, int mdnum = -1);
 	bool UpdateRAIDInfo(const int uuid[4]);
 
 	bool CheckFileSystem();
@@ -390,6 +393,8 @@ public:
 			       int& stat, int& progress);
 	bool IsMounted(const string& mddev, int &num);
 	bool IsFormated(const string& mddev);
+
+	void Dump();
 }; 
 
 

@@ -187,6 +187,7 @@ static void HandleDONOTHING (const char* content, RAIDManager& raid_mgr)
 	for (size_t i = 0; i < list.size(); i++) {
 			list[i].Dump();
 	}
+	raid_mgr.Dump();
 }
 
 void TestingLoop(const char* cfg, RAIDManager& raid_mgr)

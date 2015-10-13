@@ -435,7 +435,7 @@ void RAIDManager::UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList)
 	}
 }
 
-bool RAIDManager::UpdateRAIDInfo(const string& mddev)
+bool RAIDManager::UpdateRAIDInfo(const string& mddev, int mdnum)
 {
 	/* Update RAID object by mddev name.
 	   If the request mddev does not exist in the list,
@@ -478,6 +478,7 @@ bool RAIDManager::UpdateRAIDInfo(const string& mddev)
 	}
 
 	info = ad; // Update new information.
+	info.m_iMDNum = mdnum;
 	info.InitializeFSManager();
 	UpdateRAIDDiskList(info.m_vDiskList);
 	m_vRAIDInfoList.push_back(info);
@@ -699,19 +700,9 @@ int RAIDManager::OpenMDDev(const string& mddev)
 	return fd;
 }
 
-int RAIDManager::GenerateMDDevName(string& name)
+string RAIDManager::GenerateMDDevName(int num)
 {
-	int iFreeMD = GetFreeMDNum();
-	if (iFreeMD < 0) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-		   	   "No free MD number.\n");
-		return -1;
-	}
-	name = string_format("/dev/md%d", iFreeMD);
-	//name = "/dev/md0";
-	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
-		   "MD Name: %s\n", name.c_str()); 
-	return iFreeMD;
+	return string_format("/dev/md%d", num);
 }
 
 int RAIDManager::GenerateVolumeName(string& name)
@@ -733,11 +724,14 @@ bool RAIDManager::CreateRAID(vector<string>& vDevList, int level, string& strMDN
 	int ret = SUCCESS;
 
 	do {
-		int freeMD = -1;
-		if ((freeMD = GenerateMDDevName(strMDName)) < 0)
-			return false;
+		int freeMD = GetFreeMDNum();
+		if (freeMD < 0) {
+			WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   	   "No free MD number.\n");
+			return -1;
+		}
 
-		ret = CreateRAID(strMDName, vDevList, level);
+		ret = CreateRAID(freeMD, strMDName, vDevList, level);
 		if (ret == SUCCESS) {
 			WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 			   	   "%s created successfully.\n", strMDName.c_str());
@@ -753,6 +747,82 @@ bool RAIDManager::CreateRAID(vector<string>& vDevList, int level, string& strMDN
 	WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
 		   "[%d] Create Error Code: (%d)\n", __LINE__, ret);
 	return false;
+}
+
+int RAIDManager::CreateRAID(const int& mdnum, string& mddev, vector<string>& vDevList, int level)
+{
+	/* 1. Check mddev
+		empty string -> return false; */
+	if (mdnum < 0)
+		return CREATE_MDNUM_ILLEGAL;
+
+	mddev = GenerateMDDevName(mdnum);
+	/*	2. Check devList
+			no device (empty vector) > return false*/
+	if (vDevList.empty())
+		return CREATE_RAID_DEVS_NOT_ENOUGH;
+
+
+	/*	3.[CS] mddev exist in m_vRAIDInfoList or not
+			Yes -> return false */
+	
+	vector<RAIDInfo>::iterator it = IsMDDevInRAIDInfoList(mddev);
+	if (it != m_vRAIDInfoList.end()) {
+		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
+	   		   "[%d] Create Error Code: (%d)\n", __LINE__, CREATE_MDDEV_INUSE);
+
+		return CREATE_MDDEV_INUSE;
+	}
+
+	/*
+		[CS Start] Protect m_vRAIDDiskList
+		3. Check whether devices in devList exist in m_vRAIDDiskList or not.
+		Any device does not exist in m_vRAIDDiskList -> return false
+		[CS End]
+	*/
+	if (!IsDiskExistInRAIDDiskList(vDevList)) {
+		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
+			   "[%d] Create Error Code: (%d)\n", __LINE__, CREATE_RAID_DEVS_NOT_EXIST_IN_LIST);
+		return CREATE_RAID_DEVS_NOT_EXIST_IN_LIST;
+	}
+
+	/*	4. InitializeShape(s, vDevList.size(), level, 512) */
+	struct shape s;
+	InitializeShape(s, vDevList.size(), level, 512);
+
+	/*	5. InitializeContext(c) */
+	struct context c;
+	InitializeContext(c);
+
+	/*
+		6. InitializeDevList(devlist, vDevList) 
+			6.1 false -> FreeDevList(devlist) -> return false
+	*/
+	struct mddev_dev* devlist = InitializeDevList(vDevList);
+	if (devlist == NULL)
+		return false;
+
+	/*
+		7. ret = Create(NULL, mddev.c_str(), "\0", NULL, vDevList.size(), devlist, &s, &c, INVALID_SECTORS)
+			7.1 ret != 0 -> Write HW Log ->9
+			7.2 ret == 0 -> 8
+	*/
+	int ret = Create(NULL, (char*)mddev.c_str(), NULL, NULL, vDevList.size(), devlist, &s, &c, INVALID_SECTORS);
+	if (ret != SUCCESS) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+		   	   "Fail to create volume %s: (%d)\n", mddev.c_str(), ret);
+		return ret;
+	}
+
+	/*	8. UpdateRAIDInfo(mddev) */
+	UpdateRAIDInfo(mddev, mdnum);
+
+	/*	9. FreeDevList(devlist)
+			9.1 ret !=  0 -> return false
+			9.2 ret = 0 -> return true
+	*/
+	FreeDevList(devlist);
+	return SUCCESS;
 }
 
 int RAIDManager::CreateRAID(const string& mddev, vector<string>& vDevList, int level)
@@ -835,11 +905,14 @@ bool RAIDManager::AssembleRAID(const int uuid[4], string& strMDName)
 	int ret = SUCCESS;
 
 	do {
-		int freeMD = -1;
-		if ((freeMD = GenerateMDDevName(strMDName)) < 0)
+		int freeMD = GetFreeMDNum();
+		if (freeMD < 0) {
+			WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   	   "No free MD number.\n");
 			return false;
+		}
 
-		ret = AssembleRAID(strMDName, uuid);
+		ret = AssembleRAID(freeMD, strMDName, uuid);
 		if (ret == SUCCESS) {
 			unsigned char* p_uuid = (unsigned char*) uuid;
 			string strUUID("");
@@ -862,6 +935,67 @@ bool RAIDManager::AssembleRAID(const int uuid[4], string& strMDName)
 	WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
 		   "[%d] Assemble Error Code: (%d)\n", __LINE__, ret);
 	return false;
+}
+
+int RAIDManager::AssembleRAID(const int& mdnum, string& mddev, const int uuid[4])
+{
+	/* 1. Check mddev
+		empty string -> return false; */
+	if (mdnum < 0)
+		return ASSEMBLE_MDNUM_ILLEGAL;
+
+	mddev = GenerateMDDevName(mdnum);
+
+	/*
+		2. Check uuid
+			NULL -> return false
+	*/
+	if (uuid == NULL)
+		return ASSEMBLE_INVALID_UUID;
+
+	/*
+		3. [CS] Check mddev exists in m_vRAIDInfoList or not
+			Yes -> return false
+	*/
+	RAIDInfo info;
+	vector<RAIDInfo>::iterator it = IsMDDevInRAIDInfoList(mddev, info);
+	if (it != m_vRAIDInfoList.end()) {
+		int ret = ASSEMBLE_MDDEV_INUSE;
+		if (0 == memcmp(uuid, info.m_UUID, sizeof(info.m_UUID))) {
+			ret = ASSEMBLE_MD_ALREADY_ACTIVE;
+		}
+
+		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
+			   "[%d] Assemble Error Code: (%d)\n", __LINE__, ret);
+		return ret;
+	}
+
+	/*
+		4. InitializeMDDevIdent(ident, 1, str_uuid)
+	*/
+	struct mddev_ident ident;
+	InitializeMDDevIdent(ident, 1, uuid);
+	unsigned char* p_uuid = (unsigned char*)ident.uuid;
+
+	/*
+		5. ret = Assemble(NULL, mddev.c_str(), &ident, NULL, &c);
+			4.1 ret != 0 -> Write HW Log -> return false
+	*/
+	struct context c;
+	InitializeContext(c);
+	int ret = Assemble(NULL, (char*)mddev.c_str(), &ident, NULL, &c);
+	if (ret != SUCCESS) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "Fail to assemble volume %s: (%d)\n", mddev.c_str(), ret);
+		if ( ret != ASSEMBLE_RAID_DEVS_NOT_ENOUGH)
+			return ret;
+	}
+
+	/*
+		6. return UpdateRAIDInfo(mddev)
+	*/
+	UpdateRAIDInfo(mddev, mdnum);
+	return ret;
 }
 
 int RAIDManager::AssembleRAID(const string& mddev, const int uuid[4])
@@ -930,11 +1064,14 @@ bool RAIDManager::AssembleRAID(vector<string>& vDevList, string& strMDName)
 	int ret = SUCCESS;
 
 	do {
-		int freeMD = -1;
-		if ((freeMD = GenerateMDDevName(strMDName)) < 0)
+		int freeMD = GetFreeMDNum();
+		if (freeMD < 0) {
+			WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   	   "No free MD number.\n");
 			return false;
+		}
 
-		ret = AssembleRAID(strMDName, vDevList);
+		ret = AssembleRAID(freeMD, strMDName, vDevList);
 		if (ret == SUCCESS) {
 			string strDevList("");
 			for (size_t i = 0; i < vDevList.size(); i++) {
@@ -956,6 +1093,94 @@ bool RAIDManager::AssembleRAID(vector<string>& vDevList, string& strMDName)
 	WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
 		   "[%d] Assemble Error Code: (%d)\n", __LINE__, ret);
 	return false;
+}
+
+int RAIDManager::AssembleRAID(const int& mdnum, string& mddev, vector<string>& vDevList)
+{
+	/*
+		1. Check mddev
+			empty -> return false
+	*/
+	if (mdnum < 0)
+		return ASSEMBLE_MDNUM_ILLEGAL;
+
+	mddev = GenerateMDDevName(mdnum);
+
+	/*
+		2. Check vDevList 
+			empty -> return false
+	*/
+	if (vDevList.empty())
+		return ASSEMBLE_NO_DEVS_FOR_MD;
+
+	/*
+		3. [CS] Check mddev exists in m_vRAIDInfoList or not
+			Yes -> return false
+		
+		FIXME: We only check that md device node exist or not,
+			but maybe we also need to check whether the disks is already
+			belong to this md device.
+	*/
+	vector<RAIDInfo>::iterator it = IsMDDevInRAIDInfoList(mddev);
+	if (it != m_vRAIDInfoList.end()) {
+		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
+			   "[%d] Assemble Error Code: (%d)\n", __LINE__, ASSEMBLE_MDDEV_INUSE);
+
+		return ASSEMBLE_MDDEV_INUSE;
+	}
+
+	/*
+		[CS Start] Protect m_vRAIDDiskList
+		4. Check whether devices in devList exist in m_vRAIDDiskList or not.
+			Any device does not exist in m_vRAIDDiskList -> return false
+		[CS End]
+	*/
+	if (!IsDiskExistInRAIDDiskList(vDevList)) {
+		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
+			   "[%d] Assemble Error Code: (%d)\n", __LINE__, ASSEMBLE_RAID_DEVS_NOT_EXIST_IN_LIST);
+		return ASSEMBLE_RAID_DEVS_NOT_EXIST_IN_LIST;
+	}
+
+	/*
+		5. InitializeMDDevIdent(ident, 0, "");
+	*/
+	struct mddev_ident ident;
+	InitializeMDDevIdent(ident, 0, NULL);
+
+	/*
+		6. InitalizeDevList(devlist, vDevList);
+			6.1 false -> FreeDevlist(devlist) -> return false
+	*/
+	struct mddev_dev* devlist = InitializeDevList(vDevList);
+	if(devlist == NULL) {
+		return ASSEMBLE_INITIALIZE_DEV_LIST_FAIL;
+	}
+
+	/*
+		7. ret = Assemble(NULL, mddev.c_str(), &ident, devlist, &c);
+			7.1 ret != 0 -> Write HW Log
+		8. FreeDevList(devlist)
+	*/
+	struct context c;
+	InitializeContext(c);
+	int ret = Assemble(NULL, (char*)mddev.c_str(), &ident, devlist, &c);
+	FreeDevList(devlist);
+	if (ret != 0) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "Fail to assemble volume %s: (%d)\n", mddev.c_str(), ret);
+		if ( ret != ASSEMBLE_RAID_DEVS_NOT_ENOUGH)
+			return ret;
+	}
+
+	/*
+		9.
+		if (ret != 0)
+			return false;
+		else
+			return UpdateRAIDInfo(mddev)
+	*/
+	UpdateRAIDInfo(mddev, mdnum);
+	return ret;
 }
 
 int RAIDManager::AssembleRAID(const string& mddev, vector<string>& vDevList)
@@ -1239,6 +1464,8 @@ bool RAIDManager::StopRAID(const string& mddev)
 #ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDInfoList);
 #endif	
+	// If MD device is stopped, we can free MD number immediately.
+	FreeMDNum(it->m_iMDNum);
 	m_vRAIDInfoList.erase(it);
 	return true;
 }
@@ -1300,6 +1527,8 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 #ifdef NUUO
 	m_csRAIDInfoList.Lock();
 #endif
+	// If MD device is stopped, we can free MD number immediately.
+	FreeMDNum(info.m_iMDNum);
 	m_vRAIDInfoList.erase(it);
 #ifdef NUUO
 	m_csRAIDInfoList.Unlock();
@@ -1573,4 +1802,18 @@ bool RAIDManager::IsFormated(const string& mddev)
 	}
 	
 	return info.m_fsMgr->IsFormated();
+}
+
+void RAIDManager::Dump()
+{
+	printf("Used MD Number: ");
+	for (int i = 0; i < 128; i ++)
+		if (m_bUsedMD[i])
+			printf("%d ", i);
+	printf("\n");
+	printf("Used Volume Number: ");
+	for (int i = 0; i < 128; i ++)
+		if (m_bUsedVolume[i])
+			printf("%d ", i + 1);
+	printf("\n");
 }
