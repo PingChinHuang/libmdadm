@@ -1429,6 +1429,14 @@ bool RAIDManager::StopRAID(const string& mddev)
 		return true;
 	}
 
+	/* Do nothing if the MD device is formatting */
+	int stat = WRITE_INODE_TABLES_UNKNOWN, progress = -1;
+	if (GetFormatProgress(mddev, stat, progress)) {
+		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+			   "Fail to stop volume %s. It is formatting. [%d/%d%%]\n", mddev.c_str(), stat, progress);
+		return false;
+	}
+
 	Unmount(mddev);
 
 	/*
@@ -1491,6 +1499,14 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 		return true;
 	}
 
+	/* Do nothing if the MD device is formatting */
+	int stat = WRITE_INODE_TABLES_UNKNOWN, progress = -1;
+	if (GetFormatProgress(mddev, stat, progress)) {
+		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+			   "Fail to delete volume %s. It is formatting. [%d/%d%%]\n", mddev.c_str(), stat, progress);
+		return false;
+	}
+
 	Unmount(mddev);
 
 	/*
@@ -1545,6 +1561,34 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
 				   "Kill Error Code %s: %d\n", info.m_vDiskList[i].m_strDevName.c_str(), ret);
 		}
+
+		/*
+			Check for unknown superblock type which
+			cannot be cleared by Kill().
+			Hope that this special case won't happen.
+		*/
+		vector<string> vDevList;
+		struct examine_result result;
+		struct mddev_dev* devlist = NULL;
+		vDevList.push_back(info.m_vDiskList[i].m_strDevName.c_str());
+		if ((devlist = InitializeDevList(vDevList))) {
+			int ret = Examine_ToResult(devlist, &c, NULL, &result);
+			FreeDevList(devlist);
+			
+			/* force to clear superblock */
+			if (ret != EXAMINE_NO_MD_SUPERBLOCK) {
+				WriteHWLog(LOG_LOCAL0, LOG_WARNING, LOG_LABEL,
+					   "Force to clear superblock of %s. [%d]\n",
+					   info.m_vDiskList[i].m_strDevName.c_str(), ret);
+
+				string cmd = string_format("dd if=/dev/zero of=%s bs=512 count=1",
+							   info.m_vDiskList[i].m_strDevName.c_str());
+				system(cmd.c_str());
+			}
+		}
+
+		WriteHWLog(LOG_LOCAL1, LOG_WARNING, LOG_LABEL,
+			   "%s's superblock is cleared\n", info.m_vDiskList[i].m_strDevName.c_str());
 	}
 
 	// UpdateRAIDDiskList(info.m_vDiskList);
@@ -1721,6 +1765,7 @@ bool RAIDManager::Unmount(const string& mddev)
 			return true;
 		} else {
 			// FIXME: Should I free volume num...
+			FreeVolumeNum(num);
 			return false;
 		}
 	}

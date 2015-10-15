@@ -88,6 +88,7 @@ static void HandleCREATERAID (const char* content, RAIDManager& raid_mgr)
 	tokenize(disks, vdisks);
 	printf("lv = %d\n", lv);
 	raid_mgr.CreateRAID(vdisks, lv, strMDName);
+	raid_mgr.Format(strMDName);
 }
 
 static void HandleMANAGEMDDISK (const char* content, RAIDManager& raid_mgr)
@@ -122,8 +123,15 @@ static void HandleSTOPRAID (const char* content, RAIDManager& raid_mgr)
 	if (strncmp("all", content, sizeof("all")) == 0) {
 		vector<RAIDInfo> list;
 		raid_mgr.GetRAIDInfo(list);
-		for (size_t i = 0; i < list.size(); i ++)
+		for (size_t i = 0; i < list.size(); i ++) {
+			int stat = 0, progress = 0;
+			//if (raid_mgr.GetFormatProgress(list[i].m_strDevNodeName, stat, progress)) {
+			//	printf("stat %d, progress %d\n", stat, progress);
+			//	continue;
+			//}
+
 			raid_mgr.StopRAID(list[i].m_strDevNodeName);
+		}
 	} else {
 		raid_mgr.StopRAID(content);
 	}
