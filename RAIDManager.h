@@ -31,6 +31,13 @@ using namespace SYSUTILS_SPACE;
 
 using namespace std;
 
+enum eDiskType {
+	DISK_TYPE_UNKNOWN,
+	DISK_TYPE_LOCAL,
+	DISK_TYPE_ISCSI,
+	DISK_TYPE_NFS
+};
+
 struct RAIDDiskInfo {
 	string		m_strState;
 	string		m_strDevName;
@@ -39,6 +46,7 @@ struct RAIDDiskInfo {
 	int32_t		m_iState;
 	int32_t		m_iNumber;
 	int32_t		m_iRaidDiskNum;
+	eDiskType	m_diskType;
 
 	RAIDDiskInfo()
 	: m_strState("")
@@ -47,6 +55,7 @@ struct RAIDDiskInfo {
 	, m_iState(0)
 	, m_iNumber(0)
 	, m_iRaidDiskNum(0)
+	, m_diskType(DISK_TYPE_UNKNOWN)
 	{
 		for (int i = 0; i < 4; i++) {
 			m_RaidUUID[i] = 0;
@@ -361,17 +370,17 @@ public:
 	RAIDManager();
 	~RAIDManager();
 
-	bool AddRAIDDisk(const string& dev);
-	bool RemoveRAIDDisk(const string& dev);
+	bool AddDisk(const string& dev, const eDiskType &type);
+	bool RemoveDisk(const string& dev);
 
 	bool CreateRAID(vector<string>& vDevList, int level, string& strMDName);
 	bool AssembleRAID(const int uuid[4], string& strMDName);
 	bool AssembleRAID(vector<string>& vDevList, string& strMDName);
-	bool RemoveDisks(const string& mddev, vector<string>& vDevList);
-	bool MarkFaultyDisks(const string& mddev, vector<string>& vDevList);
-	bool AddDisks(const string& mddev, vector<string>& vDevList);
-	bool ReaddDisks(const string& mddev, vector<string>& vDevList);
-	bool ReplaceDisk(const string& mddev, const string& replace, const string& with);
+	bool RemoveMDDisks(const string& mddev, vector<string>& vDevList);
+	bool MarkFaultyMDDisks(const string& mddev, vector<string>& vDevList);
+	bool AddMDDisks(const string& mddev, vector<string>& vDevList);
+	bool ReaddMDDisks(const string& mddev, vector<string>& vDevList);
+	bool ReplaceMDDisk(const string& mddev, const string& replace, const string& with);
 	bool DeleteRAID(const string& mddev);
 	bool StopRAID(const string& mddev);
 

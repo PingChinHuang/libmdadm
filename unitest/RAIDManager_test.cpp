@@ -68,12 +68,12 @@ int main(int argc, char* argv[])
 
 	if (bAddDisk) {
 		for (int i = 0; i < vDevList.size(); i++)
-			raid_mgr.AddRAIDDisk(vDevList[i]);
+			raid_mgr.AddDisk(vDevList[i], DISK_TYPE_LOCAL);
 	}
 	
 	if (bRemove) {
 		for (int i = 0; i < vDevList.size(); i++)
-			raid_mgr.RemoveRAIDDisk(vDevList[i]);	
+			raid_mgr.RemoveDisk(vDevList[i]);	
 	}
 	
 	if (bCreate) {
@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 		raid_mgr.StopRAID(list[i].m_strDevNodeName);
 	
 	for (int i = 0; i < vDevList.size(); i++)
-		raid_mgr.RemoveRAIDDisk(vDevList[i]);
+		raid_mgr.RemoveDisk(vDevList[i]);
 
 	return 0;
 }

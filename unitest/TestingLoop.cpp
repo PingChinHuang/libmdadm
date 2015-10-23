@@ -39,7 +39,7 @@ enum {
 #define MANAGE_CASE(op)	\
 	case MANAGE_##op:				\
 		printf("operation = %c\n", operation);	\
-		raid_mgr.op##Disks(mddev, vdisks);	\
+		raid_mgr.op##MDDisks(mddev, vdisks);	\
 		break;
 
 
@@ -65,7 +65,7 @@ static void HandleADDDISK (char* content, RAIDManager& raid_mgr)
 	vector<string> disks;
 	tokenize(content, disks);
 	for (size_t i = 0; i < disks.size(); i++) {
-		raid_mgr.AddRAIDDisk(disks[i]);
+		raid_mgr.AddDisk(disks[i], DISK_TYPE_LOCAL);
 	}
 }
 
@@ -74,7 +74,7 @@ static void HandleREMDISK (char* content, RAIDManager& raid_mgr)
 	vector<string> disks;
 	tokenize(content, disks);
 	for (size_t i = 0; i < disks.size(); i++) {
-		raid_mgr.RemoveRAIDDisk(disks[i]);
+		raid_mgr.RemoveDisk(disks[i]);
 	}
 }
 
@@ -109,7 +109,7 @@ static void HandleMANAGEMDDISK (const char* content, RAIDManager& raid_mgr)
 	case MANAGE_Replace:
 		printf("Replace\n");
 		if (vdisks.size() == 2) {
-			raid_mgr.ReplaceDisk(mddev, vdisks[0], vdisks[1]);
+			raid_mgr.ReplaceMDDisk(mddev, vdisks[0], vdisks[1]);
 		} else {
 			printf("Disk number is not accepted\n");
 		}

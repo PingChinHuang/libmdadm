@@ -155,7 +155,7 @@ bool RAIDManager::IsDiskExistInRAIDDiskList(vector<string>& vDevList)
 	return true;
 }
 
-bool RAIDManager::AddRAIDDisk(const string& dev)
+bool RAIDManager::AddDisk(const string& dev, const eDiskType &type)
 {
 	/*0. dev is empty -> return false*/
 	if (dev.empty())
@@ -207,6 +207,7 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 		info.m_iNumber = result.uDevRole;
 		info.m_iRaidDiskNum = result.uRaidDiskNum;
 		memcpy(info.m_RaidUUID, result.arrayUUID, sizeof(int) * 4);
+		info.m_diskType = type;
 
 		// FIXME: Maybe the critical section should protect following code since checking the disk existence. 
 #ifdef NUUO
@@ -248,9 +249,9 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 			// 4.1.2
 			vector<string> vDevList;
 			vDevList.push_back(dev);
-			ret = RemoveDisks(raid_it->m_strDevNodeName, vDevList);
+			ret = RemoveMDDisks(raid_it->m_strDevNodeName, vDevList);
 			if (ret == SUCCESS) {
-				ret = AddDisks(raid_it->m_strDevNodeName, vDevList);
+				ret = AddMDDisks(raid_it->m_strDevNodeName, vDevList);
 				if (ret != SUCCESS) {
 					WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
 						   "[%d] Manage Error Code %s: (%d)\n", __LINE__, raid_it->m_strDevNodeName.c_str(), ret);
@@ -267,7 +268,7 @@ bool RAIDManager::AddRAIDDisk(const string& dev)
 			// 4.1.3
 			vector<string> vDevList;
 			vDevList.push_back(dev);
-			ret = ReaddDisks(raid_it->m_strDevNodeName, vDevList);
+			ret = ReaddMDDisks(raid_it->m_strDevNodeName, vDevList);
 			if (ret != SUCCESS) {
 				WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
 					   "[%d] Manage Error Code %s: (%d)\n", __LINE__, raid_it->m_strDevNodeName.c_str(),ret);
@@ -347,7 +348,7 @@ vector<RAIDInfo>::iterator RAIDManager::SearchDiskBelong2RAID(const string& dev,
 	return it;
 }
 
-bool RAIDManager::RemoveRAIDDisk(const string& dev)
+bool RAIDManager::RemoveDisk(const string& dev)
 {
 	/*
 		When a disk is removed, it will be marked faulty.
@@ -1376,27 +1377,27 @@ bool RAIDManager::ManageRAIDSubdevs(const string& mddev, vector<string>& vDevLis
 	return SUCCESS;
 }
 
-bool RAIDManager::RemoveDisks(const string& mddev, vector<string>& vDevList)
+bool RAIDManager::RemoveMDDisks(const string& mddev, vector<string>& vDevList)
 {
 	return ManageRAIDSubdevs(mddev, vDevList, 'r');
 }
 
-bool RAIDManager::MarkFaultyDisks(const string& mddev, vector<string>& vDevList)
+bool RAIDManager::MarkFaultyMDDisks(const string& mddev, vector<string>& vDevList)
 {
 	return ManageRAIDSubdevs(mddev, vDevList, 'f');
 }
 
-bool RAIDManager::AddDisks(const string& mddev, vector<string>& vDevList)
+bool RAIDManager::AddMDDisks(const string& mddev, vector<string>& vDevList)
 {
 	return ManageRAIDSubdevs(mddev, vDevList, 'a');
 }
 
-bool RAIDManager::ReaddDisks(const string& mddev, vector<string>& vDevList)
+bool RAIDManager::ReaddMDDisks(const string& mddev, vector<string>& vDevList)
 {
 	return ManageRAIDSubdevs(mddev, vDevList, 'A');
 }
 
-bool RAIDManager::ReplaceDisk(const string& mddev, const string& replace, const string& with)
+bool RAIDManager::ReplaceMDDisk(const string& mddev, const string& replace, const string& with)
 {
 	if (replace.empty() || with.empty())
 		return false;
