@@ -214,13 +214,15 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type)
 		CriticalSectionLock cs(&m_csRAIDDiskList);
 #endif
 		m_vRAIDDiskList.push_back(info);
+		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+			   "%s added successfully .\n", dev.c_str());
 	} 
 
 	/*[CS End]*/
 
 	if (ret == EXAMINE_NO_MD_SUPERBLOCK) {
 		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
-			   "%s added successfully .\n", dev.c_str());
+			   "%s has no MD superblock .\n", dev.c_str());
 		return true;
 	} else if (ret > 0) {
 		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
@@ -242,8 +244,6 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type)
 		    (info.m_iState & ((1 << MD_DISK_ACTIVE) | (1 << MD_DISK_SYNC) | (1 << MD_DISK_REMOVED) | (1 << MD_DISK_FAULTY))) == 0
 		) {
 			// 4.1.1
-			WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
-				   "%s added successfully .\n", dev.c_str());
 			return true;
 		} else if (info.m_iState & (1 << MD_DISK_FAULTY)) {
 			// 4.1.2
@@ -260,8 +260,6 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type)
 			} else {
 				WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
 					   "[%d] Manage Error Code %s: (%d)\n", __LINE__, raid_it->m_strDevNodeName.c_str(), ret);
-				WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
-					   "%s added successfully .\n", dev.c_str());
 				return true; // Treat it as normal, and should be solved by manually. We don't need to update list.
 			}
 		} else {
@@ -297,9 +295,12 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type)
 		
 		if (counter >= info.m_iRaidDiskNum) {
 			if (AssembleRAID(info.m_RaidUUID, mddev)) {
-				WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
-					   "%s added successfully .\n", dev.c_str());
-				Mount(mddev);
+				/* Don't format the MD device for safety.
+				   To prevent from unnecessary format and
+				   then leading to data lost.
+				*/
+				if (IsFormated(mddev) && !IsMounted(mddev))
+					Mount(mddev);
 				return true;
 			}
 		}
@@ -307,8 +308,6 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type)
 
 	/* 6.  UpdateRAIDInfo(mddev) */
 	UpdateRAIDInfo(mddev);
-	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
-		   "%s added successfully .\n", dev.c_str());
 	return true;
 }
 
