@@ -299,7 +299,8 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type)
 				   To prevent from unnecessary format and
 				   then leading to data lost.
 				*/
-				if (IsFormated(mddev) && !IsMounted(mddev))
+				int num = -1;
+				if (IsFormated(mddev) && !IsMounted(mddev, num))
 					Mount(mddev);
 				return true;
 			}
