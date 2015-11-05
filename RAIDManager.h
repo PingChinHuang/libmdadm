@@ -47,6 +47,7 @@ struct RAIDDiskInfo {
 	int32_t		m_iNumber;
 	int32_t		m_iRaidDiskNum;
 	eDiskType	m_diskType;
+	bool		m_bHasMDSB;
 
 	RAIDDiskInfo()
 	: m_strState("")
@@ -56,6 +57,7 @@ struct RAIDDiskInfo {
 	, m_iNumber(0)
 	, m_iRaidDiskNum(0)
 	, m_diskType(DISK_TYPE_UNKNOWN)
+	, m_bHasMDSB(false)
 	{
 		for (int i = 0; i < 4; i++) {
 			m_RaidUUID[i] = 0;
@@ -76,10 +78,23 @@ struct RAIDDiskInfo {
 
 	void Dump()
 	{
-		printf("Soft Link: %s\nDevice Node: %s\n"
-			"State: %s\nDisk Order: %d\n",
+		printf("Link: %s, Device: %s, State: %s, Order: %d",
 			m_strSoftLinkName.c_str(), m_strDevName.c_str(),
 			m_strState.c_str(), m_iNumber);
+		switch (m_diskType) {
+		case DISK_TYPE_UNKNOWN:
+			printf(", Type: Unknown\n");
+			break;
+		case DISK_TYPE_LOCAL:
+			printf(", Type: Local\n");
+			break;
+		case DISK_TYPE_ISCSI:
+			printf(", Type: iSCSI\n");
+			break;
+		case DISK_TYPE_NFS:
+			printf(", Type: NFS\n");
+			break;
+		}
 	}
 
 	void HandleDevName(const string& name)
@@ -92,7 +107,8 @@ struct RAIDDiskInfo {
 				if ((len = readlink(name.c_str(), buf, sizeof(buf) - 1)) >= 0) {
 					buf[len] = '\0';
 					m_strSoftLinkName = name;
-					m_strDevName = buf;
+					m_strDevName = "/dev/";
+					m_strDevName += buf;
 					return;
 				}
 			}
@@ -111,6 +127,8 @@ struct RAIDDiskInfo {
 		m_iState = rhs.m_iState;
 		m_iNumber = rhs.m_iNumber;
 		m_iRaidDiskNum = rhs.m_iRaidDiskNum;
+		m_bHasMDSB = rhs.m_bHasMDSB;
+		m_diskType = rhs.m_diskType;
 		return *this;
 	}
 
@@ -136,6 +154,7 @@ struct RAIDInfo {
 	time_t			m_UpdateTime;
 	uint32_t		m_UUID[4];
 	int64_t			m_ullTotalCapacity;
+	int64_t			m_ullUsedSize;
 	int32_t			m_iRAIDLevel;
 	int32_t			m_iTotalDiskNum;
 	int32_t			m_iRAIDDiskNum;
@@ -160,6 +179,7 @@ struct RAIDInfo {
 	, m_CreationTime(0)
 	, m_UpdateTime(0)
 	, m_ullTotalCapacity(0ull)
+	, m_ullUsedSize(0ull)
 	, m_iRAIDLevel(UnSet)
 	, m_iTotalDiskNum(0)
 	, m_iRAIDDiskNum(0)
@@ -220,6 +240,7 @@ struct RAIDInfo {
 		m_strDevNodeName = rhs.strArrayDevName;
 		memcpy(m_UUID, rhs.uuid, sizeof(m_UUID));
 		m_ullTotalCapacity = rhs.ullArraySize;
+		m_ullUsedSize = rhs.ullUsedSize;
 		m_iRAIDLevel = rhs.arrayInfo.level;
 		m_iTotalDiskNum = rhs.arrayInfo.nr_disks;
 		m_iRAIDDiskNum = rhs.arrayInfo.raid_disks;
@@ -255,6 +276,7 @@ struct RAIDInfo {
 		m_strDevNodeName = rhs.m_strDevNodeName;
 		memcpy(m_UUID, rhs.m_UUID, sizeof(m_UUID));
 		m_ullTotalCapacity = rhs.m_ullTotalCapacity;
+		m_ullUsedSize = rhs.m_ullUsedSize;
 		m_iRAIDLevel = rhs.m_iRAIDLevel;
 		m_iTotalDiskNum = rhs.m_iTotalDiskNum;
 		m_iRAIDDiskNum = rhs.m_iRAIDDiskNum;
@@ -286,31 +308,39 @@ struct RAIDInfo {
 		return (m_strDevNodeName == rhs);
 	}
 
+	bool IsRAIDStatusChanged(const RAIDInfo& previous) {
+		return !(m_UpdateTime == previous.m_UpdateTime &&
+			 m_iFailedDiskNum == previous.m_iFailedDiskNum &&
+			 m_iWorkingDiskNum == previous.m_iWorkingDiskNum &&
+			 m_iSpareDiskNum == previous.m_iSpareDiskNum);
+	}
+
 	void Dump()
 	{
-		printf("State: %s\nLayout:%s\n"
-			"Rebuild: %s\nDevice Node: %s\n"
-			"Total Capacity: %llu\nLevel: %d\n"
-			"Total Disk: %d (R: %d/A: %d/W: %d/F: %d/S: %d)\n"
-			"Createtion Time: %.24s\nUpdate Time:%.24s\n"
-			"Active: %s\n"
-			"Rebuilding: %s (%d%%)\nChunk Size: %d\n",
-			m_strState.c_str(), m_strLayout.c_str(),
-			m_strRebuildingOperation.c_str(), m_strDevNodeName.c_str(),
-			m_ullTotalCapacity, m_iRAIDLevel,
+		printf("Device: %s\n"
+			"\tState: %s, Level: %d, Chunk Size: %d\n"
+			"\tTotal Capacity: %llu\n\tUsed Capacity: %llu\n"
+			"\tTotal Disks: %d (R: %d, A: %d, W: %d, F: %d, S: %d)\n"
+			"\tCreatetion Time: %.24s\n\tUpdate Time: %.24s\n"
+			"\tRebuilding: %s (%d%%)\n\n",
+			m_strDevNodeName.c_str(), m_strState.c_str(),
+			m_iRAIDLevel, m_iChunkSize,
+			m_ullTotalCapacity, m_ullUsedSize,
 			m_iTotalDiskNum, m_iRAIDDiskNum, m_iActiveDiskNum,
 			m_iWorkingDiskNum, m_iFailedDiskNum, m_iSpareDiskNum,
-			ctime(&m_CreationTime), ctime(&m_UpdateTime), m_bInactive?"No":"Yes",
-			m_bRebuilding?"Yes":"No", (m_iRebuildingProgress < 0)?100:m_iRebuildingProgress,
-			m_iChunkSize
+			ctime(&m_CreationTime), ctime(&m_UpdateTime),
+			m_bRebuilding?"Yes":"No", (m_iRebuildingProgress < 0)?100:m_iRebuildingProgress
 			);
-
-		for (size_t i =0 ; i < m_vDiskList.size(); i++) {
-			m_vDiskList[i].Dump();
-		}
-
+		
 		if (m_fsMgr.get() != NULL)
 			m_fsMgr->Dump();
+		printf("\n");
+
+		for (size_t i =0 ; i < m_vDiskList.size(); i++) {
+			printf("\t");
+			m_vDiskList[i].Dump();
+		}
+		printf("\n");
 	}
 };
 
@@ -386,6 +416,8 @@ public:
 
 	bool GetRAIDInfo(const string& mddev, RAIDInfo& info);
 	void GetRAIDInfo(vector<RAIDInfo>& list);
+	void GetDisksInfo(vector<RAIDDiskInfo> &list);
+	bool GetDisksInfo(const string& dev, RAIDDiskInfo &info);
 
 	bool UpdateRAIDInfo(); // May need for periodically update.
 	bool UpdateRAIDInfo(const string& mddev, int mdnum = -1);

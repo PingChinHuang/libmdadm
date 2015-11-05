@@ -208,6 +208,7 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type)
 		info.m_iRaidDiskNum = result.uRaidDiskNum;
 		memcpy(info.m_RaidUUID, result.arrayUUID, sizeof(int) * 4);
 		info.m_diskType = type;
+		info.m_bHasMDSB = (ret == EXAMINE_NO_MD_SUPERBLOCK) ? true : false;
 
 		// FIXME: Maybe the critical section should protect following code since checking the disk existence. 
 #ifdef NUUO
@@ -361,6 +362,28 @@ bool RAIDManager::RemoveDisk(const string& dev)
 		return false;
 
 	/*
+		If disk is belong to the RAID, it need to be mark faulty and
+		removed before it is removed from RAID disk list.
+	*/
+	RAIDDiskInfo info;
+	vector<RAIDInfo>::iterator raid_it = SearchDiskBelong2RAID(dev, info);
+	if (raid_it != m_vRAIDInfoList.end()) {
+		int num = 0;
+		if (IsMounted(raid_it->m_strDevNodeName, num)) {
+			if (Unmount(raid_it->m_strDevNodeName))
+				return false;
+		}
+
+		vector<string> vDevList;
+		vDevList.push_back(dev);
+		if (!MarkFaultyMDDisks(raid_it->m_strDevNodeName, vDevList))
+			return false;
+
+		if (!RemoveMDDisks(raid_it->m_strDevNodeName, vDevList))
+			return false;
+	}
+
+	/*
 		[CS Start] Protect m_vRAIDDiskList
 		1. Exist in m_vRAIDDiskList?
 			1.1 Yes -> Remove from m_vRAIDDiskList -> 2
@@ -395,6 +418,11 @@ bool RAIDManager::RemoveDisk(const string& dev)
 	m_csRAIDDiskList.Unlock();
 #endif
 
+	if (raid_it != m_vRAIDInfoList.end()) {
+		/* Try to remount MD after removing the disk */
+		Mount(raid_it->m_strDevNodeName);
+	}
+
 	/* 2. UpdateRAIDInfo(uuid) */
 	UpdateRAIDInfo(uuid);
 	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
@@ -413,10 +441,12 @@ void RAIDManager::UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList)
 		vector<RAIDDiskInfo>::iterator it_all = m_vRAIDDiskList.begin();
 		while(it_all != m_vRAIDDiskList.end()) {
 			if (*it == *it_all /*it->m_strDevName == it_all->m_strDevName*/) {
-				string strSoftLinkName = it_all->m_strSoftLinkName; // Keep this because it doesn't have this information.
+				it->m_strSoftLinkName = it_all->m_strSoftLinkName; // Keep this because it doesn't have this information.
+				it->m_bHasMDSB = it_all->m_bHasMDSB;
+				it->m_diskType = it_all->m_diskType;
 				*it_all = *it;
-				it_all->m_strSoftLinkName = strSoftLinkName; // Write back
-				it->m_strSoftLinkName = strSoftLinkName; // Write back
+				//it_all->m_strSoftLinkName = strSoftLinkName; // Write back
+				//it->m_strSoftLinkName = strSoftLinkName; // Write back
 				bExist = true;
 				break;
 			}
@@ -1644,6 +1674,38 @@ void RAIDManager::GetRAIDInfo(vector<RAIDInfo>& list)
 		list.push_back(*it);
 		it++;
 	}
+}
+
+void RAIDManager::GetDisksInfo(vector<RAIDDiskInfo> &list)
+{
+	list.clear();
+
+#ifdef NUUO
+	CriticalSectionLock cs(&m_csRAIDDiskList);
+#endif
+	vector<RAIDDiskInfo>::iterator it = m_vRAIDDiskList.begin();
+	while(it != m_vRAIDDiskList.end()) {
+		list.push_back(*it);
+		it++;
+	}
+}
+
+bool RAIDManager::GetDisksInfo(const string& dev, RAIDDiskInfo &info)
+{
+#ifdef NUUO
+	CriticalSectionLock cs(&m_csRAIDDiskList);
+#endif
+	vector<RAIDDiskInfo>::iterator it = m_vRAIDDiskList.begin();
+	while(it != m_vRAIDDiskList.end()) {
+		if (it->m_strDevName == dev ||
+		    it->m_strSoftLinkName == dev) {
+			info = *it;
+			return true;
+		}
+		it++;
+	}
+
+	return false;
 }
 
 bool RAIDManager::Format(const string& mddev)

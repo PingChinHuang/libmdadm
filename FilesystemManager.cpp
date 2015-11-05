@@ -250,6 +250,10 @@ bool FilesystemManager::Unmount()
 		return false;
 	}
 
+	// TODO: Mount point should be deleted when unmounting successfully.
+	// Maybe it cannot be removed due to using by other processes.
+	// This should be handle first.
+
 unmount_done:
 	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 		   "%s has be unmounted successfully.",
@@ -467,12 +471,11 @@ int FilesystemManager::blkid()
 
 void FilesystemManager::Dump()
 {
-	fprintf(stderr, "Mount Point: %s\nDevice Node: %s\n"
-		"UUID: %s\nFS Type: %s\n"
-		"Format: %s\nMount: %s\n",
-		m_strMountPoint.c_str(), m_strDevNode.c_str(),
-		m_strUUID.c_str(), m_strFSType.c_str(),
-		m_bFormat?"Yes":"No", m_bMount?"Mounted":"Not mounted");
+	fprintf(stdout, "\tMount Point: %s(%s), Filesystem: %s(%s)\n"
+		"\tUUID %s\n",
+		m_strMountPoint.c_str(), m_bMount?"Mounted":"Not mounted",
+		m_strFSType.c_str(), m_bFormat?"Formated":"Not Formated",
+		m_strUUID.c_str());
 }
 
 bool FilesystemManager::dostat(const string& path, struct stat *st,
