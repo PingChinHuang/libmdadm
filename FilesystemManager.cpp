@@ -452,6 +452,7 @@ int FilesystemManager::blkid()
 #ifdef NUUO
 		CriticalSectionLock cs(&m_csMount);
 #endif
+		int ret = 0;
 		m_strMountPoint = mtpt;
 		if (mount_flags & EXT2_MF_MOUNTED) {
 			m_bMount = true;
@@ -460,6 +461,35 @@ int FilesystemManager::blkid()
 		} else {
 			m_bMount = false;
 		}
+
+#ifdef NUUO
+		/*
+			If mount point pattern is not "/mnt/VOLUMEX",
+			just unmount it and reset the related data..
+		*/
+		if (m_bMount) {
+			ret = sscanf(mtpt, "/mnt/VOLUME%d", &m_iVolumeNum);
+			if (ret < 0 || ret == EOF || m_iVolumeNum > 128 ||
+			    m_iVolumeNum < 1) {
+				m_iVolumeNum = -1;
+				if (umount2(m_strMountPoint.c_str(),
+					    UMOUNT_NOFOLLOW | MNT_DETACH) < 0) {
+					WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL, "Fail to unmount %s (%s)\n",
+			   			   m_strMountPoint.c_str(),
+						   strerror(errno));
+				} else {
+					m_bMount = false;
+					m_strMountPoint = "";
+				}
+			} else {
+				/*
+					Volume Number is start from 0.
+					But the mount point name is start from 1.
+				*/
+				m_iVolumeNum--;
+			}
+		}
+#endif
 	} else {
 		WriteHWLog(LOG_LOCAL1, LOG_ERR, LOG_LABEL,
 			   "[%d] Fail to check mount point.", __LINE__);
@@ -541,5 +571,5 @@ void FilesystemManager::InitializeMke2fsHandle()
 void FilesystemManager::SetVolumeNum(const int &num)
 {
 	m_iVolumeNum = num;
-	m_strMountPoint = string_format("/mnt/VOLUME%d", m_iVolumeNum);
+	m_strMountPoint = string_format("/mnt/VOLUME%d", m_iVolumeNum + 1);
 }

@@ -139,7 +139,7 @@ struct RAIDDiskInfo {
 
 	bool operator==(const string& rhs) const
 	{
-		return (rhs == m_strDevName);
+		return (rhs == m_strDevName || rhs == m_strSoftLinkName);
 	}
 };
 
@@ -300,7 +300,8 @@ struct RAIDInfo {
 
 	bool operator==(const RAIDInfo& rhs) const
 	{
-		return (m_strDevNodeName == rhs.m_strDevNodeName);
+		return (m_strDevNodeName == rhs.m_strDevNodeName &&
+			0 == memcmp(rhs.m_UUID, m_UUID, sizeof(m_UUID)));
 	}
 
 	bool operator==(const string& rhs) const
@@ -360,7 +361,7 @@ private:
 	bool m_bUsedVolume[128];
 
 private:
-	vector<RAIDInfo>::iterator SearchDiskBelong2RAID(const string& dev, RAIDDiskInfo& devInfo);
+	vector<RAIDInfo>::iterator SearchDiskBelong2RAID(RAIDDiskInfo& devInfo);
 
 	void InitializeShape(struct shape& s, int raiddisks, int level, int chunk = 512, int bitmap_chunk = UnSet, char* bitmap_file = NULL);
 #ifdef DEBUG
