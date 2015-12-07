@@ -1719,7 +1719,7 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 			   "%s's superblock is cleared\n", info.m_vDiskList[i].m_strDevName.c_str());
 	}
 
-	// UpdateRAIDDiskList(info.m_vDiskList);
+	UpdateRAIDDiskList(info.m_vDiskList);
 	return true;
 }
 
