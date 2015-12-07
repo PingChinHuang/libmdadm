@@ -84,10 +84,11 @@ RAIDManager::RAIDManager()
 			if (dt.GetPathName().find("/dev/nuuo_sata") !=
 			    string::npos) {
 				if (dt.GetPathName() != "/dev/nuuo_satadom") {
-					AddDisk(dt.GetPathName(), DISK_TYPE_LOCAL); 
+					AddDisk(dt.GetPathName(), DISK_TYPE_SATA); 
 				}
+			} else if (dt.GetPathName().find("/dev/nuuo_esata") != string::npos) {
+				AddDisk(dt.GetPathName(), DISK_TYPE_ESATA);
 			}
-
 		} else if (dt.GetFlags() & DirectoryTraverse::FLAG_DIRECTORY) {
 			if (dt.GetPathName() == "/dev/nu_iscsi") {
 				DirectoryTraverse dt_iscsi("/dev/nu_iscsi");
@@ -243,6 +244,25 @@ bool RAIDManager::IsDiskExistInRAIDDiskList(vector<string>& vDevList)
 	return true;
 }
 
+bool RAIDManager::IsDiskHaveMDSuperBlock(const string& dev, examine_result &result, int &err)
+{
+	vector<string> vDevList;
+	struct mddev_dev* devlist = NULL;
+	struct context c;
+
+	vDevList.push_back(dev);
+	if (NULL == (devlist = InitializeDevList(vDevList))) {
+		err = EXAMINE_MEM_ALLOC_FAIL;
+		return false;
+	}
+
+	InitializeContext(c);
+	err = Examine_ToResult(devlist, &c, NULL, &result);
+	FreeDevList(devlist);
+
+	return !(err == EXAMINE_NO_MD_SUPERBLOCK);
+}
+
 bool RAIDManager::AddDisk(const string& dev, const eDiskType &type)
 {
 	/*0. dev is empty -> return false*/
@@ -250,7 +270,7 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type)
 		return false;
 
 	/*1. Check device node exists or not (SYSUTILS::CheckBlockDevice)
-		1.1 Yes -> 2
+		1.1 Yes -> 3 
 		1.2 No -> return false*/
 #ifdef NUUO
 	if (!CheckBlockDevice(dev)) {
@@ -259,24 +279,6 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type)
 		return false;
 	}
 #endif
-	
-	/*2. ret = Examine_ToResult() to check MD superblock
-		2.1 Has MD superblock -> 3
-		2.2 ret == EXAMINE_NO_MD_SUPERBLOCK -> 3*/
-	vector<string> vDevList;
-	struct examine_result result;
-	struct mddev_dev* devlist = NULL;
-	struct context c;
-	int ret = SUCCESS;
-
-	vDevList.push_back(dev);
-	if (NULL == (devlist = InitializeDevList(vDevList))) {
-		return false;
-	}
-
-	InitializeContext(c);
-	ret = Examine_ToResult(devlist, &c, NULL, &result);
-	FreeDevList(devlist);
 
 	/*[CS Start] Protect m_vRAIDDiskList*/
 	/*3. Exist in m_vRAIDDiskList?
@@ -286,15 +288,17 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type)
 		3.2 No -> Push into m_vRAIDDiskLisit
 			Come from 2.2 return true
 			Come from 2.1 -> 4*/
+	struct examine_result result;
+	int ret = SUCCESS;
 	RAIDDiskInfo info;
 	bool bExist = IsDiskExistInRAIDDiskList(dev);
 
+	info.m_bHasMDSB = IsDiskHaveMDSuperBlock(dev, result, ret);
 	info.HandleDevName(dev);
 	info.m_iNumber = result.uDevRole;
 	info.m_iRaidDiskNum = result.uRaidDiskNum;
 	memcpy(info.m_RaidUUID, result.arrayUUID, sizeof(int) * 4);
 	info.m_diskType = type;
-	info.m_bHasMDSB = (ret == EXAMINE_NO_MD_SUPERBLOCK) ? false : true;
 
 	// FIXME: Maybe the critical section should protect following code since checking the disk existence. 
 	if (!bExist) {
@@ -538,8 +542,11 @@ void RAIDManager::UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList)
 		vector<RAIDDiskInfo>::iterator it_all = m_vRAIDDiskList.begin();
 		while(it_all != m_vRAIDDiskList.end()) {
 			if (*it == *it_all) {
+				examine_result result;
+				int ret = SUCCESS;
+
 				it->m_strSoftLinkName = it_all->m_strSoftLinkName; // Keep this because it doesn't have this information.
-				it->m_bHasMDSB = it_all->m_bHasMDSB;
+				it->m_bHasMDSB = IsDiskHaveMDSuperBlock(it->m_strDevName, result, ret);
 				it->m_diskType = it_all->m_diskType;
 				*it_all = *it;
 				bExist = true;
@@ -1104,7 +1111,7 @@ int RAIDManager::AssembleRAID(const int& mdnum, string& mddev, const int uuid[4]
 	*/
 	struct mddev_ident ident;
 	InitializeMDDevIdent(ident, 1, uuid);
-	unsigned char* p_uuid = (unsigned char*)ident.uuid;
+	//unsigned char* p_uuid = (unsigned char*)ident.uuid;
 
 	/*
 		5. ret = Assemble(NULL, mddev.c_str(), &ident, NULL, &c);
@@ -1165,7 +1172,7 @@ int RAIDManager::AssembleRAID(const string& mddev, const int uuid[4])
 	*/
 	struct mddev_ident ident;
 	InitializeMDDevIdent(ident, 1, uuid);
-	unsigned char* p_uuid = (unsigned char*)ident.uuid;
+	//unsigned char* p_uuid = (unsigned char*)ident.uuid;
 
 	/*
 		5. ret = Assemble(NULL, mddev.c_str(), &ident, NULL, &c);
@@ -1695,24 +1702,17 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 			cannot be cleared by Kill().
 			Hope that this special case won't happen.
 		*/
-		vector<string> vDevList;
 		struct examine_result result;
-		struct mddev_dev* devlist = NULL;
-		vDevList.push_back(info.m_vDiskList[i].m_strDevName.c_str());
-		if ((devlist = InitializeDevList(vDevList))) {
-			int ret = Examine_ToResult(devlist, &c, NULL, &result);
-			FreeDevList(devlist);
+		int ret = SUCCESS;
 			
-			/* force to clear superblock */
-			if (ret != EXAMINE_NO_MD_SUPERBLOCK) {
-				WriteHWLog(LOG_LOCAL0, LOG_WARNING, LOG_LABEL,
-					   "Force to clear superblock of %s. [%d]\n",
-					   info.m_vDiskList[i].m_strDevName.c_str(), ret);
+		/* force to clear superblock */
+		if (IsDiskHaveMDSuperBlock(info.m_vDiskList[i].m_strDevName.c_str(), result, ret)) {
+			WriteHWLog(LOG_LOCAL0, LOG_WARNING, LOG_LABEL,
+				   "Force to clear superblock of %s. [%d]\n",
+				   info.m_vDiskList[i].m_strDevName.c_str(), ret);
 
-				string cmd = string_format("dd if=/dev/zero of=%s bs=512 count=1",
-							   info.m_vDiskList[i].m_strDevName.c_str());
-				system(cmd.c_str());
-			}
+			string cmd = string_format("dd if=/dev/zero of=%s bs=512 count=1", info.m_vDiskList[i].m_strDevName.c_str());
+			system(cmd.c_str());
 		}
 
 		WriteHWLog(LOG_LOCAL1, LOG_WARNING, LOG_LABEL,

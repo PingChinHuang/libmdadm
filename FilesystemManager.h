@@ -5,7 +5,7 @@
 extern "C"
 {
 #endif
-#include "mke2fs.h" 
+#include "libmke2fs/mke2fs.h" 
 //#include "uuid/uuid.h"
 //#include "e2p/e2p.h"
 #include "blkid/blkid.h"

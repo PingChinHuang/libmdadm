@@ -4,7 +4,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "mdadm.h"
+#include "libmdadm/mdadm.h"
 #ifdef __cplusplus
 }
 #endif
@@ -33,7 +33,8 @@ using namespace std;
 
 enum eDiskType {
 	DISK_TYPE_UNKNOWN,
-	DISK_TYPE_LOCAL,
+	DISK_TYPE_SATA,
+	DISK_TYPE_ESATA,
 	DISK_TYPE_ISCSI,
 	DISK_TYPE_NFS
 };
@@ -85,8 +86,11 @@ struct RAIDDiskInfo {
 		case DISK_TYPE_UNKNOWN:
 			printf(", Type: Unknown\n");
 			break;
-		case DISK_TYPE_LOCAL:
-			printf(", Type: Local\n");
+		case DISK_TYPE_SATA:
+			printf(", Type: SATA\n");
+			break;
+		case DISK_TYPE_ESATA:
+			printf(", Type: ESATA\n");
 			break;
 		case DISK_TYPE_ISCSI:
 			printf(", Type: iSCSI\n");
@@ -396,6 +400,8 @@ private:
 	bool IsDiskExistInRAIDDiskList(vector<string>& vDevList);
 	string GenerateMDDevName(int num);
 	int GenerateVolumeName(string& name);
+
+	bool IsDiskHaveMDSuperBlock(const string& dev, examine_result &result, int &err);
 
 public:
 	RAIDManager();

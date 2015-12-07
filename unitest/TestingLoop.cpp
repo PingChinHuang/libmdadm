@@ -65,7 +65,7 @@ static void HandleADDDISK (char* content, RAIDManager& raid_mgr)
 	vector<string> disks;
 	tokenize(content, disks);
 	for (size_t i = 0; i < disks.size(); i++) {
-		raid_mgr.AddDisk(disks[i], DISK_TYPE_LOCAL);
+		raid_mgr.AddDisk(disks[i], DISK_TYPE_SATA);
 	}
 }
 

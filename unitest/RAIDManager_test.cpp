@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
 
 	if (bAddDisk) {
 		for (int i = 0; i < vDevList.size(); i++)
-			raid_mgr.AddDisk(vDevList[i], DISK_TYPE_LOCAL);
+			raid_mgr.AddDisk(vDevList[i], DISK_TYPE_SATA);
 	}
 	
 	if (bRemove) {

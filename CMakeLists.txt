@@ -2,10 +2,6 @@ cmake_minimum_required (VERSION 2.8)
 project (raid_manager)
 
 OPTION(NUUO "Enable to use NUUO utility libraries" ON)
-INCLUDE_DIRECTORIES(
-	${CMAKE_CURRENT_SOURCE_DIR}/libmdadm
-	${CMAKE_CURRENT_SOURCE_DIR}/libmke2fs
-)
 
 IF (${NUUO})
 INCLUDE_DIRECTORIES(${SysUtilsPath})
