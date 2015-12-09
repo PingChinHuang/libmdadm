@@ -3,6 +3,17 @@
 
 #define MAX_DISK_NUM 64
 
+/* Just defined for future use */
+enum {
+	RAID_STATUS_BIT_FUNCTIONAL = 0,
+	RAID_STATUS_BIT_DEGRADE,
+	RAID_STATUS_BIT_FAILED,
+	RAID_STATUS_BIT_RECOVERING,
+	RAID_STATUS_BIT_UNMOUNTED,
+	RAID_STATUS_BIT_UNFORMATED,
+	RAID_STATUS_BIT_FILESYS_ERR,
+};
+
 struct array_disk_info {
 	mdu_disk_info_t diskInfo;
 	char strState[256];

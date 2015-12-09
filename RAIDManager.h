@@ -28,6 +28,8 @@ using namespace SYSUTILS_SPACE;
 #include <stdint.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <scsi/sg_cmds.h>
+#include <scsi/sg_unaligned.h>
 
 using namespace std;
 
@@ -39,10 +41,28 @@ enum eDiskType {
 	DISK_TYPE_NFS
 };
 
+struct SGSerialNoPage {
+	uint8_t m_bytePQPDT; /* bit 5-7: Peripheral Qualifier, bit 0-4: Peripheral Device Type */
+	uint8_t m_bytePageCode;
+	uint8_t m_byteReservied;
+	uint8_t m_bytePageLength;
+	uint8_t m_bytePageSN[32];
+};
+
+struct SGReadCapacity10 {
+	uint8_t m_LogicalBlockAddr[4];
+	uint8_t m_BlockLength[4];
+};
+
 struct RAIDDiskInfo {
 	string		m_strState;
 	string		m_strDevName;
 	string		m_strSoftLinkName;
+	string		m_strVendor;
+	string		m_strModel;
+	string		m_strFirmwareVersion;
+	string		m_strSerialNum;
+	int64_t		m_llCapacity;
 	int32_t		m_RaidUUID[4]; // Get after Examine()
 	int32_t		m_iState;
 	int32_t		m_iNumber;
@@ -74,6 +94,7 @@ struct RAIDDiskInfo {
 		m_iState = rhs.diskInfo.state;
 		m_iNumber = rhs.diskInfo.number;
 		m_iRaidDiskNum = rhs.diskInfo.raid_disk;
+		SetHDDVendorInfomation();
 		return *this;
 	}
 
@@ -101,6 +122,58 @@ struct RAIDDiskInfo {
 		}
 	}
 
+	void SetHDDVendorInfomation() {
+		if (m_strDevName.empty())
+			return;
+
+		struct sg_simple_inquiry_resp resp;
+		struct SGSerialNoPage sg_sn_resp;
+		struct SGReadCapacity10 sg_readcap10_resp;
+		int sg_fd = sg_cmds_open_device(m_strDevName.c_str(), 1, 1);
+
+		if (sg_fd < 0)
+			return;
+
+		if (0 == sg_simple_inquiry(sg_fd, &resp, 0, 0)) {
+			m_strVendor = resp.vendor;
+			m_strModel = resp.product;
+			m_strFirmwareVersion = resp.revision;
+		} else {
+			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, "DiskInfo",
+					   "Cannot get %s's vendor information.",
+					   m_strDevName.c_str());
+		}
+
+		if (0 == sg_ll_inquiry(sg_fd, 0 ,1 , 0x80, 
+							   (void*)&sg_sn_resp,
+							   sizeof(struct SGSerialNoPage),
+							   0, 0)) {
+			m_strSerialNum = (char*)sg_sn_resp.m_bytePageSN;	
+		} else {
+			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, "DiskInfo",
+					   "Cannot get %s's serial number.",
+					   m_strDevName.c_str());
+		}
+
+		if (0 == sg_ll_readcap_10(sg_fd, 0, 1,
+								  &sg_readcap10_resp,
+								  sizeof(struct SGReadCapacity10),
+								  0, 0)) {
+			uint32_t last_blk_addr = 0, block_size = 0;
+			last_blk_addr = sg_get_unaligned_be32(&(sg_readcap10_resp.m_LogicalBlockAddr));
+			if (0xffffffff != last_blk_addr) {
+				block_size = sg_get_unaligned_be32(&(sg_readcap10_resp.m_BlockLength));
+				m_llCapacity = (last_blk_addr + 1) * block_size;
+			}
+		} else {
+			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, "DiskInfo",
+					   "Cannot get %s's capacity.",
+					   m_strDevName.c_str());
+		}
+
+		sg_cmds_close_device(sg_fd);	
+	}
+
 	void HandleDevName(const string& name)
 	{
 		struct stat s;
@@ -113,12 +186,14 @@ struct RAIDDiskInfo {
 					m_strSoftLinkName = name;
 					m_strDevName = "/dev/";
 					m_strDevName += buf;
+					SetHDDVendorInfomation();
 					return;
 				}
 			}
 		}
 		m_strDevName = name;
 		m_strSoftLinkName = name;
+		SetHDDVendorInfomation();
 	}
 
 	RAIDDiskInfo& operator=(const RAIDDiskInfo& rhs)
@@ -133,6 +208,7 @@ struct RAIDDiskInfo {
 		m_iRaidDiskNum = rhs.m_iRaidDiskNum;
 		m_bHasMDSB = rhs.m_bHasMDSB;
 		m_diskType = rhs.m_diskType;
+		SetHDDVendorInfomation();
 		return *this;
 	}
 

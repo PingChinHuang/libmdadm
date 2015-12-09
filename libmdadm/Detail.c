@@ -1040,8 +1040,8 @@ int Detail_ToArrayDetail(const char *dev, struct context *c, struct array_detail
 		printf("  Intent Bitmap : Internal\n\n");*/
 	if (array.raid_disks) {
 		static char *sync_action[] = {
-			", recovering",  ", resyncing",
-			", reshaping",   ", checking"  };
+			",RECOVERING",  ",RESYNCING",
+			",RESHAPING",   ",CHECKING"  };
 		char *st;
 		int ret = 0;
 
@@ -1049,15 +1049,15 @@ int Detail_ToArrayDetail(const char *dev, struct context *c, struct array_detail
 			st = "";
 		else if (!enough(array.level, array.raid_disks,
 				 array.layout, 1, avail))
-			st = ", FAILED";
+			st = ",FAILED";
 		else
-			st = ", degraded";
+			st = ",DEGRADED";
 
 		ret = snprintf(ad->strArrayState, 127, "%s%s%s%s%s%s",
-			       (array.state&(1<<MD_SB_CLEAN))?"clean":"active", st,
+			       (array.state&(1<<MD_SB_CLEAN))?"CLEAN":"ACTIVE", st,
 			       (!e || (e->percent < 0 && e->percent != RESYNC_PENDING &&
 			       e->percent != RESYNC_DELAYED)) ? "" : sync_action[e->resync],
-			       larray_size ? "": ", Not Started",
+			       larray_size ? "": ",NOT STARTED",
 			       (e && e->percent == RESYNC_DELAYED) ? " (DELAYED)": "",
 			       (e && e->percent == RESYNC_PENDING) ? " (PENDING)": "");
 		if (ret > 0)
