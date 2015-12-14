@@ -283,7 +283,7 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type, bool initial
 	info.HandleDevName(dev);
 	info.m_bHasMDSB = IsDiskHaveMDSuperBlock(dev, result, ret);
 	if (info.m_bHasMDSB) {
-		info.m_iNumber = result.uDevRole;
+		//info.m_iNumber = result.uDevRole;
 		info.m_iRaidDiskNum = result.uRaidDiskNum;
 		memcpy(info.m_RaidUUID, result.arrayUUID, sizeof(int) * 4);
 	}
@@ -332,7 +332,7 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type, bool initial
 		
 		if (info.m_iState & (1 << MD_DISK_ACTIVE)) {
 			;
-		} else {
+		} else if (IsDiskExistInFreeDiskList(dev)) {
 			ret = ReaddMDDisks(raid_it->m_strDevNodeName, vDevList);
 			if (ret != SUCCESS) {
 				WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
@@ -351,11 +351,11 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type, bool initial
 		m_csFreeDiskList.Lock();
 #endif
 		for (size_t i = 0; i < m_vFreeDiskList.size(); i++) {
-			if (info.m_strDevName == m_vFreeDiskList[i].m_strDevName) // Bypass itself
+			if (info == m_vFreeDiskList[i]) // Bypass itself
 				continue;
 
 			// The list include other disks which has the same array id of this newly added disk.
-			if (0 == memcmp(info.m_RaidUUID, m_vFreeDiskList[i].m_RaidUUID, sizeof(int) * 4))
+			if (info == m_vFreeDiskList[i].m_RaidUUID)
 				counter++;
 		}
 #ifdef NUUO
@@ -401,13 +401,10 @@ vector<RAIDInfo>::iterator RAIDManager::SearchDiskBelong2RAID(RAIDDiskInfo& info
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
 #if 1
-		if (0 != memcmp(it->m_UUID, info.m_RaidUUID, sizeof(info.m_RaidUUID))) {
-			it ++;
-			continue;
-		} else {
+		if (info == it->m_UUID) {
 			vector<RAIDDiskInfo>::iterator it_disk = it->m_vDiskList.begin();
 			while (it_disk != it->m_vDiskList.end()) {
-				if (*it_disk == info.m_strDevName) {
+				if (*it_disk == info.m_strDevName) { //FIXME: *it_disk == info OK?
 					info = *it_disk;
 					break;
 				}
@@ -437,27 +434,17 @@ bool RAIDManager::RemoveDisk(const string& dev)
 			1.2 No -> goto check the disks in the MD devices.
 		[CS End]
 	*/
-#ifdef NUUO
-	m_csFreeDiskList.Lock();
-#endif
-	vector<RAIDDiskInfo>::iterator it = m_vFreeDiskList.begin();
-	while (it != m_vFreeDiskList.end()) {
-		if (*it == dev) { // Exist, erase and then return.
-			m_vFreeDiskList.erase(it);
-#ifdef NUUO
-			m_csFreeDiskList.Unlock();
-			WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
-					   "%s removed successfully.\n",
-					   dev.c_str());
-#endif
-			return true;
-		}
-		it++;
-	}
 
+	if (IsDiskExistInFreeDiskList(dev)) {
 #ifdef NUUO
-	m_csFreeDiskList.Unlock();
+		CriticalSectionLock cs(&m_csFreeDiskList);
 #endif
+		m_vFreeDiskList.erase(it);
+		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+				   "%s removed successfully.\n",
+				   dev.c_str());
+		return true;
+	}
 
 	/*
 		TODO: Check the disk in MD devices and do necessary actions.
@@ -541,7 +528,7 @@ void RAIDManager::UpdateFreeDiskList(vector<RAIDDiskInfo> &prevList, vector<RAID
 				nonFreeList[i].m_diskType = it->m_diskType;
 				nonFreeList[i].m_bHasMDSB = IsDiskHaveMDSuperBlock(it->m_strDevName, result, ret);
 				if (nonFreeList[i].m_bHasMDSB) {
-					nonFreeList[i].m_iNumber = result.uDevRole;
+					//nonFreeList[i].m_iNumber = result.uDevRole;
 					nonFreeList[i].m_iRaidDiskNum = result.uRaidDiskNum;
 					memcpy(nonFreeList[i].m_RaidUUID, result.arrayUUID, sizeof(int) * 4);
 				}
@@ -585,7 +572,7 @@ void RAIDManager::UpdateFreeDiskList(vector<RAIDDiskInfo> &prevList, vector<RAID
 				*it = freeList[i];
 				it->m_bHasMDSB = IsDiskHaveMDSuperBlock(it->m_strDevName, result, ret);
 				if (it->m_bHasMDSB) {
-					it->m_iNumber = result.uDevRole;
+					//it->m_iNumber = result.uDevRole;
 					it->m_iRaidDiskNum = result.uRaidDiskNum;
 					memcpy(it->m_RaidUUID, result.arrayUUID, sizeof(int) * 4);
 				}
@@ -705,7 +692,8 @@ bool RAIDManager::UpdateRAIDInfo()
 
 		info = ad;
 		UpdateFreeDiskList(it->m_vDiskList, info.m_vDiskList);
-		*it = info; // Keep some fixed information like mount point, volumne name
+		/* FIXME: This will cause m_strSoftLinkName be cleared. */
+		*it = info;
 
 		it ++;
 	}

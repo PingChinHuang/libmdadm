@@ -58,10 +58,6 @@ TARGET_LINK_LIBRARIES(
 	com_err
 	e2p
 	uuid
-	
-	#${CMAKE_CURRENT_BINARY_DIR}/../libfsmgrobj.so
-	#${CMAKE_CURRENT_BINARY_DIR}/../libmke2fs/libmke2fsobj.so
-
 )
 
 ADD_DEPENDENCIES(
