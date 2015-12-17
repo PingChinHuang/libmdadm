@@ -33,23 +33,9 @@ RAIDManager::RAIDManager()
 					Check /dev/mdX to make sure that it is an active device.
 					If it is an active one, we can add it into list.
 				*/
-				struct context c;
-				struct array_detail ad;
-				ret = SUCCESS;
-
-				InitializeContext(c);
-				ret = Detail_ToArrayDetail(dt.GetPathName().c_str(), &c, &ad);
-				if (ret != SUCCESS) {
-					WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
-						   "[%d] Detail Error Code %s: (%d)\n", __LINE__,
-						   dt.GetPathName().c_str(), ret);
-					continue;
-				} else if (ad.arrayInfo.nr_disks == 0) { /* Treat as inactive MD device. */
-					continue;
+				if (UpdateRAIDInfo(dt.GetPathName(), num)) {
+					m_bUsedMD[num] = true;
 				}
-
-				m_bUsedMD[num] = true;
-				UpdateRAIDInfo(dt.GetPathName(), num);
 
 				int volumeNum;
 				if (IsFormated(dt.GetPathName())) {
@@ -578,7 +564,10 @@ bool RAIDManager::UpdateRAIDInfo(const string& mddev, int mdnum)
 	if (ret != SUCCESS) {
 		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL, "[%d] Detail Error Code %s: (%d)\n", __LINE__, mddev.c_str(), ret);
 		return false;
-	}	
+	} else if (ad.arrayInfo.nr_disks == 0) {
+		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL, "[%d] %s's disk number is zero. Ignore it.\n", __LINE__, mddev.c_str());
+		return false;
+	}
 
 #ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDInfoList);
