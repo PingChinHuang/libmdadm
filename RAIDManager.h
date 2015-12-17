@@ -34,7 +34,7 @@ using namespace SYSUTILS_SPACE;
 using namespace std;
 
 enum eDiskType {
-	DISK_TYPE_UNKNOWN = -1,
+	DISK_TYPE_UNKNOWN,
 	DISK_TYPE_SATA,
 	DISK_TYPE_ESATA,
 	DISK_TYPE_ISCSI,
@@ -74,11 +74,6 @@ struct RAIDDiskInfo {
 	: m_strState("")
 	, m_strDevName("")
 	, m_strSoftLinkName("")
-	, m_strVendor("")
-	, m_strModel("")
-	, m_strFirmwareVersion("")
-	, m_strSerialNum("")
-	, m_llCapacity(0ll)
 	, m_iState(0)
 	, m_iNumber(0)
 	, m_iRaidDiskNum(0)
@@ -144,9 +139,9 @@ struct RAIDDiskInfo {
 			m_strModel = resp.product;
 			m_strFirmwareVersion = resp.revision;
 		} else {
-			/*WriteHWLog(LOG_LOCAL1, LOG_DEBUG, "DiskInfo",
+			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, "DiskInfo",
 					   "Cannot get %s's vendor information.",
-					   m_strDevName.c_str());*/
+					   m_strDevName.c_str());
 		}
 
 		if (0 == sg_ll_inquiry(sg_fd, 0 ,1 , 0x80, 
@@ -155,9 +150,9 @@ struct RAIDDiskInfo {
 							   0, 0)) {
 			m_strSerialNum = (char*)sg_sn_resp.m_bytePageSN;	
 		} else {
-			/*WriteHWLog(LOG_LOCAL1, LOG_DEBUG, "DiskInfo",
+			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, "DiskInfo",
 					   "Cannot get %s's serial number.",
-					   m_strDevName.c_str());*/
+					   m_strDevName.c_str());
 		}
 
 		if (0 == sg_ll_readcap_10(sg_fd, 0, 1,
@@ -171,9 +166,9 @@ struct RAIDDiskInfo {
 				m_llCapacity = (last_blk_addr + 1) * block_size;
 			}
 		} else {
-			/*WriteHWLog(LOG_LOCAL1, LOG_DEBUG, "DiskInfo",
+			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, "DiskInfo",
 					   "Cannot get %s's capacity.",
-					   m_strDevName.c_str());*/
+					   m_strDevName.c_str());
 		}
 
 		sg_cmds_close_device(sg_fd);	
@@ -199,11 +194,6 @@ struct RAIDDiskInfo {
 		m_strDevName = name;
 		m_strSoftLinkName = name;
 		SetHDDVendorInfomation();
-	}
-
-	void HandleDevName()
-	{
-		HandleDevName(m_strSoftLinkName);
 	}
 
 	RAIDDiskInfo& operator=(const RAIDDiskInfo& rhs)
@@ -438,11 +428,11 @@ struct RAIDInfo {
 class RAIDManager {
 private:
 	vector<RAIDInfo> m_vRAIDInfoList;
-	vector<RAIDDiskInfo> m_vFreeDiskList;
+	vector<RAIDDiskInfo> m_vRAIDDiskList;
 	
 #ifdef NUUO
 	CriticalSection m_csRAIDInfoList;
-	CriticalSection m_csFreeDiskList;
+	CriticalSection m_csRAIDDiskList;
 	CriticalSection m_csUsedMD;
 	CriticalSection m_csUsedVolume;
 #endif
@@ -478,13 +468,12 @@ private:
 	void FreeVolumeNum(int n);
 	void SetVolumeNum(int n);
 
-	//void UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList);
-	void UpdateFreeDiskList(vector<RAIDDiskInfo> &prevList, vector<RAIDDiskInfo> &currList);
+	void UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList);
 	bool ManageRAIDSubdevs(const string& mddev, vector<string>& vDevList, int operation);
 	vector<RAIDInfo>::iterator IsMDDevInRAIDInfoList(const string &mddev);
 	vector<RAIDInfo>::iterator IsMDDevInRAIDInfoList(const string &mddev, RAIDInfo& info);
-	bool IsDiskExistInFreeDiskList(const string& dev);
-	bool IsDiskExistInFreeDiskList(vector<string>& vDevList);
+	bool IsDiskExistInRAIDDiskList(const string& dev);
+	bool IsDiskExistInRAIDDiskList(vector<string>& vDevList);
 	string GenerateMDDevName(int num);
 	int GenerateVolumeName(string& name);
 
@@ -494,7 +483,7 @@ public:
 	RAIDManager();
 	~RAIDManager();
 
-	bool AddDisk(const string& dev, const eDiskType &type, bool initial = false);
+	bool AddDisk(const string& dev, const eDiskType &type);
 	bool RemoveDisk(const string& dev);
 
 	bool CreateRAID(vector<string>& vDevList, int level, string& strMDName);
@@ -510,8 +499,8 @@ public:
 
 	bool GetRAIDInfo(const string& mddev, RAIDInfo& info);
 	void GetRAIDInfo(vector<RAIDInfo>& list);
-	void GetFreeDisksInfo(vector<RAIDDiskInfo> &list);
-	bool GetFreeDisksInfo(const string& dev, RAIDDiskInfo &info);
+	void GetDisksInfo(vector<RAIDDiskInfo> &list);
+	bool GetDisksInfo(const string& dev, RAIDDiskInfo &info);
 
 	bool UpdateRAIDInfo(); // May need for periodically update.
 	bool UpdateRAIDInfo(const string& mddev, int mdnum = -1);

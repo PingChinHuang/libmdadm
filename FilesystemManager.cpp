@@ -4,7 +4,6 @@
 #include "common/file.h"
 #include "common/nusyslog.h"
 #include "common/string.h"
-#include "common/system.h"
 #else
 #include "test_utils.h"
 #endif
@@ -92,8 +91,6 @@ void FilesystemManager::ThreadProc()
 	if (!Format()) {
 		return;
 	}
-
-	SleepMS(1000); // Wait for MD device's fs ready.
 
 	if (!Mount(m_strMountPoint)) {
 		return;
