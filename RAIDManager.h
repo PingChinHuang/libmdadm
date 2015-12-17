@@ -34,7 +34,7 @@ using namespace SYSUTILS_SPACE;
 using namespace std;
 
 enum eDiskType {
-	DISK_TYPE_UNKNOWN,
+	DISK_TYPE_UNKNOWN = -1,
 	DISK_TYPE_SATA,
 	DISK_TYPE_ESATA,
 	DISK_TYPE_ISCSI,
@@ -80,9 +80,7 @@ struct RAIDDiskInfo {
 	, m_diskType(DISK_TYPE_UNKNOWN)
 	, m_bHasMDSB(false)
 	{
-		for (int i = 0; i < 4; i++) {
-			m_RaidUUID[i] = 0;
-		}
+		memset(m_RaidUUID, 0x00, sizeof(m_RaidUUID));
 	}
 
 	~RAIDDiskInfo() {}
@@ -139,9 +137,9 @@ struct RAIDDiskInfo {
 			m_strModel = resp.product;
 			m_strFirmwareVersion = resp.revision;
 		} else {
-			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, "DiskInfo",
+			/*WriteHWLog(LOG_LOCAL1, LOG_DEBUG, "DiskInfo",
 					   "Cannot get %s's vendor information.",
-					   m_strDevName.c_str());
+					   m_strDevName.c_str());*/
 		}
 
 		if (0 == sg_ll_inquiry(sg_fd, 0 ,1 , 0x80, 
@@ -150,9 +148,9 @@ struct RAIDDiskInfo {
 							   0, 0)) {
 			m_strSerialNum = (char*)sg_sn_resp.m_bytePageSN;	
 		} else {
-			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, "DiskInfo",
+			/*WriteHWLog(LOG_LOCAL1, LOG_DEBUG, "DiskInfo",
 					   "Cannot get %s's serial number.",
-					   m_strDevName.c_str());
+					   m_strDevName.c_str());*/
 		}
 
 		if (0 == sg_ll_readcap_10(sg_fd, 0, 1,
@@ -166,9 +164,9 @@ struct RAIDDiskInfo {
 				m_llCapacity = (last_blk_addr + 1) * block_size;
 			}
 		} else {
-			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, "DiskInfo",
+			/*WriteHWLog(LOG_LOCAL1, LOG_DEBUG, "DiskInfo",
 					   "Cannot get %s's capacity.",
-					   m_strDevName.c_str());
+					   m_strDevName.c_str());*/
 		}
 
 		sg_cmds_close_device(sg_fd);	

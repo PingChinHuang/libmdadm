@@ -10,11 +10,6 @@
 
 RAIDManager::RAIDManager()
 {
-#ifdef NUUO
-	CriticalSectionLock _usedMDLock(&m_csUsedMD);
-	CriticalSectionLock _usedVolumeLock(&m_csUsedVolume);
-#endif
-
 	for (int i = 0; i < 128; i++)
 		m_bUsedMD[i] = false;
 	for (int i = 0; i < 128; i++)
@@ -88,19 +83,8 @@ RAIDManager::RAIDManager()
 				}
 			} else if (dt.GetPathName().find("/dev/nuuo_esata") != string::npos) {
 				AddDisk(dt.GetPathName(), DISK_TYPE_ESATA);
-			}
-		} else if (dt.GetFlags() & DirectoryTraverse::FLAG_DIRECTORY) {
-			if (dt.GetPathName() == "/dev/nu_iscsi") {
-				DirectoryTraverse dt_iscsi("/dev/nu_iscsi");
-
-				while (dt_iscsi.Next()) {
-					if (dt_iscsi.GetFlags() & DirectoryTraverse::FLAG_SYMBOLIC) {
-						printf("%s\n",
-							dt_iscsi.GetPathName().c_str());
-						AddDisk(dt.GetPathName(), DISK_TYPE_ISCSI); 
-					}
-				}
-				dt_iscsi.Close();
+			} else if (dt.GetPathName().find("/dev/nuuo_iscsi") != string::npos) {
+				AddDisk(dt.GetPathName(), DISK_TYPE_ISCSI);
 			}
 		}
 	}
@@ -1921,7 +1905,6 @@ bool RAIDManager::Unmount(const string& mddev)
 	int num = -1;
 	if (info.m_fsMgr->IsMounted(num)) {
 		if (info.m_fsMgr->Unmount()) {
-			printf("*************%d\n", num);
 			FreeVolumeNum(num);
 			return true;
 		} else {
