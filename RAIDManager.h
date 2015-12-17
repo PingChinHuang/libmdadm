@@ -211,20 +211,24 @@ struct RAIDDiskInfo {
 
 	RAIDDiskInfo& operator=(struct examine_result& rhs)
 	{
+		m_iRaidDiskNum = rhs.uRaidDiskNum;
+		memcpy(m_RaidUUID, rhs.arrayUUID,
+			   sizeof(m_RaidUUID));
+		return *this;
 	}	
 
 	RAIDDiskInfo& operator=(const RAIDDiskInfo& rhs)
 	{
 		if (this == &rhs)
 			return *this;
-		//m_strSoftLinkName = rhs.m_strSoftLinkName;
+		m_strSoftLinkName = rhs.m_strSoftLinkName;
 		m_strState = rhs.m_strState;
 		m_strDevName = rhs.m_strDevName;
 		m_iState = rhs.m_iState;
 		//m_iNumber = rhs.m_iNumber;
 		m_iRaidDiskNum = rhs.m_iRaidDiskNum;
 		m_bHasMDSB = rhs.m_bHasMDSB;
-		//m_diskType = rhs.m_diskType;
+		m_diskType = rhs.m_diskType;
 		SetHDDVendorInfomation();
 		return *this;
 	}
@@ -237,11 +241,6 @@ struct RAIDDiskInfo {
 	bool operator==(const string& rhs) const
 	{
 		return (rhs == m_strDevName || rhs == m_strSoftLinkName);
-	}
-
-	bool operator==(const int uuid[4]) const
-	{
-		return (0 == memcmp(m_RaidUUID, uuid, sizeof(m_RaidUUID));
 	}
 };
 
@@ -451,16 +450,20 @@ class RAIDManager {
 private:
 	vector<RAIDInfo> m_vRAIDInfoList;
 	vector<RAIDDiskInfo> m_vFreeDiskList;
+	vector<RAIDDiskInfo> m_vAddDiskWaitingList;
+	vector<string> m_vRemoveDiskWaitingList;
 	
 #ifdef NUUO
 	CriticalSection m_csRAIDInfoList;
 	CriticalSection m_csFreeDiskList;
 	CriticalSection m_csUsedMD;
 	CriticalSection m_csUsedVolume;
+	CriticalSection m_csReady;
 #endif
 
 	bool m_bUsedMD[128];
 	bool m_bUsedVolume[128];
+	bool m_bReady;
 
 private:
 	vector<RAIDInfo>::iterator SearchDiskBelong2RAID(RAIDDiskInfo& devInfo);
@@ -495,7 +498,7 @@ private:
 	bool ManageRAIDSubdevs(const string& mddev, vector<string>& vDevList, int operation);
 	vector<RAIDInfo>::iterator IsMDDevInRAIDInfoList(const string &mddev);
 	vector<RAIDInfo>::iterator IsMDDevInRAIDInfoList(const string &mddev, RAIDInfo& info);
-	bool IsDiskExistInFreeDiskList(const string& dev);
+	vector<RAIDDiskInfo>::iterator IsDiskExistInFreeDiskList(const string& dev);
 	bool IsDiskExistInFreeDiskList(vector<string>& vDevList);
 	string GenerateMDDevName(int num);
 	int GenerateVolumeName(string& name);
@@ -505,6 +508,8 @@ private:
 public:
 	RAIDManager();
 	~RAIDManager();
+
+	bool IsMgrReady();
 
 	bool AddDisk(const string& dev, const eDiskType &type, bool initial = false);
 	bool RemoveDisk(const string& dev);

@@ -93,7 +93,7 @@ void FilesystemManager::ThreadProc()
 		return;
 	}
 
-	SleepMS(1000); // Wait for MD device's fs ready.
+	SleepMS(100); // Wait for MD device's fs ready.
 
 	if (!Mount(m_strMountPoint)) {
 		return;
@@ -134,12 +134,12 @@ bool FilesystemManager::Mount(const string& strMountPoint)
 
 	if (strMountPoint.empty()) {
 		strErrorLog = "Invalid mount point.";
-		goto mount_err;
+		goto mount_check_err;
 	}
 
 	if (m_strDevNode.empty()) {
 		strErrorLog = "Invalid device.";
-		goto mount_err;
+		goto mount_check_err;
 	}
 
 #ifdef NUUO
@@ -150,7 +150,7 @@ bool FilesystemManager::Mount(const string& strMountPoint)
 #ifdef NUUO
 		m_csFormat.Unlock();
 #endif
-		goto mount_err;
+		goto mount_check_err;
 	}
 #ifdef NUUO
 	m_csFormat.Unlock();
@@ -159,7 +159,7 @@ bool FilesystemManager::Mount(const string& strMountPoint)
 #ifdef NUUO
 	if (!CheckBlockDevice(m_strDevNode.c_str())) {
 		strErrorLog = "The device is not a block device.";
-		goto mount_err;
+		goto mount_check_err;
 	}
 
 	m_csMount.Lock();
@@ -222,6 +222,7 @@ mount_ok:
 
 mount_err:
 	m_csMount.Unlock();
+mount_check_err:
 	WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 		   "%s", strErrorLog.c_str());
 	return false; 

@@ -8,13 +8,26 @@
 
 #define LOG_LABEL "RAIDManager"
 
-RAIDManager::RAIDManager()
-{
 #ifdef NUUO
-	CriticalSectionLock _usedMDLock(&m_csUsedMD);
-	CriticalSectionLock _usedVolumeLock(&m_csUsedVolume);
+#define _LOCK(l)					\
+	{								\
+		int nuuo_flag = NUUO_FLAG;	\
+		if (nuuo_flag) m_cs##l.Lock();	\
+	}
+
+#define _UNLOCK(l)					\
+	{								\
+		int nuuo_flag = NUUO_FLAG;	\
+		if (nuuo_flag) m_cs##l.Unlock();	\
+	}
+
+#define _CS(l)	\
+	CriticalSectionLock _cs##l(&m_cs##l)
 #endif
 
+RAIDManager::RAIDManager()
+: m_bReady(false)
+{
 	for (int i = 0; i < 128; i++)
 		m_bUsedMD[i] = false;
 	for (int i = 0; i < 128; i++)
@@ -25,22 +38,28 @@ RAIDManager::RAIDManager()
 	
 	/*
 		Check active HDD and add into list.
+
+		All attached disks will be treatd as free disks at initial stage.
 	*/
 	while (dt.Next()) {
 		if (dt.GetFlags() & DirectoryTraverse::FLAG_SYMBOLIC) {
 			if (dt.GetPathName().find("/dev/nuuo_sata") !=
 			    string::npos) {
 				if (dt.GetPathName() != "/dev/nuuo_satadom") {
-					AddDisk(dt.GetPathName(), DISK_TYPE_SATA, true); 
+					AddDisk(dt.GetPathName(), DISK_TYPE_SATA); 
 				}
 			} else if (dt.GetPathName().find("/dev/nuuo_esata") != string::npos) {
-				AddDisk(dt.GetPathName(), DISK_TYPE_ESATA, true);
+				AddDisk(dt.GetPathName(), DISK_TYPE_ESATA);
 			} else if (dt.GetPathName().find("/dev/nuuo_iscsi") != string::npos) {
-				AddDisk(dt.GetPathName(), DISK_TYPE_ISCSI, true);
+				AddDisk(dt.GetPathName(), DISK_TYPE_ISCSI);
 			}
 		}
 	}
 	dt.Reset();
+
+	for (size_t i = 0; i < m_vFreeDiskList.size(); i++) {
+		m_vFreeDiskList[i].Dump();
+	}
 
 	/*
 		Check running MD devices and add into list.
@@ -57,24 +76,6 @@ RAIDManager::RAIDManager()
 					Check /dev/mdX to make sure that it is an active device.
 					If it is an active one, we can add it into list.
 				*/
-#if 0
-				struct context c;
-				struct array_detail ad;
-				ret = SUCCESS;
-
-				InitializeContext(c);
-				ret = Detail_ToArrayDetail(dt.GetPathName().c_str(), &c, &ad);
-				if (ret != SUCCESS) {
-					WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
-						   "[%d] Detail Error Code %s: (%d)\n", __LINE__,
-						   dt.GetPathName().c_str(), ret);
-					continue;
-				} else if (ad.arrayInfo.nr_disks == 0) { /* Treat as inactive MD device. */
-					continue;
-				}
-
-				m_bUsedMD[num] = true;
-#endif
 				if (UpdateRAIDInfo(dt.GetPathName(), num)) {
 					m_bUsedMD[num] = true;
 				}
@@ -92,17 +93,36 @@ RAIDManager::RAIDManager()
 	}
 	dt.Close();
 #endif
+
+	_LOCK(Ready);
+	m_bReady = true;
+	_UNLOCK(Ready);
+
+	/* Handle the disk in waiting list. */
+	for (size_t i = 0; i < m_vAddDiskWaitingList.size(); i++) {
+		AddDisk(m_vAddDiskWaitingList[i].m_strSoftLinkName,
+				m_vAddDiskWaitingList[i].m_diskType);
+	}
+	m_vAddDiskWaitingList.clear();
+
+	for (size_t i = 0; i < m_vRemoveDiskWaitingList.size(); i++) {
+		RemoveDisk(m_vRemoveDiskWaitingList[i]);
+	}
+	m_vRemoveDiskWaitingList.clear();
 }
 
 RAIDManager::~RAIDManager()
 {
-
+#ifdef NUUO
+	_CS(Ready);
+#endif
+	m_bReady = false;
 }
 
 int RAIDManager::GetFreeMDNum()
 {
 #ifdef NUUO
-	CriticalSectionLock cs_md(&m_csUsedMD);
+	_CS(UsedMD);
 #endif
 	for (int i = 0 ; i < 128; i++) {
 		if (!m_bUsedMD[i]) {
@@ -120,7 +140,7 @@ void RAIDManager::FreeMDNum(int n)
 		return;
 
 #ifdef NUUO
-	CriticalSectionLock cs_md(&m_csUsedMD);
+	_CS(UsedMD);
 #endif
 	m_bUsedMD[n] = false;
 }
@@ -131,7 +151,7 @@ void RAIDManager::SetMDNum(int n)
 		return;
 
 #ifdef NUUO
-	CriticalSectionLock cs_md(&m_csUsedMD);
+	_CS(UsedMD);
 #endif
 	m_bUsedMD[n] = true;
 }
@@ -139,7 +159,7 @@ void RAIDManager::SetMDNum(int n)
 int RAIDManager::GetFreeVolumeNum()
 {
 #ifdef NUUO
-	CriticalSectionLock cs_md(&m_csUsedVolume);
+	_CS(UsedVolume);
 #endif
 	for (int i = 0 ; i < 128; i++) {
 		if (!m_bUsedVolume[i]) {
@@ -157,7 +177,7 @@ void RAIDManager::FreeVolumeNum(int n)
 		return;
 
 #ifdef NUUO
-	CriticalSectionLock cs_md(&m_csUsedVolume);
+	_CS(UsedVolume);
 #endif
 	m_bUsedVolume[n] = false;
 }
@@ -168,15 +188,20 @@ void RAIDManager::SetVolumeNum(int n)
 		return;
 
 #ifdef NUUO
-	CriticalSectionLock cs_md(&m_csUsedVolume);
+	_CS(UsedVolume);
 #endif
 	m_bUsedVolume[n] = true;
+}
+
+bool RAIDManager::IsMgrReady()
+{
+	return m_bReady;
 }
 
 vector<RAIDInfo>::iterator RAIDManager::IsMDDevInRAIDInfoList(const string &mddev, RAIDInfo& info)
 {
 #ifdef NUUO
-	CriticalSectionLock cs(&m_csRAIDInfoList);
+	_CS(RAIDInfoList);
 #endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
@@ -197,10 +222,10 @@ vector<RAIDInfo>::iterator RAIDManager::IsMDDevInRAIDInfoList(const string &mdde
 	return IsMDDevInRAIDInfoList(mddev, info);
 }
 
-bool RAIDManager::IsDiskExistInFreeDiskList(const string& dev)
+vector<RAIDDiskInfo>::iterator RAIDManager::IsDiskExistInFreeDiskList(const string& dev)
 {
 #ifdef NUUO
-	CriticalSectionLock cs(&m_csFreeDiskList);
+	_CS(FreeDiskList);
 #endif
 	vector<RAIDDiskInfo>::iterator it_disk = m_vFreeDiskList.begin();
 	while (it_disk != m_vFreeDiskList.end()) {
@@ -208,19 +233,19 @@ bool RAIDManager::IsDiskExistInFreeDiskList(const string& dev)
 		// In case of soft link name is not the same, but the disk
 		// actually is in the list....
 		if (*it_disk == dev) {
-			return true;
+			break;
 		}
 		it_disk++;
 	}
 
-	return false;
+	return it_disk;
 }
 
 bool RAIDManager::IsDiskExistInFreeDiskList(vector<string>& vDevList)
 {
 	vector<string>::iterator it_devlist = vDevList.begin();
 	while (it_devlist != vDevList.end()) {
-		if(!IsDiskExistInFreeDiskList(*it_devlist)) {
+		if(IsDiskExistInFreeDiskList(*it_devlist) == m_vFreeDiskList.end()) {
 			return false; // Some device in the list is not in m_vRAIDDiskList.
 		}
 
@@ -266,7 +291,24 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type, bool initial
 	}
 #endif
 
-	/*[CS Start] Protect m_vRAIDDiskList*/
+	RAIDDiskInfo info;
+
+	info.m_diskType = type;
+	info.HandleDevName(dev);
+#if 0
+	if (!initial) {
+#ifdef NUUO
+		_CS(Ready);
+#endif
+		if (!m_bReady) {
+			m_vAddDiskWaitingList.push_back(info);
+			printf("[%s] Because RaidManager is not ready, push"
+				   "%s into waiting list.\n", __func__, dev.c_str());
+			return true;
+		}
+	}
+#endif
+
 	/*3. Exist in m_vRAIDDiskList?
 		3.1 Yes
 			Come from 2.2 return true
@@ -276,29 +318,21 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type, bool initial
 			Come from 2.1 -> 4*/
 	struct examine_result result;
 	int ret = SUCCESS;
-	RAIDDiskInfo info;
-	bool bExist = IsDiskExistInFreeDiskList(dev);
 
-	info.m_diskType = type;
-	info.HandleDevName(dev);
 	info.m_bHasMDSB = IsDiskHaveMDSuperBlock(dev, result, ret);
 	if (info.m_bHasMDSB) {
-		//info.m_iNumber = result.uDevRole;
-		info.m_iRaidDiskNum = result.uRaidDiskNum;
-		memcpy(info.m_RaidUUID, result.arrayUUID, sizeof(int) * 4);
+		info = result;
 	}
 
 	// FIXME: Maybe the critical section should protect following code since checking the disk existence. 
-	if (!bExist) {
+	if (IsDiskExistInFreeDiskList(dev) == m_vFreeDiskList.end()) {
 #ifdef NUUO
-		CriticalSectionLock cs(&m_csFreeDiskList);
+		_CS(FreeDiskList);
 #endif
 		m_vFreeDiskList.push_back(info);
 		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 			   "%s added successfully .\n", dev.c_str());
 	} 
-
-	/*[CS End]*/
 
 	if (!info.m_bHasMDSB) {
 		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
@@ -314,8 +348,19 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type, bool initial
 	/*
 		Initialize RAIDDiskList without checking MD information
 	*/
-	if (initial)
-		return true;
+	if (!initial) {
+#ifdef NUUO
+		_CS(Ready);
+#endif
+		if (!m_bReady) {
+			m_vAddDiskWaitingList.push_back(info);
+			printf("[%s] Because RaidManager is not ready, push"
+				   "%s into waiting list.\n", __func__, dev.c_str());
+			return true;
+		}
+	}
+	//if (initial)
+	//	return true;
 
 	/*4. SearchDiskBelong2RAID()
 		4.1 Has Active RAID in m_vRAIDInfoList 
@@ -332,7 +377,7 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type, bool initial
 		
 		if (info.m_iState & (1 << MD_DISK_ACTIVE)) {
 			;
-		} else if (IsDiskExistInFreeDiskList(dev)) {
+		} else if (IsDiskExistInFreeDiskList(dev) != m_vFreeDiskList.end()) { // means this disk is free
 			ret = ReaddMDDisks(raid_it->m_strDevNodeName, vDevList);
 			if (ret != SUCCESS) {
 				WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
@@ -347,20 +392,16 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type, bool initial
 				5.1 enough -> AssembleByRAIDUUID() -> 6
 				5.2 not enough -> return true	*/
 		int counter = 1; // count disk has the same uuid. Initial value is 1 for this newly added disk.
-#ifdef NUUO
-		m_csFreeDiskList.Lock();
-#endif
+		_LOCK(FreeDiskList);
 		for (size_t i = 0; i < m_vFreeDiskList.size(); i++) {
 			if (info == m_vFreeDiskList[i]) // Bypass itself
 				continue;
 
 			// The list include other disks which has the same array id of this newly added disk.
-			if (info == m_vFreeDiskList[i].m_RaidUUID)
+			if (0 == memcmp(info.m_RaidUUID, m_vFreeDiskList[i].m_RaidUUID, sizeof(info.m_RaidUUID)))
 				counter++;
 		}
-#ifdef NUUO
-		m_csFreeDiskList.Unlock();
-#endif
+		_UNLOCK(FreeDiskList);
 		
 		if (counter >= info.m_iRaidDiskNum) {
 			if (AssembleRAID(info.m_RaidUUID, mddev)) {
@@ -396,12 +437,12 @@ vector<RAIDInfo>::iterator RAIDManager::SearchDiskBelong2RAID(RAIDDiskInfo& info
 	*/
 
 #ifdef NUUO
-	CriticalSectionLock cs(&m_csRAIDInfoList);
+	_CS(RAIDInfoList);
 #endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
 #if 1
-		if (info == it->m_UUID) {
+		if (0 != memcmp(it->m_UUID, info.m_RaidUUID, sizeof(info.m_RaidUUID))) {
 			vector<RAIDDiskInfo>::iterator it_disk = it->m_vDiskList.begin();
 			while (it_disk != it->m_vDiskList.end()) {
 				if (*it_disk == info.m_strDevName) { //FIXME: *it_disk == info OK?
@@ -427,6 +468,16 @@ bool RAIDManager::RemoveDisk(const string& dev)
 	if (dev.empty())
 		return false;
 
+	_LOCK(Ready);
+	if (!m_bReady) {
+		m_vRemoveDiskWaitingList.push_back(dev);
+		printf("[%s] Because RaidManager is not ready, push"
+			   "%s into waiting list.", __func__, dev.c_str());
+		_UNLOCK(Ready);
+		return true;
+	}
+	_UNLOCK(Ready);
+
 	/*
 		[CS Start] Protect m_vFreeDiskList
 		1. Exist in m_vFreeDiskList?
@@ -435,9 +486,10 @@ bool RAIDManager::RemoveDisk(const string& dev)
 		[CS End]
 	*/
 
-	if (IsDiskExistInFreeDiskList(dev)) {
+	vector<RAIDDiskInfo>::iterator it = IsDiskExistInFreeDiskList(dev);
+	if (it != m_vFreeDiskList.end()) {
 #ifdef NUUO
-		CriticalSectionLock cs(&m_csFreeDiskList);
+		_CS(FreeDiskList);
 #endif
 		m_vFreeDiskList.erase(it);
 		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
@@ -449,11 +501,64 @@ bool RAIDManager::RemoveDisk(const string& dev)
 	/*
 		TODO: Check the disk in MD devices and do necessary actions.
 	*/
+	RAIDDiskInfo info;
+	struct examine_result result;
+	int ret = SUCCESS;
+	info.HandleDevName(dev);
+	info.m_bHasMDSB = IsDiskHaveMDSuperBlock(dev, result, ret);
+	if (info.m_bHasMDSB) {
+		info = result;
+	}
+
+	vector<RAIDInfo>::iterator it_raid = SearchDiskBelong2RAID(info);
+	if (it_raid != m_vRAIDInfoList.end()) {
+		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+			       "%s removed successfully .\n", dev.c_str());
+		return true;
+	}
+
+	/*
+		Still try to mark the disk as faulty state and
+		remove it from the MD device.
+
+		However, it may be failed if user directly hot removed
+		the disk from the machine. Don't be panic about
+		the error report.
+	*/
+	vector<string> vDevList;
+	vDevList.push_back(dev);
+	MarkFaultyMDDisks(it_raid->m_strDevNodeName, vDevList);	
+	RemoveMDDisks(it_raid->m_strDevNodeName, vDevList);
+	
+	/*
+		If the volume has following conditions, 
+		unmount it:
+
+		1. RAID Level = 0
+		2. Total disk number = 0, it means all disks of this 
+		   volume has been removed, so it is not necessary
+		   to mount it.
+		3. If RAID state has "FAILED", it means the remaining
+		   disk number of the volume is not enough for keeping
+		   the volume to work correctly.
+	*/
+	if (it_raid->m_iRAIDLevel < 1 ||
+		it_raid->m_iTotalDiskNum == 0 ||
+		it_raid->m_strState.find("FAILED") != string::npos) {
+		int num = 0;
+		if (IsMounted(it_raid->m_strDevNodeName, num)) {
+			if (Unmount(it_raid->m_strDevNodeName)) {
+				WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+						   "%s is unmounted due to remove disk.",
+						   it_raid->m_strDevNodeName.c_str());
+			}
+		}
+	}
 
 	/* 2. UpdateRAIDInfo(uuid) */
-	/*UpdateRAIDInfo(uuid);
+	UpdateRAIDInfo(it_raid->m_strDevNodeName);
 	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
-		   "%s removed successfully .\n", dev.c_str());*/
+		   "%s removed successfully .\n", dev.c_str());
 	return true;
 }
 
@@ -515,12 +620,12 @@ void RAIDManager::UpdateFreeDiskList(vector<RAIDDiskInfo> &prevList, vector<RAID
 
 	for (size_t i = 0; i < nonFreeList.size(); i++) {
 #ifdef NUUO
-		CriticalSectionLock cs(&m_csFreeDiskList);
+		_CS(FreeDiskList);
 #endif
 		vector<RAIDDiskInfo>::iterator it = m_vFreeDiskList.begin();
 		while (it != m_vFreeDiskList.end()) {
 			/* Remove MD's disk from FreeDiskList. */
-			if (nonFreeList[i] == *it) {
+			if (nonFreeList[i].m_strDevName == it->m_strDevName) {
 				examine_result result;
 				int ret = SUCCESS;
 
@@ -529,14 +634,13 @@ void RAIDManager::UpdateFreeDiskList(vector<RAIDDiskInfo> &prevList, vector<RAID
 				nonFreeList[i].m_bHasMDSB = IsDiskHaveMDSuperBlock(it->m_strDevName, result, ret);
 				if (nonFreeList[i].m_bHasMDSB) {
 					//nonFreeList[i].m_iNumber = result.uDevRole;
-					nonFreeList[i].m_iRaidDiskNum = result.uRaidDiskNum;
-					memcpy(nonFreeList[i].m_RaidUUID, result.arrayUUID, sizeof(int) * 4);
+					nonFreeList[i] = result;
 				}
-				m_vFreeDiskList.erase(it);
-
 				printf("%s[%s] removed from FreeDiskList.\n",
 					   it->m_strSoftLinkName.c_str(),
 					   it->m_strDevName.c_str());
+				m_vFreeDiskList.erase(it);
+
 				break;
 			}
 
@@ -547,8 +651,10 @@ void RAIDManager::UpdateFreeDiskList(vector<RAIDDiskInfo> &prevList, vector<RAID
 	/* Update currList with the information in nonFreeList. */
 	for (size_t i = 0; i < currList.size(); i++) {
 		for (size_t j = 0; j < nonFreeList.size(); j++) {
-			if (currList[i] == nonFreeList[j]) {
+			if (currList[i].m_strDevName == nonFreeList[j].m_strDevName) {
 				currList[i] = nonFreeList[j];
+				currList[i].Dump();
+				nonFreeList[j].Dump();
 				break;
 			}
 		}
@@ -556,7 +662,7 @@ void RAIDManager::UpdateFreeDiskList(vector<RAIDDiskInfo> &prevList, vector<RAID
 
 	for (size_t i = 0; i < freeList.size(); i++) {
 #ifdef NUUO
-		CriticalSectionLock cs(&m_csFreeDiskList);
+		_CS(FreeDiskList);
 #endif
 		bool bFound = false;
 		vector<RAIDDiskInfo>::iterator it = m_vFreeDiskList.begin();
@@ -573,8 +679,7 @@ void RAIDManager::UpdateFreeDiskList(vector<RAIDDiskInfo> &prevList, vector<RAID
 				it->m_bHasMDSB = IsDiskHaveMDSuperBlock(it->m_strDevName, result, ret);
 				if (it->m_bHasMDSB) {
 					//it->m_iNumber = result.uDevRole;
-					it->m_iRaidDiskNum = result.uRaidDiskNum;
-					memcpy(it->m_RaidUUID, result.arrayUUID, sizeof(int) * 4);
+					*it = result;
 				}
 
 				printf("%s[%s] is already in FreeDiskList.\n",
@@ -632,11 +737,13 @@ bool RAIDManager::UpdateRAIDInfo(const string& mddev, int mdnum)
 	}
 
 #ifdef NUUO
-	CriticalSectionLock cs(&m_csRAIDInfoList);
+	_CS(RAIDInfoList);
 #endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
 		while (*it == mddev) {
+			printf("%s, %d, %s, %s\n", __func__, __LINE__, it->m_strDevNodeName.c_str(),
+					mddev.c_str());
 			info = ad;
 			UpdateFreeDiskList(it->m_vDiskList,
 							   info.m_vDiskList);
@@ -653,6 +760,8 @@ bool RAIDManager::UpdateRAIDInfo(const string& mddev, int mdnum)
 	info = ad; // Update new information.
 	info.m_iMDNum = mdnum;
 	info.InitializeFSManager();
+			printf("%s, %d, %s, %s\n", __func__, __LINE__, info.m_strDevNodeName.c_str(),
+					mddev.c_str());
 	UpdateFreeDiskList(vEmptyList,
 					   info.m_vDiskList);
 
@@ -670,7 +779,7 @@ bool RAIDManager::UpdateRAIDInfo()
 	*/
 
 #ifdef NUUO
-	CriticalSectionLock cs(&m_csRAIDInfoList);
+	_CS(RAIDInfoList);
 #endif
 	if (m_vRAIDInfoList.empty())
 		return true;
@@ -713,7 +822,7 @@ bool RAIDManager::UpdateRAIDInfo(const int uuid[4])
 		return false;
 
 #ifdef NUUO
-	CriticalSectionLock cs(&m_csRAIDInfoList);
+	_CS(RAIDInfoList);
 #endif
 	if (m_vRAIDInfoList.empty())
 		return true;
@@ -1495,7 +1604,7 @@ bool RAIDManager::ManageRAIDSubdevs(const string& mddev, vector<string>& vDevLis
 			If the disk is not free, we do nothing.
 		*/
 		for (size_t i = 0; i < vDevList.size(); i++) {
-			if (!IsDiskExistInFreeDiskList(vDevList[i])) {
+			if (IsDiskExistInFreeDiskList(vDevList[i]) == m_vFreeDiskList.end()) {
 				WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 						   "%s is not a free disk.\n",
 						   vDevList[i].c_str());
@@ -1533,7 +1642,7 @@ bool RAIDManager::ManageRAIDSubdevs(const string& mddev, vector<string>& vDevLis
 			return false;
 		}
 
-		if (!IsDiskExistInFreeDiskList(vDevList[1])) {
+		if (IsDiskExistInFreeDiskList(vDevList[1]) == m_vFreeDiskList.end()) {
 			WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 					   "%s is not a free disk.\n",
 					   vDevList[1].c_str());
@@ -1734,7 +1843,7 @@ bool RAIDManager::StopRAID(const string& mddev)
 		6. Remove mddev from m_vRAIDInfoList
 	*/
 #ifdef NUUO
-	CriticalSectionLock cs(&m_csRAIDInfoList);
+	_CS(RAIDInfoList);
 #endif	
 	// If MD device is stopped, we can free MD number immediately.
 	FreeMDNum(it->m_iMDNum);
@@ -1803,15 +1912,11 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 		6. Remove mddev from m_vRAIDInfoList, keep a RAID disks list copy for later use.
 	*/
 	RAIDInfo info = *it;
-#ifdef NUUO
-	m_csRAIDInfoList.Lock();
-#endif
+	_LOCK(RAIDInfoList);
 	// If MD device is stopped, we can free MD number immediately.
 	FreeMDNum(info.m_iMDNum);
 	m_vRAIDInfoList.erase(it);
-#ifdef NUUO
-	m_csRAIDInfoList.Unlock();
-#endif
+	_UNLOCK(RAIDInfoList);
 
 	/*
 		7. InitializeContext(c)
@@ -1867,7 +1972,7 @@ bool RAIDManager::GetRAIDInfo(const string& mddev, RAIDInfo& info)
 		3. return false (not found)
 	*/
 #ifdef NUUO
-	CriticalSectionLock cs(&m_csRAIDInfoList);
+	_CS(RAIDInfoList);
 #endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
@@ -1892,7 +1997,7 @@ void RAIDManager::GetRAIDInfo(vector<RAIDInfo>& list)
 {
 	list.clear();
 #ifdef NUUO
-	CriticalSectionLock cs(&m_csRAIDInfoList);
+	_CS(RAIDInfoList);
 #endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
@@ -1906,7 +2011,7 @@ void RAIDManager::GetFreeDisksInfo(vector<RAIDDiskInfo> &list)
 	list.clear();
 
 #ifdef NUUO
-	CriticalSectionLock cs(&m_csFreeDiskList);
+	_CS(FreeDiskList);
 #endif
 	vector<RAIDDiskInfo>::iterator it = m_vFreeDiskList.begin();
 	while(it != m_vFreeDiskList.end()) {
@@ -1918,7 +2023,7 @@ void RAIDManager::GetFreeDisksInfo(vector<RAIDDiskInfo> &list)
 bool RAIDManager::GetFreeDisksInfo(const string& dev, RAIDDiskInfo &info)
 {
 #ifdef NUUO
-	CriticalSectionLock cs(&m_csFreeDiskList);
+	_CS(FreeDiskList);
 #endif
 	vector<RAIDDiskInfo>::iterator it = m_vFreeDiskList.begin();
 	while(it != m_vFreeDiskList.end()) {

@@ -88,6 +88,12 @@ int main(int argc, char* argv[])
 		for (size_t i = 0; i < list.size(); i ++) {
 			list[i].Dump();	
 		}
+
+		vector<RAIDDiskInfo> disk_list;
+		raid_mgr.GetFreeDisksInfo(disk_list);
+		for (size_t i = 0; i < disk_list.size(); i++) {
+			disk_list[i].Dump();
+		}
 		
 		sleep(10);
 	
