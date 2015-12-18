@@ -265,7 +265,7 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type)
 
 	info.m_bHasMDSB = IsDiskHaveMDSuperBlock(dev, result, ret);
 	info.HandleDevName(dev);
-	info.m_iNumber = result.uDevRole;
+	//info.m_iNumber = result.uDevRole;
 	info.m_iRaidDiskNum = result.uRaidDiskNum;
 	memcpy(info.m_RaidUUID, result.arrayUUID, sizeof(int) * 4);
 	info.m_diskType = type;

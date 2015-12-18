@@ -65,7 +65,7 @@ struct RAIDDiskInfo {
 	int64_t		m_llCapacity;
 	int32_t		m_RaidUUID[4]; // Get after Examine()
 	int32_t		m_iState;
-	int32_t		m_iNumber;
+	//int32_t		m_iNumber;
 	int32_t		m_iRaidDiskNum;
 	eDiskType	m_diskType;
 	bool		m_bHasMDSB;
@@ -74,8 +74,13 @@ struct RAIDDiskInfo {
 	: m_strState("")
 	, m_strDevName("")
 	, m_strSoftLinkName("")
+	, m_strVendor("")
+	, m_strModel("")
+	, m_strFirmwareVersion("")
+	, m_strSerialNum("")
+	, m_llCapacity(0ll)
 	, m_iState(0)
-	, m_iNumber(0)
+	//, m_iNumber(0)
 	, m_iRaidDiskNum(0)
 	, m_diskType(DISK_TYPE_UNKNOWN)
 	, m_bHasMDSB(false)
@@ -90,7 +95,7 @@ struct RAIDDiskInfo {
 		m_strState = rhs.strState;
 		m_strDevName = rhs.strDevName;
 		m_iState = rhs.diskInfo.state;
-		m_iNumber = rhs.diskInfo.number;
+		//m_iNumber = rhs.diskInfo.number;
 		m_iRaidDiskNum = rhs.diskInfo.raid_disk;
 		SetHDDVendorInfomation();
 		return *this;
@@ -98,9 +103,9 @@ struct RAIDDiskInfo {
 
 	void Dump()
 	{
-		printf("Link: %s, Device: %s, State: %s, Order: %d",
+		printf("Link: %s, Device: %s, State: %s, MD Super Block: %s" /*Order: %d"*/,
 			m_strSoftLinkName.c_str(), m_strDevName.c_str(),
-			m_strState.c_str(), m_iNumber);
+			m_strState.c_str(), m_bHasMDSB ? "Yes" : "No"/*, m_iNumber*/);
 		switch (m_diskType) {
 		case DISK_TYPE_UNKNOWN:
 			printf(", Type: Unknown\n");
@@ -202,7 +207,7 @@ struct RAIDDiskInfo {
 		m_strState = rhs.m_strState;
 		m_strDevName = rhs.m_strDevName;
 		m_iState = rhs.m_iState;
-		m_iNumber = rhs.m_iNumber;
+		//m_iNumber = rhs.m_iNumber;
 		m_iRaidDiskNum = rhs.m_iRaidDiskNum;
 		m_bHasMDSB = rhs.m_bHasMDSB;
 		m_diskType = rhs.m_diskType;
