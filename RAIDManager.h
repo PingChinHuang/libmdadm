@@ -86,6 +86,12 @@ struct MiscDiskInfo {
 		m_strSymLink = rhs.m_strSymLink;
 		m_diskType = rhs.m_diskType;
 		m_strMDDev = rhs.m_strMDDev;
+		return *this;
+	}
+
+	bool operator==(const MiscDiskInfo& rhs)
+	{
+		return (m_strSymLink == rhs.m_strSymLink);
 	}
 
 	void Dump()
@@ -152,7 +158,6 @@ struct RAIDDiskInfo {
 		m_strState = rhs.strState;
 		m_strDevName = rhs.strDevName;
 		m_iState = rhs.diskInfo.state;
-		//m_iNumber = rhs.diskInfo.number;
 		m_iRaidDiskNum = rhs.diskInfo.raid_disk;
 		m_iMajor = rhs.diskInfo.major;
 		m_iMinor = rhs.diskInfo.minor;
@@ -219,28 +224,6 @@ struct RAIDDiskInfo {
 
 		sg_cmds_close_device(sg_fd);	
 	}
-
-	/*void HandleDevName(const string& name)
-	{
-		struct stat s;
-		if (lstat(name.c_str(), &s) >= 0) {
-			if (S_ISLNK(s.st_mode) == 1) {
-				char buf[128];
-				int len = 0;
-				if ((len = readlink(name.c_str(), buf, sizeof(buf) - 1)) >= 0) {
-					buf[len] = '\0';
-					m_strSoftLinkName = name;
-					m_strDevName = "/dev/";
-					m_strDevName += buf;
-					SetHDDVendorInfomation();
-					return;
-				}
-			}
-		}
-		m_strDevName = name;
-		m_strSoftLinkName = name;
-		SetHDDVendorInfomation();
-	}*/
 
 	RAIDDiskInfo& operator=(const RAIDDiskInfo& rhs)
 	{
@@ -474,12 +457,14 @@ class RAIDManager {
 private:
 	vector<RAIDInfo> m_vRAIDInfoList;
 	vector<RAIDDiskInfo> m_vRAIDDiskList;
+	map<string, MiscDiskInfo> m_mapSymLinkTable; /* string: real device node*/
 	
 #ifdef NUUO
 	CriticalSection m_csRAIDInfoList;
 	CriticalSection m_csRAIDDiskList;
 	CriticalSection m_csUsedMD;
 	CriticalSection m_csUsedVolume;
+	CriticalSection m_csSymLinkTable;
 #endif
 
 	bool m_bUsedMD[128];
@@ -528,7 +513,9 @@ public:
 	RAIDManager();
 	~RAIDManager();
 
-	bool AddDisk(const string& dev, const eDiskType &type);
+	bool AddDiskSymLink(const string& symlink, eDiskType type);
+	bool RemoveDiskSymLink(const string& symlink);
+	bool AddDisk(const string& dev);
 	bool RemoveDisk(const string& dev);
 
 	bool CreateRAID(vector<string>& vDevList, int level, string& strMDName);
@@ -547,6 +534,7 @@ public:
 	void GetDisksInfo(vector<RAIDDiskInfo> &list);
 	bool GetDisksInfo(const string& dev, RAIDDiskInfo &info);
 	bool GetDisksInfoBySymLink(const string& link, RAIDDiskInfo &info);
+	bool GetDisksInfoBySymLink(vector<RAIDDiskInfo> &list);
 
 	bool UpdateRAIDInfo(); // May need for periodically update.
 	bool UpdateRAIDInfo(const string& mddev, int mdnum = -1);

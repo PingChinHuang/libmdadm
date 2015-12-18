@@ -65,12 +65,15 @@ RAIDManager::RAIDManager()
 			if (dt.GetPathName().find("/dev/nuuo_sata") !=
 			    string::npos) {
 				if (dt.GetPathName() != "/dev/nuuo_satadom") {
-					AddDisk(dt.GetPathName(), DISK_TYPE_SATA); 
+					AddDiskSymLink(dt.GetPathName(), DISK_TYPE_SATA);
+					AddDisk(dt.GetPathName()); 
 				}
 			} else if (dt.GetPathName().find("/dev/nuuo_esata") != string::npos) {
-				AddDisk(dt.GetPathName(), DISK_TYPE_ESATA);
+				AddDiskSymLink(dt.GetPathName(), DISK_TYPE_ESATA);
+				AddDisk(dt.GetPathName());
 			} else if (dt.GetPathName().find("/dev/nuuo_iscsi") != string::npos) {
-				AddDisk(dt.GetPathName(), DISK_TYPE_ISCSI);
+				AddDiskSymLink(dt.GetPathName(), DISK_TYPE_ISCSI);
+				AddDisk(dt.GetPathName());
 			}
 		}
 	}
@@ -191,7 +194,8 @@ bool RAIDManager::IsDiskExistInRAIDDiskList(const string& dev)
 		// Compare both soft link name and actual device node name.
 		// In case of soft link name is not the same, but the disk
 		// actually is in the list....
-		if (*it_disk == dev) {
+		string strDevNode = GetDeviceNodeBySymLink(dev); 
+		if (*it_disk == strDevNode) {
 			return true;
 		}
 		it_disk++;
@@ -233,7 +237,41 @@ bool RAIDManager::IsDiskHaveMDSuperBlock(const string& dev, examine_result &resu
 	return !(err == EXAMINE_NO_MD_SUPERBLOCK);
 }
 
-bool RAIDManager::AddDisk(const string& dev, const eDiskType &type)
+bool RAIDManager::AddDiskSymLink(const string& symlink, eDiskType type)
+{
+	if (symlink.empty())
+		return false;
+
+#ifdef NUUO
+	CriticalSectionLock cs(&m_csSymLinkTable);
+#endif
+
+	string strDevNode = GetDeviceNodeBySymLink(symlink);
+	MiscDiskInfo info(symlink, type);
+	info.Dump();
+	m_mapSymLinkTable[strDevNode] = info;
+	return true;
+}
+
+bool RAIDManager::RemoveDiskSymLink(const string& symlink)
+{
+	if (symlink.empty())
+		return false;
+
+	string strDevNode = GetDeviceNodeBySymLink(symlink);
+
+#ifdef NUUO
+	CriticalSectionLock cs(&m_csSymLinkTable);
+#endif
+
+	map<string, MiscDiskInfo>::iterator it = m_mapSymLinkTable.find(strDevNode);
+	if (it != m_mapSymLinkTable.end())
+		m_mapSymLinkTable.erase(it);
+
+	return true;
+}
+
+bool RAIDManager::AddDisk(const string& dev)
 {
 	/*0. dev is empty -> return false*/
 	if (dev.empty())
@@ -1718,7 +1756,7 @@ bool RAIDManager::GetRAIDInfo(const string& mddev, RAIDInfo& info)
 #endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
-		if (/*it->m_strDevNodeName == mddev*/ *it == mddev) {
+		if (*it == mddev) {
 			break;
 		}
 
@@ -1731,6 +1769,10 @@ bool RAIDManager::GetRAIDInfo(const string& mddev, RAIDInfo& info)
 		return false;
 	}
 
+	for (size_t i = 0; i < it->m_vDiskList.size(); i++) {
+		CriticalSectionLock csSymLinkTable(&m_csSymLinkTable);
+		it->m_vDiskList[i].m_miscInfo = m_mapSymLinkTable[it->m_vDiskList[i].m_strDevName]; 
+	}
 	info = *it;
 	return true;
 }
@@ -1743,6 +1785,11 @@ void RAIDManager::GetRAIDInfo(vector<RAIDInfo>& list)
 #endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
+		for (size_t i = 0; i < it->m_vDiskList.size(); i++) {
+			CriticalSectionLock csSymLinkTable(&m_csSymLinkTable);
+			it->m_vDiskList[i].m_miscInfo = m_mapSymLinkTable[it->m_vDiskList[i].m_strDevName]; 
+		}
+
 		list.push_back(*it);
 		it++;
 	}
@@ -1757,29 +1804,31 @@ void RAIDManager::GetDisksInfo(vector<RAIDDiskInfo> &list)
 #endif
 	vector<RAIDDiskInfo>::iterator it = m_vRAIDDiskList.begin();
 	while(it != m_vRAIDDiskList.end()) {
-		list.push_back(*it);
+		RAIDDiskInfo info = *it;
+		CriticalSectionLock csSymLinkTable(&m_csSymLinkTable);
+		info.m_miscInfo = m_mapSymLinkTable[it->m_strDevName]; 
+		list.push_back(info);
 		it++;
 	}
 }
 
-bool RAIDManager::GetDisksInfoBySymLink(const string& link, RAIDDiskInfo &info)
-{
-	/*
-		[CS] Protect mapsymlink
-		1. Search mapSymLink --> disk device node
-		2. return GetDisksInfo(disk device node, info)
-	*/
-}
-
 bool RAIDManager::GetDisksInfo(const string& dev, RAIDDiskInfo &info)
 {
+	if (dev.empty()) {
+		return false;
+	}
+
+	string strDevNode = GetDeviceNodeBySymLink(dev);
+
 #ifdef NUUO
-	CriticalSectionLock cs(&m_csRAIDDiskList);
+	CriticalSectionLock csRAIDDiskList(&m_csRAIDDiskList);
 #endif
 	vector<RAIDDiskInfo>::iterator it = m_vRAIDDiskList.begin();
 	while(it != m_vRAIDDiskList.end()) {
-		if (*it == dev) {
+		if (*it == strDevNode) {
 			info = *it;
+			CriticalSectionLock csSymLinkTable(&m_csSymLinkTable);
+			info.m_miscInfo = m_mapSymLinkTable[strDevNode]; 
 			return true;
 		}
 		it++;

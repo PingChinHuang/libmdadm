@@ -67,8 +67,10 @@ int main(int argc, char* argv[])
 	}
 
 	if (bAddDisk) {
-		for (int i = 0; i < vDevList.size(); i++)
-			raid_mgr.AddDisk(vDevList[i], DISK_TYPE_SATA);
+		for (int i = 0; i < vDevList.size(); i++) {
+			raid_mgr.AddDiskSymLink(vDevList[i], DISK_TYPE_SATA);
+			raid_mgr.AddDisk(vDevList[i]);
+		}
 	}
 	
 	if (bRemove) {
@@ -97,8 +99,10 @@ int main(int argc, char* argv[])
 	for (size_t i = 0; i < list.size(); i ++)
 		raid_mgr.StopRAID(list[i].m_strDevNodeName);
 	
-	for (int i = 0; i < vDevList.size(); i++)
+	for (int i = 0; i < vDevList.size(); i++) {
+		raid_mgr.RemoveDiskSymLink(vDevList[i]);
 		raid_mgr.RemoveDisk(vDevList[i]);
+	}
 
 	return 0;
 }
