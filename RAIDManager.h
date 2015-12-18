@@ -56,22 +56,26 @@ struct SGReadCapacity10 {
 
 struct RAIDDiskInfo {
 	string		m_strState;
-	string		m_strDevName;
-	string		m_strSoftLinkName;
+	string		m_strMDDevName;			/* This disk belong to which MD device. For free disk checking. */
+	string		m_strDevName;			/* Device node */
+	string		m_strSoftLinkName;		/* Soft link to device node */
 	string		m_strVendor;
 	string		m_strModel;
 	string		m_strFirmwareVersion;
 	string		m_strSerialNum;
 	int64_t		m_llCapacity;
-	int32_t		m_RaidUUID[4]; // Get after Examine()
+	int32_t		m_RaidUUID[4];			/* Get after Examine(). */
 	int32_t		m_iState;
 	//int32_t		m_iNumber;
 	int32_t		m_iRaidDiskNum;
+	int32_t		m_iMajor;				/* For confirming whether disk is valid or not. */
+	int32_t		m_iMinor;				/* For confirming whether disk is valid or not. */
 	eDiskType	m_diskType;
 	bool		m_bHasMDSB;
 
 	RAIDDiskInfo()
 	: m_strState("")
+	, m_strMDDevName("")
 	, m_strDevName("")
 	, m_strSoftLinkName("")
 	, m_strVendor("")
@@ -82,6 +86,8 @@ struct RAIDDiskInfo {
 	, m_iState(0)
 	//, m_iNumber(0)
 	, m_iRaidDiskNum(0)
+	, m_iMajor(0)
+	, m_iMinor(0)
 	, m_diskType(DISK_TYPE_UNKNOWN)
 	, m_bHasMDSB(false)
 	{
@@ -97,15 +103,17 @@ struct RAIDDiskInfo {
 		m_iState = rhs.diskInfo.state;
 		//m_iNumber = rhs.diskInfo.number;
 		m_iRaidDiskNum = rhs.diskInfo.raid_disk;
+		m_iMajor = rhs.diskInfo.major;
+		m_iMinor = rhs.diskInfo.minor;
 		SetHDDVendorInfomation();
 		return *this;
 	}
 
 	void Dump()
 	{
-		printf("Link: %s, Device: %s, State: %s, MD Super Block: %s" /*Order: %d"*/,
+		printf("Link: %s, Device: %s, State: %s, MD Super Block: %s, Major: %d, Minor: %d" /*Order: %d"*/,
 			m_strSoftLinkName.c_str(), m_strDevName.c_str(),
-			m_strState.c_str(), m_bHasMDSB ? "Yes" : "No"/*, m_iNumber*/);
+			m_strState.c_str(), m_bHasMDSB ? "Yes" : "No", m_iMajor, m_iMinor/*, m_iNumber*/);
 		switch (m_diskType) {
 		case DISK_TYPE_UNKNOWN:
 			printf(", Type: Unknown\n");
@@ -203,6 +211,7 @@ struct RAIDDiskInfo {
 	{
 		if (this == &rhs)
 			return *this;
+		m_strMDDevName = rhs.m_strMDDevName;
 		m_strSoftLinkName = rhs.m_strSoftLinkName;
 		m_strState = rhs.m_strState;
 		m_strDevName = rhs.m_strDevName;
@@ -211,6 +220,8 @@ struct RAIDDiskInfo {
 		m_iRaidDiskNum = rhs.m_iRaidDiskNum;
 		m_bHasMDSB = rhs.m_bHasMDSB;
 		m_diskType = rhs.m_diskType;
+		m_iMajor = rhs.m_iMajor;
+		m_iMinor = rhs.m_iMinor;
 		SetHDDVendorInfomation();
 		return *this;
 	}
@@ -222,7 +233,7 @@ struct RAIDDiskInfo {
 
 	bool operator==(const string& rhs) const
 	{
-		return (rhs == m_strDevName || rhs == m_strSoftLinkName);
+		return (rhs == m_strDevName);
 	}
 };
 
@@ -272,7 +283,7 @@ struct RAIDInfo {
 	, m_iSpareDiskNum(0)
 	, m_iState(0)
 	, m_iChunkSize(512)
-	, m_iRebuildingProgress(0)
+	, m_iRebuildingProgress(-1)
 	, m_iMDNum(-1)
 	, m_bSuperBlockPersistent(false)
 	, m_bInactive(false)
