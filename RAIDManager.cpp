@@ -264,11 +264,13 @@ bool RAIDManager::AddDisk(const string& dev, const eDiskType &type)
 	bool bExist = IsDiskExistInRAIDDiskList(dev);
 
 	info.m_bHasMDSB = IsDiskHaveMDSuperBlock(dev, result, ret);
-	info.HandleDevName(dev);
+	info.m_strDevName = GetDeviceNodeBySymLink(dev);
+	info.SetHDDVendorInfomation();
+	//info.HandleDevName(dev);
 	//info.m_iNumber = result.uDevRole;
 	info.m_iRaidDiskNum = result.uRaidDiskNum;
 	memcpy(info.m_RaidUUID, result.arrayUUID, sizeof(int) * 4);
-	info.m_diskType = type;
+	//info.m_diskType = type;
 
 	// FIXME: Maybe the critical section should protect following code since checking the disk existence. 
 	if (!bExist) {
@@ -515,9 +517,9 @@ void RAIDManager::UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList)
 				examine_result result;
 				int ret = SUCCESS;
 
-				it->m_strSoftLinkName = it_all->m_strSoftLinkName; // Keep this because it doesn't have this information.
+				//it->m_strSoftLinkName = it_all->m_strSoftLinkName; // Keep this because it doesn't have this information.
 				it->m_bHasMDSB = IsDiskHaveMDSuperBlock(it->m_strDevName, result, ret);
-				it->m_diskType = it_all->m_diskType;
+				//it->m_diskType = it_all->m_diskType;
 				*it_all = *it;
 				bExist = true;
 				break;
@@ -1760,6 +1762,15 @@ void RAIDManager::GetDisksInfo(vector<RAIDDiskInfo> &list)
 	}
 }
 
+bool RAIDManager::GetDisksInfoBySymLink(const string& link, RAIDDiskInfo &info)
+{
+	/*
+		[CS] Protect mapsymlink
+		1. Search mapSymLink --> disk device node
+		2. return GetDisksInfo(disk device node, info)
+	*/
+}
+
 bool RAIDManager::GetDisksInfo(const string& dev, RAIDDiskInfo &info)
 {
 #ifdef NUUO
@@ -1767,8 +1778,7 @@ bool RAIDManager::GetDisksInfo(const string& dev, RAIDDiskInfo &info)
 #endif
 	vector<RAIDDiskInfo>::iterator it = m_vRAIDDiskList.begin();
 	while(it != m_vRAIDDiskList.end()) {
-		if (it->m_strDevName == dev ||
-		    it->m_strSoftLinkName == dev) {
+		if (*it == dev) {
 			info = *it;
 			return true;
 		}
@@ -1997,4 +2007,24 @@ void RAIDManager::Dump()
 	for (size_t i = 0; i < m_vRAIDDiskList.size(); i++) {
 		m_vRAIDDiskList[i].Dump();
 	}
+}
+
+string RAIDManager::GetDeviceNodeBySymLink(const string& symlink)
+{
+	/* Return symlink directly if we cannot found corresponding device node. */
+	struct stat s;
+	if (lstat(symlink.c_str(), &s) >= 0) {
+		if (S_ISLNK(s.st_mode) == 1) {
+			char buf[128];
+			int len = 0;
+			if ((len = readlink(symlink.c_str(), buf, sizeof(buf) - 1)) >= 0) {
+				string strDevNode = "/dev/";
+				buf[len] = '\0';
+				strDevNode += buf;
+				return strDevNode;
+			}
+		}
+	}
+
+	return symlink;
 }

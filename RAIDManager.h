@@ -24,6 +24,7 @@ using namespace SYSUTILS_SPACE;
 #include <vector>
 #include <iterator>
 #include <memory>
+#include <map>
 
 #include <stdint.h>
 #include <sys/stat.h>
@@ -54,11 +55,67 @@ struct SGReadCapacity10 {
 	uint8_t m_BlockLength[4];
 };
 
+struct MiscDiskInfo {
+	string m_strSymLink;
+	string m_strMDDev;
+	eDiskType m_diskType;
+
+	MiscDiskInfo()
+	: m_strSymLink("")
+	, m_strMDDev("")
+	, m_diskType(DISK_TYPE_UNKNOWN)
+	{
+	}
+
+	MiscDiskInfo(const string& link, eDiskType type)
+	: m_strSymLink(link)
+	, m_strMDDev("")
+	, m_diskType(type)
+	{
+	}
+
+	~MiscDiskInfo()
+	{
+	}
+
+	MiscDiskInfo& operator=(const MiscDiskInfo& rhs)
+	{
+		if (this == &rhs)
+			return *this;
+
+		m_strSymLink = rhs.m_strSymLink;
+		m_diskType = rhs.m_diskType;
+		m_strMDDev = rhs.m_strMDDev;
+	}
+
+	void Dump()
+	{
+		printf("Soft Link: %s, In RAID: %s",
+			   m_strSymLink.c_str(), m_strMDDev.c_str());
+		switch (m_diskType) {
+		case DISK_TYPE_UNKNOWN:
+			printf(", Type: Unknown\n");
+			break;
+		case DISK_TYPE_SATA:
+			printf(", Type: SATA\n");
+			break;
+		case DISK_TYPE_ESATA:
+			printf(", Type: ESATA\n");
+			break;
+		case DISK_TYPE_ISCSI:
+			printf(", Type: iSCSI\n");
+			break;
+		case DISK_TYPE_NFS:
+			printf(", Type: NFS\n");
+			break;
+		}
+	}
+};
+
 struct RAIDDiskInfo {
+	MiscDiskInfo m_miscInfo;
 	string		m_strState;
-	string		m_strMDDevName;			/* This disk belong to which MD device. For free disk checking. */
 	string		m_strDevName;			/* Device node */
-	string		m_strSoftLinkName;		/* Soft link to device node */
 	string		m_strVendor;
 	string		m_strModel;
 	string		m_strFirmwareVersion;
@@ -66,29 +123,23 @@ struct RAIDDiskInfo {
 	int64_t		m_llCapacity;
 	int32_t		m_RaidUUID[4];			/* Get after Examine(). */
 	int32_t		m_iState;
-	//int32_t		m_iNumber;
 	int32_t		m_iRaidDiskNum;
 	int32_t		m_iMajor;				/* For confirming whether disk is valid or not. */
 	int32_t		m_iMinor;				/* For confirming whether disk is valid or not. */
-	eDiskType	m_diskType;
 	bool		m_bHasMDSB;
 
 	RAIDDiskInfo()
 	: m_strState("")
-	, m_strMDDevName("")
 	, m_strDevName("")
-	, m_strSoftLinkName("")
 	, m_strVendor("")
 	, m_strModel("")
 	, m_strFirmwareVersion("")
 	, m_strSerialNum("")
 	, m_llCapacity(0ll)
 	, m_iState(0)
-	//, m_iNumber(0)
 	, m_iRaidDiskNum(0)
 	, m_iMajor(0)
 	, m_iMinor(0)
-	, m_diskType(DISK_TYPE_UNKNOWN)
 	, m_bHasMDSB(false)
 	{
 		memset(m_RaidUUID, 0x00, sizeof(m_RaidUUID));
@@ -111,26 +162,10 @@ struct RAIDDiskInfo {
 
 	void Dump()
 	{
-		printf("Link: %s, Device: %s, State: %s, MD Super Block: %s, Major: %d, Minor: %d" /*Order: %d"*/,
-			m_strSoftLinkName.c_str(), m_strDevName.c_str(),
-			m_strState.c_str(), m_bHasMDSB ? "Yes" : "No", m_iMajor, m_iMinor/*, m_iNumber*/);
-		switch (m_diskType) {
-		case DISK_TYPE_UNKNOWN:
-			printf(", Type: Unknown\n");
-			break;
-		case DISK_TYPE_SATA:
-			printf(", Type: SATA\n");
-			break;
-		case DISK_TYPE_ESATA:
-			printf(", Type: ESATA\n");
-			break;
-		case DISK_TYPE_ISCSI:
-			printf(", Type: iSCSI\n");
-			break;
-		case DISK_TYPE_NFS:
-			printf(", Type: NFS\n");
-			break;
-		}
+		printf("Device: %s, State: %s, MD Super Block: %s, Major: %d, Minor: %d\n\t",
+			   m_strDevName.c_str(), m_strState.c_str(), m_bHasMDSB ? "Yes" : "No",
+			   m_iMajor, m_iMinor);
+		m_miscInfo.Dump();
 	}
 
 	void SetHDDVendorInfomation() {
@@ -185,7 +220,7 @@ struct RAIDDiskInfo {
 		sg_cmds_close_device(sg_fd);	
 	}
 
-	void HandleDevName(const string& name)
+	/*void HandleDevName(const string& name)
 	{
 		struct stat s;
 		if (lstat(name.c_str(), &s) >= 0) {
@@ -205,21 +240,17 @@ struct RAIDDiskInfo {
 		m_strDevName = name;
 		m_strSoftLinkName = name;
 		SetHDDVendorInfomation();
-	}
+	}*/
 
 	RAIDDiskInfo& operator=(const RAIDDiskInfo& rhs)
 	{
 		if (this == &rhs)
 			return *this;
-		m_strMDDevName = rhs.m_strMDDevName;
-		m_strSoftLinkName = rhs.m_strSoftLinkName;
 		m_strState = rhs.m_strState;
 		m_strDevName = rhs.m_strDevName;
 		m_iState = rhs.m_iState;
-		//m_iNumber = rhs.m_iNumber;
 		m_iRaidDiskNum = rhs.m_iRaidDiskNum;
 		m_bHasMDSB = rhs.m_bHasMDSB;
-		m_diskType = rhs.m_diskType;
 		m_iMajor = rhs.m_iMajor;
 		m_iMinor = rhs.m_iMinor;
 		SetHDDVendorInfomation();
@@ -515,6 +546,7 @@ public:
 	void GetRAIDInfo(vector<RAIDInfo>& list);
 	void GetDisksInfo(vector<RAIDDiskInfo> &list);
 	bool GetDisksInfo(const string& dev, RAIDDiskInfo &info);
+	bool GetDisksInfoBySymLink(const string& link, RAIDDiskInfo &info);
 
 	bool UpdateRAIDInfo(); // May need for periodically update.
 	bool UpdateRAIDInfo(const string& mddev, int mdnum = -1);
@@ -533,6 +565,8 @@ public:
 	bool IsFormated(const string& mddev);
 
 	void Dump();
+
+	static string GetDeviceNodeBySymLink(const string& symlink);
 }; 
 
 
