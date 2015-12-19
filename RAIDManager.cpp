@@ -55,7 +55,7 @@ RAIDManager::RAIDManager()
 		the m_vRAIDDiskList. So, Clear the list first for following procedures
 		to add disk into list, or the soft link information will be lost.
 	*/
-	m_vRAIDDiskList.clear();
+	//m_vRAIDDiskList.clear();
 
 	/*
 		Check active HDD and add into list.
@@ -304,11 +304,8 @@ bool RAIDManager::AddDisk(const string& dev)
 	info.m_bHasMDSB = IsDiskHaveMDSuperBlock(dev, result, ret);
 	info.m_strDevName = GetDeviceNodeBySymLink(dev);
 	info.SetHDDVendorInfomation();
-	//info.HandleDevName(dev);
-	//info.m_iNumber = result.uDevRole;
 	info.m_iRaidDiskNum = result.uRaidDiskNum;
 	memcpy(info.m_RaidUUID, result.arrayUUID, sizeof(int) * 4);
-	//info.m_diskType = type;
 
 	// FIXME: Maybe the critical section should protect following code since checking the disk existence. 
 	if (!bExist) {
@@ -469,7 +466,7 @@ bool RAIDManager::RemoveDisk(const string& dev)
 		      is in a critical status.
 	*/
 
-#if 0
+#if 1 
 	RAIDDiskInfo info;
 	vector<RAIDInfo>::iterator raid_it = SearchDiskBelong2RAID(dev, info);
 	if (raid_it != m_vRAIDInfoList.end()) {
@@ -541,8 +538,11 @@ bool RAIDManager::RemoveDisk(const string& dev)
 	return true;
 }
 
-void RAIDManager::UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList)
+void RAIDManager::UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList, const string& mddev)
 {
+	if (vRAIDDiskInfoList.empty())
+		return;
+
 	vector<RAIDDiskInfo>::iterator it = vRAIDDiskInfoList.begin();
 	while (it != vRAIDDiskInfoList.end()) {
 		bool bExist = false;
@@ -555,9 +555,7 @@ void RAIDManager::UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList)
 				examine_result result;
 				int ret = SUCCESS;
 
-				//it->m_strSoftLinkName = it_all->m_strSoftLinkName; // Keep this because it doesn't have this information.
 				it->m_bHasMDSB = IsDiskHaveMDSuperBlock(it->m_strDevName, result, ret);
-				//it->m_diskType = it_all->m_diskType;
 				*it_all = *it;
 				bExist = true;
 				break;
@@ -574,8 +572,80 @@ void RAIDManager::UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList)
 			m_vRAIDDiskList.push_back(*it);
 		}
 
+#ifdef NUUO
+		CriticalSectionLock cs(&m_mapSymLinkTable);
+#endif
+		m_mapSymLinkTable[it->m_strDevName].m_strMDDev = mddev; 
 		it++;
 	}
+
+#ifdef NUUO
+	CriticalSectionLock cs(&m_mapSymLinkTable);
+#endif
+	map<string, MiscDiskInfo>::iterator it_symLinkTab = m_mapSymLinkTable.begin();
+	while (it_symLinkTab != m_mapSymLinkTable.end()) {
+		if (it_symLinkTab->second.m_strMDDev != mddev) {
+			it_symLinkTab++;
+			continue;
+		}
+
+		bool bFound = false;
+		for (size_t i = 0; i < vRAIDDiskInfoList.size(); i++) {
+			if (it_symLinkTab->first == vRAIDDiskInfoList[i].m_strDevName) {
+				bFound = true;
+				break;
+			}
+		}
+		
+		if (!bFound)
+			it_symLinkTab->second.m_strMDDev = ""; // This MD device doesn't have this disk now.
+
+		it_symLinkTab++;		
+	}
+}
+
+bool RAIDManager::GetRAIDDetail(const string& mddev,
+								array_detail &ad)
+{
+	struct context c;
+	int ret = SUCCESS;
+
+	InitializeContext(c);
+	ret = Detail_ToArrayDetail(mddev.c_str(), &c, &ad);
+	if (ret != SUCCESS) {
+		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
+				"[%d] Detail Error Code %s: (%d)\n",
+				__LINE__, mddev.c_str(), ret);
+		return false;
+	}
+
+	return true;
+}
+
+bool RAIDManager::IsRAIDAbnormal(const RAIDInfo &info)
+{
+	if (info.m_iTotalDiskNum == 0)
+		return true;
+
+	switch (info.m_iRAIDLevel) {
+	case 0:
+	case 1:
+	case 5:
+	case 6:
+	case 10:
+	case LEVEL_MULTIPATH:
+	case LEVEL_LINEAR:
+		if (info.m_strState.find("FAILED") != string::npos)
+			return true;
+		break;
+	default:
+		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
+				   "[%s] Unknown RAID Level.\n",
+				   info.m_strDevNodeName);
+		return true;
+	}
+
+	return false;
 }
 
 bool RAIDManager::UpdateRAIDInfo(const string& mddev, int mdnum)
@@ -594,39 +664,58 @@ bool RAIDManager::UpdateRAIDInfo(const string& mddev, int mdnum)
 		2. Erase old one and push new one
 		[CS End]
 	*/
-	struct context c;
 	struct array_detail ad;
 	RAIDInfo info;
-	int ret = SUCCESS;
+	bool bGetDetailSuccess = false;
 
-	InitializeContext(c);
-	ret = Detail_ToArrayDetail(mddev.c_str(), &c, &ad);
-	if (ret != SUCCESS) {
-		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL, "[%d] Detail Error Code %s: (%d)\n", __LINE__, mddev.c_str(), ret);
-		return false;
-	} else if (ad.arrayInfo.nr_disks == 0) {
-		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL, "[%d] %s's disk number is zero. Ignore it.\n", __LINE__, mddev.c_str());
-		return false;
-	}
+	bGetDetailSuccess = GetRAIDDetail(mddev, ad);
 
 #ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDInfoList);
 #endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
-		while (/*mddev == it->m_strDevNodeName*/ *it == mddev) {
+		if (*it == mddev) {
+			if (!bGetDetailSuccess) {
+				 it->m_strState = "INVALID";
+				 return false;
+			}
+
 			*it = ad; // Keep some fixed information like mount point, volumne name
-			UpdateRAIDDiskList(it->m_vDiskList);
+			UpdateRAIDDiskList(it->m_vDiskList, mddev);
+
+			if (IsRAIDAbnormal(*it)) {
+				/* Try to unmount the volume. */
+				if (IsMounted(mddev)) {
+					Unmount(mddev);
+				}
+
+				/* Obviously a useless MD device, remove it from the list. */
+				if (ad.arrayInfo.nr_disks == 0) {
+					m_vRAIDInfoList.erase(it);
+					WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
+							   "[%d] %s's disk number is zero. Remove from the list.\n",
+							   __LINE__, mddev.c_str());
+				}
+			}
+
 			return true;
 		}
 
 		it ++;
 	}
 
+	if (ad.arrayInfo.nr_disks == 0) {
+		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
+				   "[%d] %s's disk number is. Ignore it.\n",
+				   __LINE__, mddev.c_str());
+		return true;
+	}
+	
 	info = ad; // Update new information.
 	info.m_iMDNum = mdnum;
 	info.InitializeFSManager();
-	UpdateRAIDDiskList(info.m_vDiskList);
+	UpdateRAIDDiskList(info.m_vDiskList, mddev);
 	m_vRAIDInfoList.push_back(info);
 	return true;
 }
@@ -648,22 +737,35 @@ bool RAIDManager::UpdateRAIDInfo()
 
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
-		struct context c;
 		struct array_detail ad;
-		int ret = SUCCESS;
 
-		InitializeContext(c);
-		ret = Detail_ToArrayDetail(it->m_strDevNodeName.c_str(), &c, &ad);
-		if (ret != SUCCESS) {
-			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL, "[%d] Detail Error Code %s: (%d)\n", __LINE__, it->m_strDevNodeName.c_str(), ret);
-			it++;
+		if (!GetRAIDDetail(it->m_strDevNodeName, ad)) {
+			/* 
+			 * Cannot get RAID detail information.
+			 * In order to easily debug, assign "INVALID"
+			 * state to notify users.
+			 */
+			it->m_strState = "INVALID"; 
 			continue;
 		}
 
 		*it = ad; // Keep some fixed information like mount point, volumne name
-		UpdateRAIDDiskList(it->m_vDiskList);
+		UpdateRAIDDiskList(it->m_vDiskList, it->m_strDevNodeName); // For update m_mapSymLinkTable, this step should be done before remove the RAID device from the list.
 
-		it ++;
+		if (IsRAIDAbnormal(*it)) {
+			if (IsMounted(it->m_strDevNodeName)) {
+				Unmount(it->m_strDevNodeName);
+			}
+		}
+
+		if (ad.arrayInfo.nr_disks == 0) {
+			it = m_vRAIDInfoList.erase(it);
+			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
+					   "[%d] %s's disk number is zero. Remove from the list.\n",
+					   __LINE__, mddev.c_str());
+		} else {
+			it ++;
+		}
 	}
 
 	return true;
@@ -689,20 +791,31 @@ bool RAIDManager::UpdateRAIDInfo(const int uuid[4])
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
 		if (0 == memcmp(uuid, it->m_UUID, sizeof(int) * 4)) {
-			struct context c;
 			struct array_detail ad;
-			int ret = SUCCESS;
-
-			InitializeContext(c);
-			ret = Detail_ToArrayDetail(it->m_strDevNodeName.c_str(), &c, &ad);
-			if (ret == SUCCESS) {
-				*it = ad;
-				UpdateRAIDDiskList(it->m_vDiskList);
-				return true;
-			} else {
-				WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL, "[%d] Detail Error Code %s: (%d)\n", __LINE__, it->m_strDevNodeName.c_str(), ret);
-				break;
+			
+			if (!GetRAIDDetail(it->m_strDevNodeName, ad)) {
+				it->m_strState = "INVALID";
+				return false; 
 			}
+
+			*it = ad;
+			UpdateRAIDDiskList(it->m_vDiskList, it->m_strDevNodeName);
+			if (IsRAIDAbnormal(*it)) {
+				/* Try to unmount the volume. */
+				if (IsMounted(mddev)) {
+					Unmount(mddev);
+				}
+
+				/* Obviously a useless MD device, remove it from the list. */
+				if (ad.arrayInfo.nr_disks == 0) {
+					m_vRAIDInfoList.erase(it);
+					WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
+							   "[%d] %s's disk number is zero. Remove from the list.\n",
+							   __LINE__, mddev.c_str());
+				}
+			}
+
+			return true;
 		}
 
 		it++;
@@ -1622,6 +1735,11 @@ bool RAIDManager::StopRAID(const string& mddev)
 	CriticalSectionLock cs(&m_csRAIDInfoList);
 #endif	
 	// If MD device is stopped, we can free MD number immediately.
+	for (size_t i = 0; i < it->m_vDiskList.size(); i++) {
+		CriticalSectionLock csSymLinkTable(&m_csSymLinkTable);
+		m_mapSymLinkTable[it->m_vDiskList[i].m_strDevName].m_strMDDev = "";
+	}
+
 	FreeMDNum(it->m_iMDNum);
 	m_vRAIDInfoList.erase(it);
 	return true;
@@ -1629,6 +1747,22 @@ bool RAIDManager::StopRAID(const string& mddev)
 
 bool RAIDManager::DeleteRAID(const string& mddev)
 {
+	/*
+	   Keep a copy for clearing disk's superblock later.
+	   And we also can bypass following procedures if
+	   the md device does not exist in the list.
+	 */
+	RAIDInfo info;
+	vector<RAIDInfo>::iterator it = IsMDDevInRAIDInfoList(mddev, info);
+	if (it == m_vRAIDInfoList.end()) {
+		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+			   "Delete volume %s\n", mddev.c_str());
+		return true;
+	}
+
+	if (!StopRAID(mddev))
+		return false;
+#if 0
 	/*
 		1. Check mddev
 			empty -> return false
@@ -1697,6 +1831,7 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 #ifdef NUUO
 	m_csRAIDInfoList.Unlock();
 #endif
+#endif
 
 	/*
 		7. InitializeContext(c)
@@ -1728,11 +1863,12 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 			system(cmd.c_str());
 		}
 
+	//	CriticalSectionLock csSymLinkTable(&m_csSymLinkTable);
+	//	m_mapSymLinkTable[info.m_vDiskList[i].m_strDevName].m_strMDDev = "";
 		WriteHWLog(LOG_LOCAL1, LOG_WARNING, LOG_LABEL,
 			   "%s's superblock is cleared\n", info.m_vDiskList[i].m_strDevName.c_str());
 	}
 
-	UpdateRAIDDiskList(info.m_vDiskList);
 	return true;
 }
 

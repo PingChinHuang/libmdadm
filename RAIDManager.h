@@ -509,6 +509,9 @@ private:
 
 	bool IsDiskHaveMDSuperBlock(const string& dev, examine_result &result, int &err);
 
+	bool GetRAIDDetail(const string mddev, array_detail &ad);
+	bool IsRAIDAbnormal(const RAIDInfo &info);
+
 public:
 	RAIDManager();
 	~RAIDManager();
