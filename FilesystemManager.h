@@ -24,14 +24,14 @@ using namespace SYSUTILS_SPACE;
 
 class FilesystemManager: public  AprThreadWorker
 #else
+#include "test_utils.h"
+
 class FilesystemManager 
 #endif
 {
 private:
-#ifdef NUUO
 	CriticalSection m_csFormat;
 	CriticalSection m_csMount;
-#endif
 	mke2fs_handle m_mkfsHandle;
 	//fsck_handle m_fsckHandle;
 

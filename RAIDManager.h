@@ -252,7 +252,11 @@ struct RAIDDiskInfo {
 };
 
 struct RAIDInfo {
+#ifdef NUUO
 	smart_ptr<FilesystemManager> m_fsMgr;
+#else
+	shared_ptr<FilesystemManager> m_fsMgr;
+#endif
 	vector<RAIDDiskInfo>	m_vDiskList;
 	string			m_strDevNodeName;
 	string			m_strState;
@@ -313,7 +317,11 @@ struct RAIDInfo {
 
 	bool InitializeFSManager() {
 		try {
+#ifdef NUUO
 			m_fsMgr = new FilesystemManager;
+#else
+			m_fsMgr = shared_ptr<FilesystemManager>(new FilesystemManager);
+#endif
 			if (!m_fsMgr->SetDeviceNode(m_strDevNodeName)) {
 				WriteHWLog(LOG_LOCAL0, LOG_ERR, "RAIDInfo",
 					   "Iniitialize FilesystemManager failed.");
@@ -428,7 +436,7 @@ struct RAIDInfo {
 	{
 		printf("Device: %s\n"
 			"\tState: %s, Level: %d, Chunk Size: %d\n"
-			"\tTotal Capacity: %llu\n\tUsed Capacity: %llu\n"
+			"\tTotal Capacity: %lld\n\tUsed Capacity: %lld\n"
 			"\tTotal Disks: %d (R: %d, A: %d, W: %d, F: %d, S: %d)\n"
 			"\tCreatetion Time: %.24s\n\tUpdate Time: %.24s\n"
 			"\tRebuilding: %s (%d%%)\n\n",
@@ -459,13 +467,11 @@ private:
 	vector<RAIDDiskInfo> m_vRAIDDiskList;
 	map<string, MiscDiskInfo> m_mapSymLinkTable; /* string: real device node*/
 	
-#ifdef NUUO
 	CriticalSection m_csRAIDInfoList;
 	CriticalSection m_csRAIDDiskList;
 	CriticalSection m_csUsedMD;
 	CriticalSection m_csUsedVolume;
 	CriticalSection m_csSymLinkTable;
-#endif
 
 	bool m_bUsedMD[128];
 	bool m_bUsedVolume[128];
@@ -498,7 +504,7 @@ private:
 	void FreeVolumeNum(int n);
 	void SetVolumeNum(int n);
 
-	void UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList);
+	void UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList, const string& mddev);
 	bool ManageRAIDSubdevs(const string& mddev, vector<string>& vDevList, int operation);
 	vector<RAIDInfo>::iterator IsMDDevInRAIDInfoList(const string &mddev);
 	vector<RAIDInfo>::iterator IsMDDevInRAIDInfoList(const string &mddev, RAIDInfo& info);
@@ -509,7 +515,7 @@ private:
 
 	bool IsDiskHaveMDSuperBlock(const string& dev, examine_result &result, int &err);
 
-	bool GetRAIDDetail(const string mddev, array_detail &ad);
+	bool GetRAIDDetail(const string& mddev, array_detail &ad);
 	bool IsRAIDAbnormal(const RAIDInfo &info);
 
 public:

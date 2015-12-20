@@ -88,9 +88,7 @@ RAIDManager::~RAIDManager()
 
 int RAIDManager::GetFreeMDNum()
 {
-#ifdef NUUO
 	CriticalSectionLock cs_md(&m_csUsedMD);
-#endif
 	for (int i = 0 ; i < 128; i++) {
 		if (!m_bUsedMD[i]) {
 			m_bUsedMD[i] = true; // Pre-allocated, if you don't use it or any error happened, you have to free.
@@ -106,9 +104,7 @@ void RAIDManager::FreeMDNum(int n)
 	if (n < 0 || n > 127)
 		return;
 
-#ifdef NUUO
 	CriticalSectionLock cs_md(&m_csUsedMD);
-#endif
 	m_bUsedMD[n] = false;
 }
 
@@ -117,17 +113,13 @@ void RAIDManager::SetMDNum(int n)
 	if (n < 0 || n > 127)
 		return;
 
-#ifdef NUUO
 	CriticalSectionLock cs_md(&m_csUsedMD);
-#endif
 	m_bUsedMD[n] = true;
 }
 
 int RAIDManager::GetFreeVolumeNum()
 {
-#ifdef NUUO
 	CriticalSectionLock cs_md(&m_csUsedVolume);
-#endif
 	for (int i = 0 ; i < 128; i++) {
 		if (!m_bUsedVolume[i]) {
 			m_bUsedVolume[i] = true; // Pre-allocated, if you don't use it or any error happened, you have to free.
@@ -143,9 +135,7 @@ void RAIDManager::FreeVolumeNum(int n)
 	if (n < 0 || n > 127)
 		return;
 
-#ifdef NUUO
 	CriticalSectionLock cs_md(&m_csUsedVolume);
-#endif
 	m_bUsedVolume[n] = false;
 }
 
@@ -154,17 +144,13 @@ void RAIDManager::SetVolumeNum(int n)
 	if (n < 0 || n > 127)
 		return;
 
-#ifdef NUUO
 	CriticalSectionLock cs_md(&m_csUsedVolume);
-#endif
 	m_bUsedVolume[n] = true;
 }
 
 vector<RAIDInfo>::iterator RAIDManager::IsMDDevInRAIDInfoList(const string &mddev, RAIDInfo& info)
 {
-#ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDInfoList);
-#endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
 		if (*it == mddev) {
@@ -186,9 +172,7 @@ vector<RAIDInfo>::iterator RAIDManager::IsMDDevInRAIDInfoList(const string &mdde
 
 bool RAIDManager::IsDiskExistInRAIDDiskList(const string& dev)
 {
-#ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDDiskList);
-#endif
 	vector<RAIDDiskInfo>::iterator it_disk = m_vRAIDDiskList.begin();
 	while (it_disk != m_vRAIDDiskList.end()) {
 		// Compare both soft link name and actual device node name.
@@ -242,9 +226,7 @@ bool RAIDManager::AddDiskSymLink(const string& symlink, eDiskType type)
 	if (symlink.empty())
 		return false;
 
-#ifdef NUUO
 	CriticalSectionLock cs(&m_csSymLinkTable);
-#endif
 
 	string strDevNode = GetDeviceNodeBySymLink(symlink);
 	MiscDiskInfo info(symlink, type);
@@ -260,9 +242,7 @@ bool RAIDManager::RemoveDiskSymLink(const string& symlink)
 
 	string strDevNode = GetDeviceNodeBySymLink(symlink);
 
-#ifdef NUUO
 	CriticalSectionLock cs(&m_csSymLinkTable);
-#endif
 
 	map<string, MiscDiskInfo>::iterator it = m_mapSymLinkTable.find(strDevNode);
 	if (it != m_mapSymLinkTable.end())
@@ -280,13 +260,11 @@ bool RAIDManager::AddDisk(const string& dev)
 	/*1. Check device node exists or not (SYSUTILS::CheckBlockDevice)
 		1.1 Yes -> 3 
 		1.2 No -> return false*/
-#ifdef NUUO
 	if (!CheckBlockDevice(dev)) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "%s is not a block device.\n", dev.c_str());
 		return false;
 	}
-#endif
 
 	/*[CS Start] Protect m_vRAIDDiskList*/
 	/*3. Exist in m_vRAIDDiskList?
@@ -309,9 +287,7 @@ bool RAIDManager::AddDisk(const string& dev)
 
 	// FIXME: Maybe the critical section should protect following code since checking the disk existence. 
 	if (!bExist) {
-#ifdef NUUO
 		CriticalSectionLock cs(&m_csRAIDDiskList);
-#endif
 		m_vRAIDDiskList.push_back(info);
 		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 			   "%s added successfully .\n", dev.c_str());
@@ -360,9 +336,7 @@ bool RAIDManager::AddDisk(const string& dev)
 				5.1 enough -> AssembleByRAIDUUID() -> 6
 				5.2 not enough -> return true	*/
 		int counter = 1; // count disk has the same uuid. Initial value is 1 for this newly added disk.
-#ifdef NUUO
 		m_csRAIDDiskList.Lock();
-#endif
 		for (size_t i = 0; i < m_vRAIDDiskList.size(); i++) {
 			if (info.m_strDevName == m_vRAIDDiskList[i].m_strDevName) // Bypass itself
 				continue;
@@ -371,9 +345,7 @@ bool RAIDManager::AddDisk(const string& dev)
 			if (0 == memcmp(info.m_RaidUUID, m_vRAIDDiskList[i].m_RaidUUID, sizeof(int) * 4))
 				counter++;
 		}
-#ifdef NUUO
 		m_csRAIDDiskList.Unlock();
-#endif
 		
 		if (counter >= info.m_iRaidDiskNum) {
 			if (AssembleRAID(info.m_RaidUUID, mddev)) {
@@ -408,9 +380,7 @@ vector<RAIDInfo>::iterator RAIDManager::SearchDiskBelong2RAID(RAIDDiskInfo& info
 		[CS End]		
 	*/
 
-#ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDInfoList);
-#endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
 #if 1
@@ -466,7 +436,7 @@ bool RAIDManager::RemoveDisk(const string& dev)
 		      is in a critical status.
 	*/
 
-#if 1 
+#if 0 
 	RAIDDiskInfo info;
 	vector<RAIDInfo>::iterator raid_it = SearchDiskBelong2RAID(dev, info);
 	if (raid_it != m_vRAIDInfoList.end()) {
@@ -493,9 +463,7 @@ bool RAIDManager::RemoveDisk(const string& dev)
 			1.2 No -> return true;
 		[CS End]
 	*/
-#ifdef NUUO
 	m_csRAIDDiskList.Lock();
-#endif
 	vector<RAIDDiskInfo>::iterator it = m_vRAIDDiskList.begin();
 	int uuid[4];
 	while (it != m_vRAIDDiskList.end()) {
@@ -507,18 +475,14 @@ bool RAIDManager::RemoveDisk(const string& dev)
 	}
 
 	if (it == m_vRAIDDiskList.end()) {
-#ifdef NUUO
 		m_csRAIDDiskList.Unlock();
-#endif
 		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 			   "%s removed successfully .\n", dev.c_str());
 		return true;
 	}
 
 	m_vRAIDDiskList.erase(it);
-#ifdef NUUO
 	m_csRAIDDiskList.Unlock();
-#endif
 
 	/*
 	   It is no reason to mount. The reason is explained in former
@@ -546,9 +510,7 @@ void RAIDManager::UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList, co
 	vector<RAIDDiskInfo>::iterator it = vRAIDDiskInfoList.begin();
 	while (it != vRAIDDiskInfoList.end()) {
 		bool bExist = false;
-#ifdef NUUO
-		CriticalSectionLock cs(&m_csRAIDDiskList);
-#endif
+		CriticalSectionLock csRAIDDiskList(&m_csRAIDDiskList);
 		vector<RAIDDiskInfo>::iterator it_all = m_vRAIDDiskList.begin();
 		while(it_all != m_vRAIDDiskList.end()) {
 			if (*it == *it_all) {
@@ -572,16 +534,12 @@ void RAIDManager::UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList, co
 			m_vRAIDDiskList.push_back(*it);
 		}
 
-#ifdef NUUO
-		CriticalSectionLock cs(&m_mapSymLinkTable);
-#endif
+		CriticalSectionLock csSymLinkTable(&m_csSymLinkTable);
 		m_mapSymLinkTable[it->m_strDevName].m_strMDDev = mddev; 
 		it++;
 	}
 
-#ifdef NUUO
-	CriticalSectionLock cs(&m_mapSymLinkTable);
-#endif
+	CriticalSectionLock cs(&m_csSymLinkTable);
 	map<string, MiscDiskInfo>::iterator it_symLinkTab = m_mapSymLinkTable.begin();
 	while (it_symLinkTab != m_mapSymLinkTable.end()) {
 		if (it_symLinkTab->second.m_strMDDev != mddev) {
@@ -624,8 +582,10 @@ bool RAIDManager::GetRAIDDetail(const string& mddev,
 
 bool RAIDManager::IsRAIDAbnormal(const RAIDInfo &info)
 {
+	int num = -1;
+
 	if (info.m_iTotalDiskNum == 0)
-		return true;
+		goto raid_abnormal;
 
 	switch (info.m_iRAIDLevel) {
 	case 0:
@@ -636,16 +596,24 @@ bool RAIDManager::IsRAIDAbnormal(const RAIDInfo &info)
 	case LEVEL_MULTIPATH:
 	case LEVEL_LINEAR:
 		if (info.m_strState.find("FAILED") != string::npos)
-			return true;
+			goto raid_abnormal;
 		break;
 	default:
 		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
 				   "[%s] Unknown RAID Level.\n",
-				   info.m_strDevNodeName);
+				   info.m_strDevNodeName.c_str());
 		return true;
 	}
 
 	return false;
+
+raid_abnormal:
+	/* Try to unmount the volume. */
+	if (info.m_fsMgr->IsMounted(num)) {
+		info.m_fsMgr->Unmount();
+		FreeVolumeNum(num);
+	}
+	return true;
 }
 
 bool RAIDManager::UpdateRAIDInfo(const string& mddev, int mdnum)
@@ -670,9 +638,7 @@ bool RAIDManager::UpdateRAIDInfo(const string& mddev, int mdnum)
 
 	bGetDetailSuccess = GetRAIDDetail(mddev, ad);
 
-#ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDInfoList);
-#endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
 		if (*it == mddev) {
@@ -685,11 +651,6 @@ bool RAIDManager::UpdateRAIDInfo(const string& mddev, int mdnum)
 			UpdateRAIDDiskList(it->m_vDiskList, mddev);
 
 			if (IsRAIDAbnormal(*it)) {
-				/* Try to unmount the volume. */
-				if (IsMounted(mddev)) {
-					Unmount(mddev);
-				}
-
 				/* Obviously a useless MD device, remove it from the list. */
 				if (ad.arrayInfo.nr_disks == 0) {
 					m_vRAIDInfoList.erase(it);
@@ -729,9 +690,7 @@ bool RAIDManager::UpdateRAIDInfo()
 		2. UpdateRAIDInfo(m_strDevNodeName)
 	*/
 
-#ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDInfoList);
-#endif
 	if (m_vRAIDInfoList.empty())
 		return true;
 
@@ -752,17 +711,13 @@ bool RAIDManager::UpdateRAIDInfo()
 		*it = ad; // Keep some fixed information like mount point, volumne name
 		UpdateRAIDDiskList(it->m_vDiskList, it->m_strDevNodeName); // For update m_mapSymLinkTable, this step should be done before remove the RAID device from the list.
 
-		if (IsRAIDAbnormal(*it)) {
-			if (IsMounted(it->m_strDevNodeName)) {
-				Unmount(it->m_strDevNodeName);
-			}
-		}
+		IsRAIDAbnormal(*it);
 
 		if (ad.arrayInfo.nr_disks == 0) {
 			it = m_vRAIDInfoList.erase(it);
 			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
 					   "[%d] %s's disk number is zero. Remove from the list.\n",
-					   __LINE__, mddev.c_str());
+					   __LINE__, it->m_strDevNodeName.c_str());
 		} else {
 			it ++;
 		}
@@ -782,9 +737,7 @@ bool RAIDManager::UpdateRAIDInfo(const int uuid[4])
 	if (uuid == NULL)
 		return false;
 
-#ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDInfoList);
-#endif
 	if (m_vRAIDInfoList.empty())
 		return true;
 
@@ -801,17 +754,12 @@ bool RAIDManager::UpdateRAIDInfo(const int uuid[4])
 			*it = ad;
 			UpdateRAIDDiskList(it->m_vDiskList, it->m_strDevNodeName);
 			if (IsRAIDAbnormal(*it)) {
-				/* Try to unmount the volume. */
-				if (IsMounted(mddev)) {
-					Unmount(mddev);
-				}
-
 				/* Obviously a useless MD device, remove it from the list. */
 				if (ad.arrayInfo.nr_disks == 0) {
 					m_vRAIDInfoList.erase(it);
 					WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
 							   "[%d] %s's disk number is zero. Remove from the list.\n",
-							   __LINE__, mddev.c_str());
+							   __LINE__, it->m_strDevNodeName.c_str());
 				}
 			}
 
@@ -1731,9 +1679,7 @@ bool RAIDManager::StopRAID(const string& mddev)
 	/*
 		6. Remove mddev from m_vRAIDInfoList
 	*/
-#ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDInfoList);
-#endif	
 	// If MD device is stopped, we can free MD number immediately.
 	for (size_t i = 0; i < it->m_vDiskList.size(); i++) {
 		CriticalSectionLock csSymLinkTable(&m_csSymLinkTable);
@@ -1838,6 +1784,10 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 		8. For all raid disks in mddev: ret = Kill(devname, NULL, c.force, c.verbose, 0);
 			Write HW Log if ret != 0 
 	*/
+	struct context c;
+	int ret = SUCCESS;
+
+	InitializeContext(c);
 	for (size_t i = 0; i < info.m_vDiskList.size(); i++) {
 		ret = Kill((char*)info.m_vDiskList[i].m_strDevName.c_str(), NULL, c.force, c.verbose, 0);
 		if (ret != SUCCESS) {
@@ -1887,9 +1837,7 @@ bool RAIDManager::GetRAIDInfo(const string& mddev, RAIDInfo& info)
 		[CS End]
 		3. return false (not found)
 	*/
-#ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDInfoList);
-#endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
 		if (*it == mddev) {
@@ -1916,9 +1864,8 @@ bool RAIDManager::GetRAIDInfo(const string& mddev, RAIDInfo& info)
 void RAIDManager::GetRAIDInfo(vector<RAIDInfo>& list)
 {
 	list.clear();
-#ifdef NUUO
+
 	CriticalSectionLock cs(&m_csRAIDInfoList);
-#endif
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
 		for (size_t i = 0; i < it->m_vDiskList.size(); i++) {
@@ -1935,9 +1882,7 @@ void RAIDManager::GetDisksInfo(vector<RAIDDiskInfo> &list)
 {
 	list.clear();
 
-#ifdef NUUO
 	CriticalSectionLock cs(&m_csRAIDDiskList);
-#endif
 	vector<RAIDDiskInfo>::iterator it = m_vRAIDDiskList.begin();
 	while(it != m_vRAIDDiskList.end()) {
 		RAIDDiskInfo info = *it;
@@ -1956,9 +1901,7 @@ bool RAIDManager::GetDisksInfo(const string& dev, RAIDDiskInfo &info)
 
 	string strDevNode = GetDeviceNodeBySymLink(dev);
 
-#ifdef NUUO
 	CriticalSectionLock csRAIDDiskList(&m_csRAIDDiskList);
-#endif
 	vector<RAIDDiskInfo>::iterator it = m_vRAIDDiskList.begin();
 	while(it != m_vRAIDDiskList.end()) {
 		if (*it == strDevNode) {
@@ -2003,7 +1946,9 @@ bool RAIDManager::Format(const string& mddev)
 	}
 
 	info.m_fsMgr->SetVolumeNum(num);
+#ifdef NUUO
 	info.m_fsMgr->CreateThread();
+#endif
 
 	return true;
 }

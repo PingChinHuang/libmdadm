@@ -62,14 +62,12 @@ bool FilesystemManager::Initialize()
 		return false;
 	}
 	
-#ifdef NUUO
-	if (!CheckBlockDevice(m_strDevNode.c_str())) {
+	if (!CheckBlockDevice(m_strDevNode)) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 		 	   "%s is not a block device.",
 		   	   m_strDevNode.c_str());
 		return false;
 	}
-#endif
 
 	if (blkid() != 0) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
@@ -108,9 +106,9 @@ void FilesystemManager::ThreadProc()
 bool FilesystemManager::Format(bool force)
 {
 	int ret = 0;
-#ifdef NUUO
+
 	CriticalSectionLock cs(&m_csFormat);
-#endif
+
 	if (m_bFormat && !force)
 		goto format_done;	
 
@@ -142,34 +140,25 @@ bool FilesystemManager::Mount(const string& strMountPoint)
 		goto mount_check_err;
 	}
 
-#ifdef NUUO
 	m_csFormat.Lock();
-#endif
 	if (!m_bFormat) {
 		strErrorLog = "The device isn't formated.";
-#ifdef NUUO
 		m_csFormat.Unlock();
-#endif
 		goto mount_check_err;
 	}
-#ifdef NUUO
 	m_csFormat.Unlock();
-#endif
 
-#ifdef NUUO
-	if (!CheckBlockDevice(m_strDevNode.c_str())) {
+	if (!CheckBlockDevice(m_strDevNode)) {
 		strErrorLog = "The device is not a block device.";
 		goto mount_check_err;
 	}
 
 	m_csMount.Lock();
-#endif
-
 	if (m_bMount
 	    && !m_strMountPoint.empty()
 	    && m_strMountPoint == strMountPoint
-#ifdef NUUO
 	    && CheckDirectoryExist(m_strMountPoint)
+#ifdef NUUO
 	    && ROOTFS_PROTECT(m_strMountPoint.c_str())
 #endif
 	) {
@@ -185,15 +174,12 @@ bool FilesystemManager::Mount(const string& strMountPoint)
 		goto mount_err;
 	}
 
-#ifdef NUUO	
 	if (!CheckDirectoryExist(strMountPoint)) {
 		if (!MakeDirectory(strMountPoint)) {
 			strErrorLog = "Fail to create mount point.";
 			goto mount_err;	
 		}
-	} else
-#endif
-	if (IsMountPoint(strMountPoint)) {
+	} else if (IsMountPoint(strMountPoint)) {
 		// If the directoy exists and it is a mount point
 		// do nothing and return false for safety.
 		strErrorLog = "The mount point is using by another device..";
@@ -230,9 +216,7 @@ mount_check_err:
 
 bool FilesystemManager::Unmount()
 {
-#ifdef NUUO
 	CriticalSectionLock cs(&m_csMount);
-#endif
 
 	if (!m_bMount)
 		goto unmount_done;
@@ -240,10 +224,8 @@ bool FilesystemManager::Unmount()
 	if (m_strMountPoint.empty())
 		goto unmount_done;
 
-#ifdef NUUO
 	if (!CheckDirectoryExist(m_strMountPoint))
 		goto unmount_done;
-#endif
 	
 	if (!IsMountPoint(m_strMountPoint))
 		goto unmount_done;	
@@ -287,18 +269,14 @@ bool FilesystemManager::IsFormating(int& progress, int& stat)
 
 bool FilesystemManager::IsMounted(string& strMountPoint)
 {
-#ifdef NUUO
 	CriticalSectionLock cs(&m_csMount);
-#endif
 	strMountPoint = m_strMountPoint;
 	return m_bMount;
 }
 
 bool FilesystemManager::IsMounted(int& num)
 {
-#ifdef NUUO
 	CriticalSectionLock cs(&m_csMount);
-#endif
 	num = m_iVolumeNum;
 	return m_bMount;
 }
@@ -336,28 +314,23 @@ void FilesystemManager::MakeFilesystemProgress(void *pData, int stat,
 
 void FilesystemManager::GenerateUUIDFile()
 {
-#ifdef NUUO
 	CriticalSectionLock cs_mount(&m_csMount);
-#endif
 
-	if (!m_bMount || m_strMountPoint.empty() 
+	if (!m_bMount || m_strMountPoint.empty() ||
+	    !CheckDirectoryExist(m_strMountPoint)
 #ifdef NUUO
-	    || !CheckDirectoryExist(m_strMountPoint) ||
-	    !ROOTFS_PROTECT(m_strMountPoint.c_str())
+		|| !ROOTFS_PROTECT(m_strMountPoint.c_str())
 #endif
 	)
 		return;
 
 	string strUUIDFileName = m_strMountPoint + "/uuid";
-#ifdef NUUO
 	if (CheckFileExist(strUUIDFileName) &&
-	    GetFileStorageSize(strUUIDFileName) == 32)
+		GetFileStorageSize(strUUIDFileName) == 32)
 		return;
-#endif
 
-#ifdef NUUO
 	CriticalSectionLock cs_format(&m_csFormat);
-#endif
+
 	if (m_strUUID.empty())
 		return;
 	
@@ -370,33 +343,27 @@ void FilesystemManager::GenerateUUIDFile()
 
 bool FilesystemManager::CreateDefaultFolders()
 {
-#ifdef NUUO
 	CriticalSectionLock cs(&m_csMount);
-#endif
 
-	if (!m_bMount || m_strMountPoint.empty()
+	if (!m_bMount || m_strMountPoint.empty() ||
+	    !CheckDirectoryExist(m_strMountPoint)
 #ifdef NUUO
-	    || !CheckDirectoryExist(m_strMountPoint) ||
-	    !ROOTFS_PROTECT(m_strMountPoint.c_str())
+	    || !ROOTFS_PROTECT(m_strMountPoint.c_str())
 #endif
 	)
 		return false;
 
 	string strFolderName = m_strMountPoint + "/VIDEODATA";
-#ifdef NUUO	
 	if (!CheckDirectoryExist(strFolderName)) {
 		if (!MakeDirectory(strFolderName))
 			return false;	
 	}
-#endif
 
 	strFolderName = m_strMountPoint + "/LOG";
-#ifdef NUUO
 	if (!CheckDirectoryExist(strFolderName)) {
 		if (!MakeDirectory(strFolderName))
 			return false;	
 	}
-#endif
 
 	return true;	
 }
@@ -412,19 +379,15 @@ int FilesystemManager::blkid()
 		return MKE2FS_FAIL_TO_GET_BLKID_CACHE;
 	}
 
-#ifdef NUUO
 	m_csFormat.Lock();
-#endif
 	blkid_dev dev = blkid_get_dev(cache, m_strDevNode.c_str(), BLKID_DEV_NORMAL);
 	const char *devname = blkid_dev_devname(dev);
-#ifdef NUUO
 	if (!CheckBlockDevice(m_strDevNode)) {
 		WriteHWLog(LOG_LOCAL1, LOG_ERR, LOG_LABEL,
 			   "[%d] %s is not a block device.", __LINE__, m_strDevNode.c_str());
 		m_csFormat.Unlock();
 		return MKE2FS_NOT_BLOCK_DEV;
 	}
-#endif
 
 	blkid_tag_iterate iter;
 	const char* type = NULL;
@@ -444,9 +407,7 @@ int FilesystemManager::blkid()
 			continue;
 	}
 	blkid_tag_iterate_end(iter);
-#ifdef NUUO
 	m_csFormat.Unlock();
-#endif
 
 	char mtpt[256];
 	int mount_flags = 0;
@@ -454,9 +415,7 @@ int FilesystemManager::blkid()
 	retval = ext2fs_check_mount_point(m_strDevNode.c_str(), &mount_flags,
 					  mtpt, sizeof(mtpt));
 	if (retval == 0) {
-#ifdef NUUO
 		CriticalSectionLock cs(&m_csMount);
-#endif
 		int ret = 0;
 		m_strMountPoint = mtpt;
 		if (mount_flags & EXT2_MF_MOUNTED) {
@@ -467,7 +426,6 @@ int FilesystemManager::blkid()
 			m_bMount = false;
 		}
 
-#ifdef NUUO
 		/*
 			If mount point pattern is not "/mnt/VOLUMEX",
 			just unmount it and reset the related data..
@@ -494,7 +452,6 @@ int FilesystemManager::blkid()
 				m_iVolumeNum--;
 			}
 		}
-#endif
 	} else {
 		WriteHWLog(LOG_LOCAL1, LOG_ERR, LOG_LABEL,
 			   "[%d] Fail to check mount point.", __LINE__);
