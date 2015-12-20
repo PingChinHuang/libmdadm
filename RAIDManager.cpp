@@ -313,6 +313,8 @@ bool RAIDManager::AddDisk(const string& dev)
 			4.1.3 ReaddDiskIntoRAID() -> 6
 		4.2 No Active RAID in m_vRAIDInfoList -> 5
 	*/
+	m_csRAIDInfoList.Lock();
+
 	string mddev;
 	vector<RAIDInfo>::iterator raid_it = SearchDiskBelong2RAID(info);
 	if (raid_it != m_vRAIDInfoList.end()) { // 4.1
@@ -328,10 +330,20 @@ bool RAIDManager::AddDisk(const string& dev)
 					   "[%d] Manage Error Code %s: (%d)\n",
 					   __LINE__,
 				  	 raid_it->m_strDevNodeName.c_str(), ret);
-				// We still need to upate raid info list because remove was done successfully.
 			}
 		}
+		/*
+		 * Free lock here due to we need to protect raid_it.
+		 */
+		m_csRAIDInfoList.Unlock();
 	} else { // 4.2
+		/*
+		 * Because the disk does not belong to any
+		 * MD device now, no iterator need to be protected.
+		 * Free the lock directly. 
+		 */
+		m_csRAIDInfoList.Unlock();
+
 			/*	5. Check whether there are enough disk for assembling.
 				5.1 enough -> AssembleByRAIDUUID() -> 6
 				5.2 not enough -> return true	*/
@@ -380,10 +392,9 @@ vector<RAIDInfo>::iterator RAIDManager::SearchDiskBelong2RAID(RAIDDiskInfo& info
 		[CS End]		
 	*/
 
-	CriticalSectionLock cs(&m_csRAIDInfoList);
+	//CriticalSectionLock cs(&m_csRAIDInfoList);
 	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
 	while (it != m_vRAIDInfoList.end()) {
-#if 1
 		if (0 != memcmp(it->m_UUID, info.m_RaidUUID, sizeof(info.m_RaidUUID))) {
 			it ++;
 			continue;
@@ -399,7 +410,6 @@ vector<RAIDInfo>::iterator RAIDManager::SearchDiskBelong2RAID(RAIDDiskInfo& info
 			}
 			return it;
 		}
-#endif
 
 		it ++;
 	}
@@ -409,52 +419,9 @@ vector<RAIDInfo>::iterator RAIDManager::SearchDiskBelong2RAID(RAIDDiskInfo& info
 
 bool RAIDManager::RemoveDisk(const string& dev)
 {
-	/*
-		When a disk is removed, it will be marked faulty.
-		And just keep this status and it should be updated
-		after UpdateRAIDInfo finished.
-	*/
-
 	/* 0. dev is empty -> return false */
 	if (dev.empty())
 		return false;
-
-	/*
-		If disk is belong to the RAID, it need to be mark faulty and
-		removed before it is removed from RAID disk list.
-
-		Note: It is not necessary, because when user remove the disk,
-		      It should set faulty and remove first. Once the disk is
-                      removed without marking faulty and removing, it will
-		      be impossible to do, because it is already set removed
-		      by the MD driver.
-			
-		      Umount the volume is not a neccessary procedure,
-		      because if the volume still can work, it is always
-		      workable, even if it has a removed disk.
-		      Howerver, if it cannot be used, we will know it 
-		      is in a critical status.
-	*/
-
-#if 0 
-	RAIDDiskInfo info;
-	vector<RAIDInfo>::iterator raid_it = SearchDiskBelong2RAID(dev, info);
-	if (raid_it != m_vRAIDInfoList.end()) {
-		int num = 0;
-		if (IsMounted(raid_it->m_strDevNodeName, num)) {
-			if (Unmount(raid_it->m_strDevNodeName))
-				return false;
-		}
-
-		vector<string> vDevList;
-		vDevList.push_back(dev);
-		if (!MarkFaultyMDDisks(raid_it->m_strDevNodeName, vDevList))
-			return false;
-
-		if (!RemoveMDDisks(raid_it->m_strDevNodeName, vDevList))
-			return false;
-	}
-#endif
 
 	/*
 		[CS Start] Protect m_vRAIDDiskList
@@ -476,26 +443,56 @@ bool RAIDManager::RemoveDisk(const string& dev)
 
 	if (it == m_vRAIDDiskList.end()) {
 		m_csRAIDDiskList.Unlock();
+		CriticalSectionLock cs(&m_csSymLinkTable);
+		map<string, MiscDiskInfo>::iterator it_symLinkTable = m_mapSymLinkTable.find(dev);
+		m_mapSymLinkTable.erase(it_symLinkTable);
 		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 			   "%s removed successfully .\n", dev.c_str());
 		return true;
 	}
 
+	/*
+		If disk is belong to a MD device, it needs to be marked faulty and
+		removed before it is removed from MD's disk list when we want to 
+		change a new HDD. But if users do the hot plug to the disk, the MD
+		device cannot know this operation, and its driver just remove the 
+		missing disk from its disk list.
+		
+		In order to prevent from any possible issues, we still try to
+		unmount the volume first, and then try to mark the disk faulty and
+		remove it. We don't care whether the procedure is successful or not.
+	*/
+
+	RAIDDiskInfo info = *it; // To prevent "it" from being modified by SearchDiskBelong2RAID
+	m_csRAIDInfoList.Lock();
+	vector<RAIDInfo>::iterator raid_it = SearchDiskBelong2RAID(info);
+	if (raid_it != m_vRAIDInfoList.end()) {
+		int num = -1;
+		if (raid_it->m_fsMgr->IsMounted(num)) {
+			raid_it->m_fsMgr->Unmount();
+			FreeVolumeNum(num);
+		}
+
+		vector<string> vDevList;
+		vDevList.push_back(dev);
+		MarkFaultyMDDisks(raid_it->m_strDevNodeName, vDevList);
+		RemoveMDDisks(raid_it->m_strDevNodeName, vDevList);
+	}
+	m_csRAIDInfoList.Unlock();
+
+	/* Move symbolic link information from m_mapSymLinkTable. */
+	m_csSymLinkTable.Lock();
+	map<string, MiscDiskInfo>::iterator it_symLinkTable = m_mapSymLinkTable.find(dev);
+	m_mapSymLinkTable.erase(it_symLinkTable);
+	m_csSymLinkTable.Unlock();
+
 	m_vRAIDDiskList.erase(it);
 	m_csRAIDDiskList.Unlock();
 
-	/*
-	   It is no reason to mount. The reason is explained in former
-	   comment.
-	*/
-#if 0
-	if (raid_it != m_vRAIDInfoList.end()) {
-		/* Try to remount MD after removing the disk */
-		Mount(raid_it->m_strDevNodeName);
-	}
-#endif
-
-	/* 2. UpdateRAIDInfo(uuid) */
+	/* 2. UpdateRAIDInfo(uuid) 
+	 * The volume is expected to be mounted again if it is normal
+	 * during updating RAID information.
+	 */
 	UpdateRAIDInfo(uuid);
 	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 		   "%s removed successfully .\n", dev.c_str());
