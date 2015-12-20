@@ -246,6 +246,7 @@ unmount_done:
 		   m_strMountPoint.c_str());
 	m_bMount = false;
 	m_strMountPoint = "";
+	m_iVolumeNum = -1;
 
 	return true;
 }

@@ -605,6 +605,32 @@ bool RAIDManager::IsRAIDAbnormal(const RAIDInfo &info)
 		return true;
 	}
 
+	/* Try to mount the volume if it has been formated */
+	if (info.m_fsMgr->IsFormated()) {
+		if (!info.m_fsMgr->IsMounted(num)) {
+			string strMountPoint;
+			if (num < 0) {
+				int num = GetFreeVolumeNum();
+				if (num < 0) {
+					/*
+					 * Although mount operation is failed,
+					 * this volume is in normal state. So,
+					 * we return false.
+					 */
+					WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+						   "Exceed maximal volume limitation.\n");
+					return false;
+				}
+				info.m_fsMgr->SetVolumeNum(num);
+			}	
+
+			info.m_fsMgr->IsMounted(strMountPoint); // Get mount point name
+			if (!info.m_fsMgr->Mount(strMountPoint)) {
+				FreeVolumeNum(num);
+			}
+		}
+	}
+
 	return false;
 
 raid_abnormal:
