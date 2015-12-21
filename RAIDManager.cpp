@@ -117,6 +117,25 @@ void RAIDManager::SetMDNum(int n)
 	m_bUsedMD[n] = true;
 }
 
+int RAIDManager::GetFormerVolumeNum(int n)
+{
+	CriticalSectionLock cs_md(&m_csUsedVolume);
+	/* Check requested Volume number */
+	if (m_bUsedVolume[n]) {
+		for (int i = 0; i < 128; i++) {
+			if (!m_bUsedMD[i]) {
+				m_bUsedMD[i] = true;
+				return i;
+			}
+		}
+
+		return -1;
+	} else {
+		m_bUsedVolume[n] = true;
+		return n;
+	}
+}
+
 int RAIDManager::GetFreeVolumeNum()
 {
 	CriticalSectionLock cs_md(&m_csUsedVolume);
@@ -607,20 +626,23 @@ bool RAIDManager::IsRAIDAbnormal(const RAIDInfo &info)
 		if (!info.m_fsMgr->IsMounted(num)) {
 			string strMountPoint;
 			if (num < 0) {
-				int num = GetFreeVolumeNum();
-				if (num < 0) {
-					/*
-					 * Although mount operation is failed,
-					 * this volume is in normal state. So,
-					 * we return false.
-					 */
-					WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-						   "Exceed maximal volume limitation.\n");
-					return false;
-				}
-				info.m_fsMgr->SetVolumeNum(num);
-			}	
+				num = GetFreeVolumeNum();
+			} else {
+				num = GetFormerVolumeNum(num);
+			}
 
+			if (num < 0) {
+				/*
+				 * Although mount operation is failed,
+				 * this volume is in normal state. So,
+				 * we return false.
+				 */
+				WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+					   "Exceed maximal volume limitation.\n");
+				return false;
+			}
+
+			info.m_fsMgr->SetVolumeNum(num);
 			info.m_fsMgr->IsMounted(strMountPoint); // Get mount point name
 			if (!info.m_fsMgr->Mount(strMountPoint)) {
 				FreeVolumeNum(num);
@@ -2009,15 +2031,17 @@ bool RAIDManager::Mount(const string& mddev)
 	if (!info.m_fsMgr->IsMounted(num)) {
 		string strMountPoint;
 		if (num < 0) {
-			int num = GetFreeVolumeNum();
-			if (num < 0) {
-				WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-					   "Exceed maximal volume limitation.\n");
-				return false;
-			}
-			info.m_fsMgr->SetVolumeNum(num);
-		}	
+			num = GetFreeVolumeNum();
+		} else {
+			num = GetFormerVolumeNum(num);
+		}
 
+		if (num < 0) {
+			WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+				   "Exceed maximal volume limitation.\n");
+			return false;
+		}
+		info.m_fsMgr->SetVolumeNum(num);
 		info.m_fsMgr->IsMounted(strMountPoint); // Get mount point name
 		if (!info.m_fsMgr->Mount(strMountPoint)) {
 			FreeVolumeNum(num);

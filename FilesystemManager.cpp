@@ -245,8 +245,8 @@ unmount_done:
 		   "%s has be unmounted successfully.",
 		   m_strMountPoint.c_str());
 	m_bMount = false;
-	m_strMountPoint = "";
-	m_iVolumeNum = -1;
+//	m_strMountPoint = "";
+//	m_iVolumeNum = -1;
 
 	return true;
 }

@@ -500,6 +500,7 @@ private:
 	int GetFreeMDNum();
 	void FreeMDNum(int n);
 	void SetMDNum(int n);
+	int GetFormerVolumeNum(int n);
 	int GetFreeVolumeNum();
 	void FreeVolumeNum(int n);
 	void SetVolumeNum(int n);
