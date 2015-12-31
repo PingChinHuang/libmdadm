@@ -32,6 +32,7 @@ class FilesystemManager
 private:
 	CriticalSection m_csFormat;
 	CriticalSection m_csMount;
+	CriticalSection m_csInitialized;
 	mke2fs_handle m_mkfsHandle;
 	//fsck_handle m_fsckHandle;
 
@@ -44,6 +45,7 @@ private:
 	int m_iFormatProgress;
 	bool m_bFormat;
 	bool m_bMount;
+	bool m_bInitialized;
 
 protected:
 #ifdef NUUO
@@ -73,12 +75,14 @@ public:
 	void SetMountPoint(const string &mountpoint);
 	void SetVolumeNum(const int &num);
 	bool Mount(const string& strMountPoint);
+	bool Mount();
 	bool Unmount();
 
 	bool IsFormated();
 	bool IsFormating(int& progress, int& stat);
 	bool IsMounted(string& strMountPoint);
 	bool IsMounted(int& num);
+	bool IsInitialied();
 	void SetFormatInfo(bool format, int progress,
 			   int stat);
 

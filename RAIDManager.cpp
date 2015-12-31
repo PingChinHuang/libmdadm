@@ -7,6 +7,7 @@
 #endif
 
 #define LOG_LABEL "RAIDManager"
+#define RAIDMANAGER_MONITOR_INTERVAL 3000 /* ms */
 
 RAIDManager::RAIDManager()
 {
@@ -15,75 +16,105 @@ RAIDManager::RAIDManager()
 	for (int i = 0; i < 128; i++)
 		m_bUsedVolume[i] = false;
 
-#ifdef NUUO
-	DirectoryTraverse dt("/dev");
+	CriticalSectionLock cs_MDProfiles(&m_csMDProfiles);
+	CriticalSectionLock cs_DiskProfiles(&m_csDiskProfiles);
+	Initialize();
 
-	/*
-		Check running MD devices and add into list.
-	*/
-	while (dt.Next()) {
-		if (dt.GetPathName().find("/dev/md") != string::npos) {
-			if (CheckBlockDevice(dt.GetPathName())) {
-				int num = 0;
-				int ret = sscanf(dt.GetPathName().c_str(), "/dev/md%d", &num);
-				if (ret < 1 || ret == EOF || num > 127 || num < 0)
-					continue;
-	
-				/*
-					Check /dev/mdX to make sure that it is an active device.
-					If it is an active one, we can add it into list.
-				*/
-				if (UpdateRAIDInfo(dt.GetPathName(), num)) {
-					m_bUsedMD[num] = true;
-				}
-
-				int volumeNum;
-				if (IsFormated(dt.GetPathName())) {
-					if (IsMounted(dt.GetPathName(), volumeNum)) {
-						m_bUsedVolume[volumeNum] = true;
-					} else {
-						Mount(dt.GetPathName());
-					}
-				}
-			}
-		}
+	CriticalSectionLock cs_NotifyChange(&m_csNotifyChange);
+	try {
+		m_pNotifyChange = new AprCond(false);
+		CreateThread();
+	} catch (bad_alloc&) {
+		m_pNotifyChange = NULL;
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "Allocate memory failed.");
 	}
-	dt.Reset();
-
-	/* 
-		Because adding MD device into list will also add the disk into 
-		the m_vRAIDDiskList. So, Clear the list first for following procedures
-		to add disk into list, or the soft link information will be lost.
-	*/
-	//m_vRAIDDiskList.clear();
-
-	/*
-		Check active HDD and add into list.
-	*/
-	while (dt.Next()) {
-		if (dt.GetFlags() & DirectoryTraverse::FLAG_SYMBOLIC) {
-			if (dt.GetPathName().find("/dev/nuuo_sata") !=
-			    string::npos) {
-				if (dt.GetPathName() != "/dev/nuuo_satadom") {
-					AddDiskSymLink(dt.GetPathName(), DISK_TYPE_SATA);
-					AddDisk(dt.GetPathName()); 
-				}
-			} else if (dt.GetPathName().find("/dev/nuuo_esata") != string::npos) {
-				AddDiskSymLink(dt.GetPathName(), DISK_TYPE_ESATA);
-				AddDisk(dt.GetPathName());
-			} else if (dt.GetPathName().find("/dev/nuuo_iscsi") != string::npos) {
-				AddDiskSymLink(dt.GetPathName(), DISK_TYPE_ISCSI);
-				AddDisk(dt.GetPathName());
-			}
-		}
-	}
-	dt.Close();
-#endif
 }
 
 RAIDManager::~RAIDManager()
 {
+	if (ThreadExists()) {
+		uint32_t result;
+		CallWorker(eTC_STOP, &result);
+		if (result == 0) {
+			CriticalSectionLock cs_NotifyChange(&m_csNotifyChange);
+			delete m_pNotifyChange;
+			m_pNotifyChange = NULL;
+		}
+	}
+}
 
+bool RAIDManager::Initialize()
+{
+	struct udev *udev;
+	struct udev_enumerate *enumerate;
+	struct udev_list_entry *devices, *dev_list_entry;
+	struct udev_device *dev;
+	
+	udev = udev_new();
+	if (!udev) {
+		printf("can't create udev\n");
+		return false;
+	}
+
+	enumerate = udev_enumerate_new(udev);
+	udev_enumerate_add_match_subsystem(enumerate, "block");
+	udev_enumerate_scan_devices(enumerate);
+	devices = udev_enumerate_get_list_entry(enumerate);
+	udev_list_entry_foreach(dev_list_entry, devices) {
+		string strSysName;
+		string strMajor;
+		int iMajor = 0;
+		const char *path = NULL;
+
+		path = udev_list_entry_get_name(dev_list_entry);
+		dev = udev_device_new_from_syspath(udev, path);
+
+		strSysName = udev_device_get_sysname(dev);
+		strMajor = udev_device_get_property_value(dev, "MAJOR");
+
+		iMajor = str_to_i32(strMajor);
+		switch(iMajor) {
+		case 8: /* Disk */
+		{
+			DiskProfile profile(strSysName);
+			m_mapDiskProfiles[strSysName] = profile;
+			break;
+		}
+		case 9: /* MD */
+		{
+			MDProfile profile(strSysName);
+			m_mapMDProfiles[strSysName] = profile;
+			SetMDNum(m_mapMDProfiles[strSysName].m_iMDNum);
+
+			if (NULL == m_mapMDProfiles[strSysName].m_fsMgr->get()) /* Retry */
+				m_mapMDProfiles[strSysName].InitializeFSManager();
+			
+			if (m_mapMDProfiles[strSysName].m_fsMgr->get()) {
+				if (m_mapMDProfiles[strSysName].m_fsMgr->IsInitialized()) {
+					SetVolumeNum(m_mapMDProfiles[strSysName].m_fsMgr->m_iVolumeNum);
+				} else {
+					m_mapMDProfiles[strSysName].m_fsMgr->Initialize(); /* Retry */
+					SetVolumeNum(m_mapMDProfiles[strSysName].m_fsMgr->m_iVolumeNum);
+				}
+			} else {
+				printf("[%s] FilesystemManager initialization retried failed.\n");
+			}
+			break;
+		}
+		default:;
+		}
+
+		udev_device_unref(dev);
+	}
+	udev_enumerate_unref(enumerate);
+	udev_unref(udev);
+
+	/* TODO:
+	 * Is it necessary to check all the MD devices in the list, and
+	 * to set m_strMDDev of a DiskProfile since the disk is occupied
+	 * by a MD device during this initial stage?
+	 */
 }
 
 int RAIDManager::GetFreeMDNum()
@@ -167,60 +198,6 @@ void RAIDManager::SetVolumeNum(int n)
 	m_bUsedVolume[n] = true;
 }
 
-vector<RAIDInfo>::iterator RAIDManager::IsMDDevInRAIDInfoList(const string &mddev, RAIDInfo& info)
-{
-	CriticalSectionLock cs(&m_csRAIDInfoList);
-	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
-	while (it != m_vRAIDInfoList.end()) {
-		if (*it == mddev) {
-			info = *it;
-			break;
-		}
-
-		it ++;
-	}
-
-	return it;
-}
-
-vector<RAIDInfo>::iterator RAIDManager::IsMDDevInRAIDInfoList(const string &mddev)
-{
-	RAIDInfo info;
-	return IsMDDevInRAIDInfoList(mddev, info);
-}
-
-bool RAIDManager::IsDiskExistInRAIDDiskList(const string& dev)
-{
-	CriticalSectionLock cs(&m_csRAIDDiskList);
-	vector<RAIDDiskInfo>::iterator it_disk = m_vRAIDDiskList.begin();
-	while (it_disk != m_vRAIDDiskList.end()) {
-		// Compare both soft link name and actual device node name.
-		// In case of soft link name is not the same, but the disk
-		// actually is in the list....
-		string strDevNode = GetDeviceNodeBySymLink(dev); 
-		if (*it_disk == strDevNode) {
-			return true;
-		}
-		it_disk++;
-	}
-
-	return false;
-}
-
-bool RAIDManager::IsDiskExistInRAIDDiskList(vector<string>& vDevList)
-{
-	vector<string>::iterator it_devlist = vDevList.begin();
-	while (it_devlist != vDevList.end()) {
-		if(!IsDiskExistInRAIDDiskList(*it_devlist)) {
-			return false; // Some device in the list is not in m_vRAIDDiskList.
-		}
-
-		it_devlist++;
-	}
-
-	return true;
-}
-
 bool RAIDManager::IsDiskHaveMDSuperBlock(const string& dev, examine_result &result, int &err)
 {
 	vector<string> vDevList;
@@ -240,36 +217,6 @@ bool RAIDManager::IsDiskHaveMDSuperBlock(const string& dev, examine_result &resu
 	return !(err == EXAMINE_NO_MD_SUPERBLOCK);
 }
 
-bool RAIDManager::AddDiskSymLink(const string& symlink, eDiskType type)
-{
-	if (symlink.empty())
-		return false;
-
-	CriticalSectionLock cs(&m_csSymLinkTable);
-
-	string strDevNode = GetDeviceNodeBySymLink(symlink);
-	MiscDiskInfo info(symlink, type);
-	info.Dump();
-	m_mapSymLinkTable[strDevNode] = info;
-	return true;
-}
-
-bool RAIDManager::RemoveDiskSymLink(const string& symlink)
-{
-	if (symlink.empty())
-		return false;
-
-	string strDevNode = GetDeviceNodeBySymLink(symlink);
-
-	CriticalSectionLock cs(&m_csSymLinkTable);
-
-	map<string, MiscDiskInfo>::iterator it = m_mapSymLinkTable.find(strDevNode);
-	if (it != m_mapSymLinkTable.end())
-		m_mapSymLinkTable.erase(it);
-
-	return true;
-}
-
 bool RAIDManager::AddDisk(const string& dev)
 {
 	/*0. dev is empty -> return false*/
@@ -285,155 +232,16 @@ bool RAIDManager::AddDisk(const string& dev)
 		return false;
 	}
 
-	/*[CS Start] Protect m_vRAIDDiskList*/
-	/*3. Exist in m_vRAIDDiskList?
-		3.1 Yes
-			Come from 2.2 return true
-			Come from 2.1 -> 4
-		3.2 No -> Push into m_vRAIDDiskLisit
-			Come from 2.2 return true
-			Come from 2.1 -> 4*/
-	struct examine_result result;
-	int ret = SUCCESS;
-	RAIDDiskInfo info;
-	bool bExist = IsDiskExistInRAIDDiskList(dev);
+	m_csDiskProfiles.Lock();
+	DiskProfile profile(dev);
+	m_mapDiskProfiles[dev] = profile;
+	m_csDiskProfiles.Unlock();
 
-	info.m_bHasMDSB = IsDiskHaveMDSuperBlock(dev, result, ret);
-	info.m_strDevName = GetDeviceNodeBySymLink(dev);
-	info.SetHDDVendorInfomation();
-	info.m_iRaidDiskNum = result.uRaidDiskNum;
-	memcpy(info.m_RaidUUID, result.arrayUUID, sizeof(int) * 4);
+	CriticalSectionLock cs_NotifyChange(&m_csNotifyChange);
+	if (NULL == m_pNotifyChange)
+		m_pNotifyChange->set();
 
-	// FIXME: Maybe the critical section should protect following code since checking the disk existence. 
-	if (!bExist) {
-		CriticalSectionLock cs(&m_csRAIDDiskList);
-		m_vRAIDDiskList.push_back(info);
-		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
-			   "%s added successfully .\n", dev.c_str());
-	} 
-
-	/*[CS End]*/
-
-	if (!info.m_bHasMDSB) {
-		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
-			   "%s has no MD superblock .\n", dev.c_str());
-		return true;
-	} else if (ret > 0) {
-		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
-			   "[%d] Examine Error Code %s: (%d)\n", __LINE__,
-			   dev.c_str(), ret);
-		return false;
-	}
-
-	/*4. SearchDiskBelong2RAID()
-		4.1 Has Active RAID in m_vRAIDInfoList 
-			4.1.1 Disk is active/spare in RAID -> return true
-			4.1.2 Disk is faulty in RAID -> RemoveDiskFromRAID() -> AddDiskIntoRAID() -> 6
-			4.1.3 ReaddDiskIntoRAID() -> 6
-		4.2 No Active RAID in m_vRAIDInfoList -> 5
-	*/
-	m_csRAIDInfoList.Lock();
-
-	string mddev;
-	vector<RAIDInfo>::iterator raid_it = SearchDiskBelong2RAID(info);
-	if (raid_it != m_vRAIDInfoList.end()) { // 4.1
-		vector<string> vDevList;
-		vDevList.push_back(dev);
-		
-		if (info.m_iState & (1 << MD_DISK_ACTIVE)) {
-			;
-		} else {
-			ret = ReaddMDDisks(raid_it->m_strDevNodeName, vDevList);
-			if (ret != SUCCESS) {
-				WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
-					   "[%d] Manage Error Code %s: (%d)\n",
-					   __LINE__,
-				  	 raid_it->m_strDevNodeName.c_str(), ret);
-			}
-		}
-		/*
-		 * Free lock here due to we need to protect raid_it.
-		 */
-		m_csRAIDInfoList.Unlock();
-	} else { // 4.2
-		/*
-		 * Because the disk does not belong to any
-		 * MD device now, no iterator need to be protected.
-		 * Free the lock directly. 
-		 */
-		m_csRAIDInfoList.Unlock();
-
-			/*	5. Check whether there are enough disk for assembling.
-				5.1 enough -> AssembleByRAIDUUID() -> 6
-				5.2 not enough -> return true	*/
-		int counter = 1; // count disk has the same uuid. Initial value is 1 for this newly added disk.
-		m_csRAIDDiskList.Lock();
-		for (size_t i = 0; i < m_vRAIDDiskList.size(); i++) {
-			if (info.m_strDevName == m_vRAIDDiskList[i].m_strDevName) // Bypass itself
-				continue;
-
-			// The list include other disks which has the same array id of this newly added disk.
-			if (0 == memcmp(info.m_RaidUUID, m_vRAIDDiskList[i].m_RaidUUID, sizeof(int) * 4))
-				counter++;
-		}
-		m_csRAIDDiskList.Unlock();
-		
-		if (counter >= info.m_iRaidDiskNum) {
-			if (AssembleRAID(info.m_RaidUUID, mddev)) {
-				/* Don't format the MD device for safety.
-				   To prevent from unnecessary format and
-				   then leading to data lost.
-				*/
-				int num = -1;
-				if (IsFormated(mddev) && !IsMounted(mddev, num))
-					Mount(mddev);
-				return true;
-			}
-		}
-	}
-
-	/* 6.  UpdateRAIDInfo(mddev) */
-	UpdateRAIDInfo(mddev);
 	return true;
-}
-
-vector<RAIDInfo>::iterator RAIDManager::SearchDiskBelong2RAID(RAIDDiskInfo& info)
-{
-	/* 0. dev is empty -> return false */
-	if (info.m_strDevName.empty())
-		return m_vRAIDInfoList.end();
-
-	/*
-		[CS Start] Protect m_vRAIDInfoList
-		1. Search dev in m_vRAIDInfoList.vDiskList
-			1.1 Exist a RAID return its iterator
-			1.2 Not exist a RAID return m_vRAIDInfoList.end()
-		[CS End]		
-	*/
-
-	//CriticalSectionLock cs(&m_csRAIDInfoList);
-	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
-	while (it != m_vRAIDInfoList.end()) {
-		if (0 != memcmp(it->m_UUID, info.m_RaidUUID, sizeof(info.m_RaidUUID))) {
-			it ++;
-			continue;
-		} else {
-			vector<RAIDDiskInfo>::iterator it_disk = it->m_vDiskList.begin();
-			while (it_disk != it->m_vDiskList.end()) {
-				if (*it_disk == info.m_strDevName) {
-					info = *it_disk;
-					break;
-				}
-
-				it_disk++;
-			}
-			return it;
-		}
-
-		it ++;
-	}
-
-	return it;
 }
 
 bool RAIDManager::RemoveDisk(const string& dev)
@@ -442,140 +250,17 @@ bool RAIDManager::RemoveDisk(const string& dev)
 	if (dev.empty())
 		return false;
 
-	/*
-		[CS Start] Protect m_vRAIDDiskList
-		1. Exist in m_vRAIDDiskList?
-			1.1 Yes -> Remove from m_vRAIDDiskList -> 2
-			1.2 No -> return true;
-		[CS End]
-	*/
-	m_csRAIDDiskList.Lock();
-	vector<RAIDDiskInfo>::iterator it = m_vRAIDDiskList.begin();
-	int uuid[4];
-	while (it != m_vRAIDDiskList.end()) {
-		if (*it == dev) {
-			memcpy(uuid, it->m_RaidUUID, sizeof(int) * 4);
-			break;
-		}
-		it++;
-	}
+	m_csDiskProfiles.Lock();
+	map<string, DiskProfile>::iterator it;
+	it = m_mapDiskProfiles.find(dev);
+	m_mapDiskProfiles.erase(it);
+	m_csDiskProfiles.Unlock();
 
-	if (it == m_vRAIDDiskList.end()) {
-		m_csRAIDDiskList.Unlock();
-		CriticalSectionLock cs(&m_csSymLinkTable);
-		map<string, MiscDiskInfo>::iterator it_symLinkTable = m_mapSymLinkTable.find(dev);
-		m_mapSymLinkTable.erase(it_symLinkTable);
-		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
-			   "%s removed successfully .\n", dev.c_str());
-		return true;
-	}
+	CriticalSectionLock cs_NotifyChange(&m_csNotifyChange);
+	if (NULL == m_pNotifyChange)
+		m_pNotifyChange->set();
 
-	/*
-		If disk is belong to a MD device, it needs to be marked faulty and
-		removed before it is removed from MD's disk list when we want to 
-		change a new HDD. But if users do the hot plug to the disk, the MD
-		device cannot know this operation, and its driver just remove the 
-		missing disk from its disk list.
-		
-		In order to prevent from any possible issues, we still try to
-		unmount the volume first, and then try to mark the disk faulty and
-		remove it. We don't care whether the procedure is successful or not.
-	*/
-
-	RAIDDiskInfo info = *it; // To prevent "it" from being modified by SearchDiskBelong2RAID
-	m_csRAIDInfoList.Lock();
-	vector<RAIDInfo>::iterator raid_it = SearchDiskBelong2RAID(info);
-	if (raid_it != m_vRAIDInfoList.end()) {
-		int num = -1;
-		if (raid_it->m_fsMgr->IsMounted(num)) {
-			raid_it->m_fsMgr->Unmount();
-			FreeVolumeNum(num);
-		}
-
-		vector<string> vDevList;
-		vDevList.push_back(dev);
-		MarkFaultyMDDisks(raid_it->m_strDevNodeName, vDevList);
-		RemoveMDDisks(raid_it->m_strDevNodeName, vDevList);
-	}
-	m_csRAIDInfoList.Unlock();
-
-	/* Move symbolic link information from m_mapSymLinkTable. */
-	m_csSymLinkTable.Lock();
-	map<string, MiscDiskInfo>::iterator it_symLinkTable = m_mapSymLinkTable.find(dev);
-	m_mapSymLinkTable.erase(it_symLinkTable);
-	m_csSymLinkTable.Unlock();
-
-	m_vRAIDDiskList.erase(it);
-	m_csRAIDDiskList.Unlock();
-
-	/* 2. UpdateRAIDInfo(uuid) 
-	 * The volume is expected to be mounted again if it is normal
-	 * during updating RAID information.
-	 */
-	UpdateRAIDInfo(uuid);
-	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
-		   "%s removed successfully .\n", dev.c_str());
 	return true;
-}
-
-void RAIDManager::UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList, const string& mddev)
-{
-	if (vRAIDDiskInfoList.empty())
-		return;
-
-	vector<RAIDDiskInfo>::iterator it = vRAIDDiskInfoList.begin();
-	while (it != vRAIDDiskInfoList.end()) {
-		bool bExist = false;
-		CriticalSectionLock csRAIDDiskList(&m_csRAIDDiskList);
-		vector<RAIDDiskInfo>::iterator it_all = m_vRAIDDiskList.begin();
-		while(it_all != m_vRAIDDiskList.end()) {
-			if (*it == *it_all) {
-				examine_result result;
-				int ret = SUCCESS;
-
-				it->m_bHasMDSB = IsDiskHaveMDSuperBlock(it->m_strDevName, result, ret);
-				*it_all = *it;
-				bExist = true;
-				break;
-			}
-
-			it_all++;
-		}
-
-		if (!bExist) {
-			// Should not be here.....
-			// If we are here, it means this disk is not added before creating the RAID volume.
-			// And we will not have the soft link information about the disk....
-			// But we still push it into list, look up for a way to get the soft link name.
-			m_vRAIDDiskList.push_back(*it);
-		}
-
-		CriticalSectionLock csSymLinkTable(&m_csSymLinkTable);
-		m_mapSymLinkTable[it->m_strDevName].m_strMDDev = mddev; 
-		it++;
-	}
-
-	CriticalSectionLock cs(&m_csSymLinkTable);
-	map<string, MiscDiskInfo>::iterator it_symLinkTab = m_mapSymLinkTable.begin();
-	while (it_symLinkTab != m_mapSymLinkTable.end()) {
-		if (it_symLinkTab->second.m_strMDDev != mddev) {
-			it_symLinkTab++;
-			continue;
-		}
-
-		bool bFound = false;
-		for (size_t i = 0; i < vRAIDDiskInfoList.size(); i++) {
-			if (it_symLinkTab->first == vRAIDDiskInfoList[i].m_strDevName) {
-				bFound = true;
-				break;
-			}
-		}
-		
-		if (!bFound)
-			it_symLinkTab->second.m_strMDDev = ""; // This MD device doesn't have this disk now.
-
-		it_symLinkTab++;		
-	}
 }
 
 bool RAIDManager::GetRAIDDetail(const string& mddev,
@@ -659,168 +344,6 @@ raid_abnormal:
 		FreeVolumeNum(num);
 	}
 	return true;
-}
-
-bool RAIDManager::UpdateRAIDInfo(const string& mddev, int mdnum)
-{
-	/* Update RAID object by mddev name.
-	   If the request mddev does not exist in the list,
-	   push the info into the list.*/
-
-	/* 0. dev is empty -> return false */
-	if (mddev.empty())
-		return false;
-		
-	/*
-		[CS Start] Protect m_vRAIDInfoList
-		1. Detail_ToArrayDetail(mddev)
-		2. Erase old one and push new one
-		[CS End]
-	*/
-	struct array_detail ad;
-	RAIDInfo info;
-	bool bGetDetailSuccess = false;
-
-	bGetDetailSuccess = GetRAIDDetail(mddev, ad);
-
-	CriticalSectionLock cs(&m_csRAIDInfoList);
-	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
-	while (it != m_vRAIDInfoList.end()) {
-		if (*it == mddev) {
-			if (!bGetDetailSuccess) {
-				 it->m_strState = "INVALID";
-				 return false;
-			}
-
-			*it = ad; // Keep some fixed information like mount point, volumne name
-			UpdateRAIDDiskList(it->m_vDiskList, mddev);
-
-			if (IsRAIDAbnormal(*it)) {
-				/* Obviously a useless MD device, remove it from the list. */
-				if (ad.arrayInfo.nr_disks == 0) {
-					m_vRAIDInfoList.erase(it);
-					WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
-							   "[%d] %s's disk number is zero. Remove from the list.\n",
-							   __LINE__, mddev.c_str());
-				}
-			}
-
-			return true;
-		}
-
-		it ++;
-	}
-
-	if (ad.arrayInfo.nr_disks == 0) {
-		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
-				   "[%d] %s's disk number is. Ignore it.\n",
-				   __LINE__, mddev.c_str());
-		return true;
-	}
-	
-	info = ad; // Update new information.
-	info.m_iMDNum = mdnum;
-	info.InitializeFSManager();
-	UpdateRAIDDiskList(info.m_vDiskList, mddev);
-	m_vRAIDInfoList.push_back(info);
-	return true;
-}
-
-bool RAIDManager::UpdateRAIDInfo()
-{
-	/*
-		Update all RAID objects in m_vRAIDInfoList,
-		and we don't add new RAID into list by this method.
-		1. For loop to get m_strDevNodeName
-		2. UpdateRAIDInfo(m_strDevNodeName)
-	*/
-
-	CriticalSectionLock cs(&m_csRAIDInfoList);
-	if (m_vRAIDInfoList.empty())
-		return true;
-
-	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
-	while (it != m_vRAIDInfoList.end()) {
-		struct array_detail ad;
-
-		if (!GetRAIDDetail(it->m_strDevNodeName, ad)) {
-			/* 
-			 * Cannot get RAID detail information.
-			 * In order to easily debug, assign "INVALID"
-			 * state to notify users.
-			 */
-			it->m_strState = "INVALID"; 
-			continue;
-		}
-
-		*it = ad; // Keep some fixed information like mount point, volumne name
-		UpdateRAIDDiskList(it->m_vDiskList, it->m_strDevNodeName); // For update m_mapSymLinkTable, this step should be done before remove the RAID device from the list.
-
-		IsRAIDAbnormal(*it);
-
-		if (ad.arrayInfo.nr_disks == 0) {
-			it = m_vRAIDInfoList.erase(it);
-			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
-					   "[%d] %s's disk number is zero. Remove from the list.\n",
-					   __LINE__, it->m_strDevNodeName.c_str());
-		} else {
-			it ++;
-		}
-	}
-
-	return true;
-}
-
-bool RAIDManager::UpdateRAIDInfo(const int uuid[4])
-{
-	/*
-		Update RAID objec by UUID.
-		and we don't add new RAID into list by this method.
-		1. For loop to look up m_strDevNodeName corresponding to the uuid.
-		2. UpdateRAIDInfo(m_strDevNodeName)
-	*/
-	if (uuid == NULL)
-		return false;
-
-	CriticalSectionLock cs(&m_csRAIDInfoList);
-	if (m_vRAIDInfoList.empty())
-		return true;
-
-	vector<RAIDInfo>::iterator it = m_vRAIDInfoList.begin();
-	while (it != m_vRAIDInfoList.end()) {
-		if (0 == memcmp(uuid, it->m_UUID, sizeof(int) * 4)) {
-			struct array_detail ad;
-			
-			if (!GetRAIDDetail(it->m_strDevNodeName, ad)) {
-				it->m_strState = "INVALID";
-				return false; 
-			}
-
-			*it = ad;
-			UpdateRAIDDiskList(it->m_vDiskList, it->m_strDevNodeName);
-			if (IsRAIDAbnormal(*it)) {
-				/* Obviously a useless MD device, remove it from the list. */
-				if (ad.arrayInfo.nr_disks == 0) {
-					m_vRAIDInfoList.erase(it);
-					WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
-							   "[%d] %s's disk number is zero. Remove from the list.\n",
-							   __LINE__, it->m_strDevNodeName.c_str());
-				}
-			}
-
-			return true;
-		}
-
-		it++;
-	}
-
-	unsigned char* p_uuid = (unsigned char*) uuid;
-	string strUUID("");
-	for (int i = 0; i < 16; i++) {
-		strUUID += string_format("%02X ", p_uuid[i]);
-	}
-	WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL, "MD device corresponding to %swas not found.\n", strUUID.c_str());
-	return false;
 }
 
 void RAIDManager::InitializeShape(struct shape& s, int raiddisks, int level, int chunk, int bitmap_chunk, char* bitmap_file)
@@ -1729,6 +1252,7 @@ bool RAIDManager::StopRAID(const string& mddev)
 	for (size_t i = 0; i < it->m_vDiskList.size(); i++) {
 		CriticalSectionLock csSymLinkTable(&m_csSymLinkTable);
 		m_mapSymLinkTable[it->m_vDiskList[i].m_strDevName].m_strMDDev = "";
+		m_mapSymLinkTable[it->m_vDiskList[i].m_strDevName].Dump();
 	}
 
 	FreeMDNum(it->m_iMDNum);
@@ -1932,7 +1456,8 @@ void RAIDManager::GetDisksInfo(vector<RAIDDiskInfo> &list)
 	while(it != m_vRAIDDiskList.end()) {
 		RAIDDiskInfo info = *it;
 		CriticalSectionLock csSymLinkTable(&m_csSymLinkTable);
-		info.m_miscInfo = m_mapSymLinkTable[it->m_strDevName]; 
+		info.m_miscInfo = m_mapSymLinkTable[it->m_strDevName];
+		info.Dump();
 		list.push_back(info);
 		it++;
 	}
@@ -2204,4 +1729,136 @@ string RAIDManager::GetDeviceNodeBySymLink(const string& symlink)
 	}
 
 	return symlink;
+}
+
+void RAIDManager::ThreadProc()
+{
+	uint32_t uMessage = (uint32_t) eTC_STOP;
+
+	while (1) {
+		if (CheckRequest(&uMessage)) {
+			switch (uMessage) {
+			case eTC_STOP:
+				Reply(0);
+				return;
+			default:
+				Reply(-1);
+				break;
+			}
+		}
+
+		/*
+		 * TODO: Monitor
+		 */
+
+		/*
+		 * Check current disk status;
+		 */
+		m_csDiskProfiles.Lock();
+		map::<string, DiskProfile>::iterator it_disk = m_mapDiskProfiles.begin();
+		while (it_disk != m_mapDiskProfiles.end()) {
+			struct udev *udev = NULL;
+			struct udev_device *dev = NULL;
+			udev = udev_new();
+			if (!udev) {
+				printf("can't create udev\n");
+				return;
+			}
+
+			dev = udev_device_new_from_subsystem_sysname(udev, "block", it_disk->first.c_str());
+			if (NULL == dev) {
+				it_disk = m_mapDiskProfiles.erase(it_disk);
+			} else {
+				DiskProfile profile(it_disk->first);
+				if (profile != it_disk->second) {
+					ASSERT2(0, "[%s] System name is the same, but other disk information is different.\n");
+					it_disk->second = profile;
+				}
+
+				it disk++;
+			}
+
+			udev_device_unref(dev);
+			udev_unref(udev);
+		}
+
+		m_csMDProfiles.Lock();
+
+		map::<string, MDProfile>::iterator it_md = m_mapMDProfiles.begin();
+		while (it_md != m_mapMDProfiles.end()) {
+			/*
+			 * Check MD exists or not.
+			 */
+			struct udev *udev = NULL;
+			struct udev_device *dev = NULL;
+			udev = udev_new();
+			if (!udev) {
+				printf("can't create udev\n");
+				return;
+			}
+
+			dev = udev_device_new_from_subsystem_sysname(udev, "block", it_md->first.c_str());
+			if (NULL == dev) {
+				FreeMDNum(it->m_iMDNum);
+
+				it->m_fsMgr->Unmount();
+				FreeVolumeNum(it->m_fsMgr->GetVolumeNum());
+
+				/*
+				 * TODO: Need to let disk member call ReadMDStat to
+				 * update its m_strMDDev?
+				 */
+
+				it_md = m_mapDiskProfiles.erase(it_md);
+				udev_unref(udev);
+				continue;
+			}
+
+			udev_device_unref(dev);
+			udev_unref(udev);
+
+			it_md->ReadMDStat(); /* Update new members */
+			vector<string>::iterator it_member = it_md->m_vMembers.begin();
+			while (it_member != it_md->m_vMembers.end()) {
+				/*
+				 * Don't use m_mapDiskProfiles[*it_member],
+				 * It the element does not exist, it will create an empty one,
+				 * and the result will always has the disk in the disk list.
+				 *
+				 * We use this to handle the MD device created by iSCSI disk.
+				 * iSCSI disk lost connection won't reflect on the MD device.
+				 * So, we have to do the this check manually remove the missing
+				 * disks in MD's member list.
+				 */
+
+				it_disk = m_mapDiskProfiles.find(*it_member);
+				if (it_disk == m_mapDiskProfiles.end()) {
+					it_member = it_md->m_vMembers.erase(it_member);
+				} else {
+					it_member++;
+				}
+			}
+
+			/*
+			 * TODO: Check potential malfunctional stauts of MD device and
+			 * do corresponding actions to protect the volume.
+			 *
+			 * Unmount, Stop MD Device, or .....
+			 */
+			 
+
+			it_md++;
+		}
+
+		m_csMDProfiles.Unlock();
+
+		m_csDiskProfiles.Unlock();
+		
+
+		if (m_pNotifyChange == NULL) {
+			SleepMS(RAIDMANAGER_MONITOR_INTERVAL);
+		} else {
+			m_pNotifyChange->timedwait(RAIDMANAGER_MONITOR_INTERVAL);
+		}
+	}
 }

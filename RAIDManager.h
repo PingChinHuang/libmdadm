@@ -15,6 +15,7 @@ extern "C" {
 #include "common/critical_section.h"
 #include "common/nusyslog.h"
 #include "common/smart_pointer.h"
+#include "apr/apr_thread_worker.h"
 using namespace SYSUTILS_SPACE;
 #else
 #include "test_utils.h"
@@ -31,6 +32,7 @@ using namespace SYSUTILS_SPACE;
 #include <unistd.h>
 #include <scsi/sg_cmds.h>
 #include <scsi/sg_unaligned.h>
+#include <libudev.h>
 
 using namespace std;
 
@@ -55,132 +57,136 @@ struct SGReadCapacity10 {
 	uint8_t m_BlockLength[4];
 };
 
-struct MiscDiskInfo {
-	string m_strSymLink;
+struct DiskProfile {
+	string m_strSysName;
+	string m_strDevPath;
+	string m_strSymlink;
 	string m_strMDDev;
+	string m_strVendor;
+	string m_strModel;
+	string m_strFWVer;
+	string m_strSerialNum;
+	int64_t	m_llCapacity;
 	eDiskType m_diskType;
+	int m_iBay;
 
-	MiscDiskInfo()
-	: m_strSymLink("")
+#if 0
+	DiskProfile()
+	: m_strDevPath("")
+	, m_strSymLink("")
 	, m_strMDDev("")
 	, m_diskType(DISK_TYPE_UNKNOWN)
+	, m_iBay(-1)
 	{
 	}
+#endif
 
-	MiscDiskInfo(const string& link, eDiskType type)
-	: m_strSymLink(link)
+	DiskProfile(string dev)
+	: m_strSysName(dev)
+	, m_strDevPath("")
+	, m_strSymLink("")
 	, m_strMDDev("")
-	, m_diskType(type)
+	, m_strVendor("")
+	, m_strModel("")
+	, m_strFWVer("")
+	, m_strSerialNum("")
+	, m_llCapacity("")
+	, m_diskType(DISK_TYPE_UNKNOWN)
+	, m_iBay(-1)
+	{
+		SetUDEVInformation();
+		SetHDDVendorInfomation();
+		ReadMDStat();
+	}
+
+	~DiskProfile()
 	{
 	}
 
-	~MiscDiskInfo()
-	{
-	}
-
-	MiscDiskInfo& operator=(const MiscDiskInfo& rhs)
+	DiskProfile& operator=(const DiskProfile& rhs)
 	{
 		if (this == &rhs)
 			return *this;
-
+		m_strSysName = rhs.m_strSysName;
+		m_strDevPath = rhs.m_strDevPath;
 		m_strSymLink = rhs.m_strSymLink;
 		m_diskType = rhs.m_diskType;
 		m_strMDDev = rhs.m_strMDDev;
+		m_iBay = rhs.m_iBay;
+		m_strVendor = rhs.m_strVendor;
+		m_strModel = rhs.m_strModel;
+		m_strFWVer = rhs.m_strFWVer;
+		m_strSerialNum = rhs.m_strSerialNum;
+		m_llCapacity = rhs.m_llCapacity;
 		return *this;
 	}
 
-	bool operator==(const MiscDiskInfo& rhs)
+	bool operator==(const DiskProfile& rhs)
 	{
-		return (m_strSymLink == rhs.m_strSymLink);
+		return (m_strSysName == rhs.m_strSysName &&
+				m_strDevPath == rhs.m_strDevPath &&
+				m_strSymLink == rhs.m_strSymLink);
 	}
 
-	void Dump()
+	void SetUDEVInformation()
 	{
-		printf("Soft Link: %s, In RAID: %s",
-			   m_strSymLink.c_str(), m_strMDDev.c_str());
-		switch (m_diskType) {
-		case DISK_TYPE_UNKNOWN:
-			printf(", Type: Unknown\n");
-			break;
-		case DISK_TYPE_SATA:
-			printf(", Type: SATA\n");
-			break;
-		case DISK_TYPE_ESATA:
-			printf(", Type: ESATA\n");
-			break;
-		case DISK_TYPE_ISCSI:
-			printf(", Type: iSCSI\n");
-			break;
-		case DISK_TYPE_NFS:
-			printf(", Type: NFS\n");
-			break;
+		if (m_strSysName.empty())
+			return;
+
+		struct udev *udev;
+		struct udev_device *dev;
+		udev = udev_new();
+		if (!udev) {
+			printf("can't create udev\n");
+			return;
 		}
+
+		dev = udev_device_new_from_subsystem_sysname(udev, "block", m_strSysName.c_str());
+		if (dev) {
+			int ret = 0;
+
+			m_strDevPath = udev_device_get_devnode(dev);
+			m_strSymLink = udev_device_get_property_value(dev, "ID_SYMLINK");
+
+			if (m_strSymLink.empty()) {
+				continue;
+			}
+
+			if (m_strSymLink.find("/dev/nuuo_sata") != string::npos) {
+				m_DiskType = DISK_TYPE_SATA;
+				ret = sscanf(m_strSymLink.c_str(), "/dev/nuuo_sata%d", &m_iBay);
+				if (ret < 1 || ret == EOF || num > 127 || num < 0) {
+					m_iBay = -1;
+				}
+			} else if (m_strSymLink.find("/dev/nuuo_esata") != string::npos) {
+				m_DiskType = DISK_TYPE_ESATA;
+				ret = sscanf(m_strSymLink.c_str(), "/dev/nuuo_sata%d", &m_iBay);
+				if (ret < 1 || ret == EOF || num > 127 || num < 0) {
+					m_iBay = -1;
+				}
+			} else if (m_strSymLink.find("/dev/nuuo_iscsi") != string::npos) {
+				m_DiskType = DISK_TYPE_ISCSI;
+			} else {
+				printf("Unknown SYMLINK\n");
+			}
+		} else {
+			printf("can't found block device %s.\n", m_strSysName.c_str());
+		}
+		
+		udev_device_unref(dev);
+		udev_unref(udev);
+		return;
 	}
-};
 
-struct RAIDDiskInfo {
-	MiscDiskInfo m_miscInfo;
-	string		m_strState;
-	string		m_strDevName;			/* Device node */
-	string		m_strVendor;
-	string		m_strModel;
-	string		m_strFirmwareVersion;
-	string		m_strSerialNum;
-	int64_t		m_llCapacity;
-	int32_t		m_RaidUUID[4];			/* Get after Examine(). */
-	int32_t		m_iState;
-	int32_t		m_iRaidDiskNum;
-	int32_t		m_iMajor;				/* For confirming whether disk is valid or not. */
-	int32_t		m_iMinor;				/* For confirming whether disk is valid or not. */
-	bool		m_bHasMDSB;
-
-	RAIDDiskInfo()
-	: m_strState("")
-	, m_strDevName("")
-	, m_strVendor("")
-	, m_strModel("")
-	, m_strFirmwareVersion("")
-	, m_strSerialNum("")
-	, m_llCapacity(0ll)
-	, m_iState(0)
-	, m_iRaidDiskNum(0)
-	, m_iMajor(0)
-	, m_iMinor(0)
-	, m_bHasMDSB(false)
+	void SetDiskVendorInfomation()
 	{
-		memset(m_RaidUUID, 0x00, sizeof(m_RaidUUID));
-	}
-
-	~RAIDDiskInfo() {}
-
-	RAIDDiskInfo& operator=(const struct array_disk_info& rhs)
-	{
-		m_strState = rhs.strState;
-		m_strDevName = rhs.strDevName;
-		m_iState = rhs.diskInfo.state;
-		m_iRaidDiskNum = rhs.diskInfo.raid_disk;
-		m_iMajor = rhs.diskInfo.major;
-		m_iMinor = rhs.diskInfo.minor;
-		SetHDDVendorInfomation();
-		return *this;
-	}
-
-	void Dump()
-	{
-		printf("Device: %s, State: %s, MD Super Block: %s, Major: %d, Minor: %d\n\t",
-			   m_strDevName.c_str(), m_strState.c_str(), m_bHasMDSB ? "Yes" : "No",
-			   m_iMajor, m_iMinor);
-		m_miscInfo.Dump();
-	}
-
-	void SetHDDVendorInfomation() {
-		if (m_strDevName.empty())
+		if (m_strDevPath.empty())
 			return;
 
 		struct sg_simple_inquiry_resp resp;
 		struct SGSerialNoPage sg_sn_resp;
 		struct SGReadCapacity10 sg_readcap10_resp;
-		int sg_fd = sg_cmds_open_device(m_strDevName.c_str(), 1, 1);
+		int sg_fd = sg_cmds_open_device(m_strDevPath.c_str(), 1, 1);
 
 		if (sg_fd < 0)
 			return;
@@ -188,7 +194,7 @@ struct RAIDDiskInfo {
 		if (0 == sg_simple_inquiry(sg_fd, &resp, 0, 0)) {
 			m_strVendor = resp.vendor;
 			m_strModel = resp.product;
-			m_strFirmwareVersion = resp.revision;
+			m_strFWVer = resp.revision;
 		} else {
 			/*WriteHWLog(LOG_LOCAL1, LOG_DEBUG, "DiskInfo",
 					   "Cannot get %s's vendor information.",
@@ -225,43 +231,256 @@ struct RAIDDiskInfo {
 		sg_cmds_close_device(sg_fd);	
 	}
 
+	void ReadMDStat()
+	{
+		struct mdstat_ent *ms = md_read(0, 0);
+		struct mdstat_ent *e = ms;
+		e = mdstat_by_component(m_strSysName.c_str());
+		if (e)
+			m_strMDDev = e->dev;
+		else
+			m_strMDDev = "";
+
+		free_mdstat(e);
+	}
+
+	void Dump()
+	{
+		printf("Soft Link: %s, In RAID: %s",
+			   m_strSymLink.c_str(), m_strMDDev.c_str());
+		switch (m_diskType) {
+		case DISK_TYPE_UNKNOWN:
+			printf(", Type: Unknown\n");
+			break;
+		case DISK_TYPE_SATA:
+			printf(", Type: SATA\n");
+			break;
+		case DISK_TYPE_ESATA:
+			printf(", Type: ESATA\n");
+			break;
+		case DISK_TYPE_ISCSI:
+			printf(", Type: iSCSI\n");
+			break;
+		case DISK_TYPE_NFS:
+			printf(", Type: NFS\n");
+			break;
+		}
+	}
+};
+
+struct RAIDDiskInfo {
+	DiskProfile m_diskProfile;
+	string		m_strState;
+	string		m_strDevPath;			/* Device node */
+	int32_t		m_RaidUUID[4];			/* Get after Examine(). */
+	int32_t		m_iState;
+	int32_t		m_iRaidDiskNum;
+	int32_t		m_iMajor;				/* For confirming whether disk is valid or not. */
+	int32_t		m_iMinor;				/* For confirming whether disk is valid or not. */
+	bool		m_bHasMDSB;
+
+	RAIDDiskInfo()
+	: m_strState("")
+	, m_strDevPath("")
+	, m_iState(0)
+	, m_iRaidDiskNum(0)
+	, m_iMajor(0)
+	, m_iMinor(0)
+	, m_bHasMDSB(false)
+	{
+		memset(m_RaidUUID, 0x00, sizeof(m_RaidUUID));
+	}
+
+	~RAIDDiskInfo() {}
+
+	RAIDDiskInfo& operator=(const struct array_disk_info& rhs)
+	{
+		m_strState = rhs.strState;
+		m_strDevPath = rhs.strDevName;
+		m_iState = rhs.diskInfo.state;
+		m_iRaidDiskNum = rhs.diskInfo.raid_disk;
+		m_iMajor = rhs.diskInfo.major;
+		m_iMinor = rhs.diskInfo.minor;
+		return *this;
+	}
+
+	void Dump()
+	{
+		printf("Device: %s, State: %s, MD Super Block: %s, Major: %d, Minor: %d\n\t",
+			   m_strDevPath.c_str(), m_strState.c_str(), m_bHasMDSB ? "Yes" : "No",
+			   m_iMajor, m_iMinor);
+		m_diskProfile.Dump();
+	}
+
 	RAIDDiskInfo& operator=(const RAIDDiskInfo& rhs)
 	{
 		if (this == &rhs)
 			return *this;
+		m_diskProfile = rhs.m_diskProfile;
 		m_strState = rhs.m_strState;
-		m_strDevName = rhs.m_strDevName;
+		m_strDevPath = rhs.m_strDevPath;
 		m_iState = rhs.m_iState;
 		m_iRaidDiskNum = rhs.m_iRaidDiskNum;
 		m_bHasMDSB = rhs.m_bHasMDSB;
 		m_iMajor = rhs.m_iMajor;
 		m_iMinor = rhs.m_iMinor;
-		SetHDDVendorInfomation();
 		return *this;
 	}
 
 	bool operator==(const RAIDDiskInfo& rhs) const
 	{
-		return (m_strDevName == rhs.m_strDevName);
+		return (m_strDevPath == rhs.m_strDevPath);
 	}
 
 	bool operator==(const string& rhs) const
 	{
-		return (rhs == m_strDevName);
+		return (rhs == m_strDevPath);
+	}
+
+	bool operator==(const DiskProfile& profile) const
+	{
+		return (m_strDevPath == profile.m_strDevPath);
 	}
 };
 
-struct RAIDInfo {
+struct MDProfile {
 #ifdef NUUO
 	smart_ptr<FilesystemManager> m_fsMgr;
 #else
 	shared_ptr<FilesystemManager> m_fsMgr;
 #endif
+	vector<string> m_vMembers;
+	string m_strSysName;
+	string m_strDevPath;
+	int m_iRaidDisks; 
+	int m_iDevCount;
+	int m_iMDNum;
+
+	MDProfile(string dev)
+	: m_strSysName(dev)
+	, m_strDevPath("")
+	, m_iRaidDisks(0)
+	, m_iDevCount(0)
+	, m_iMDNum(-1)
+	{
+		m_vMembers.clear();
+		SetUDEVInformation();
+		ReadMDStat();
+		InitializeFSManager();
+	}
+
+	~MDProfile()
+	{
+		m_vMembers.clear();
+		m_fsMgr = NULL;
+	}
+
+	MDProfile& operator=(MDProfile& rhs)
+	{
+		if (this == &rhs)
+			return *this;
+
+		m_vMembers.clear();
+		for (size_t i = 0; i < rhs.m_vMembers.size(); i++)
+			m_vMembers.push_back(rhs.m_vMembers[i]);
+		m_strSysName = rhs.m_strSysName;
+		m_strDevPath = rhs.m_strDevPath;
+		m_iRaidDisks = rhs.m_iRaidDisks;
+		m_iDevCount = rhs.m_iDevCount;
+		m_iMDNum = rhs.m_iMDNum;
+		m_fsMgr = rhs.m_fsMgr;
+		return *this;
+	}
+
+	bool operator==(MDProfile& rhs)
+	{
+		return (m_strSysName == rhs.m_strSysName);
+	}
+
+	void SetUDEVInformation()
+	{
+		if (m_strSysName.empty())
+			return;
+
+		struct udev *udev;
+		struct udev_device *dev;
+		udev = udev_new();
+		if (!udev) {
+			printf("can't create udev\n");
+			return;
+		}
+
+		dev = udev_device_new_from_subsystem_sysname(udev, "block", m_strSysName.c_str());
+		if (dev) {
+			int ret = 0;
+
+			m_strDevPath = udev_device_get_devnode(dev);
+
+			if (m_strDevPath.empty()) {
+				continue;
+			}
+
+			ret = sscanf(m_strDevPath.c_str(), "/dev/md%d", &m_iMDNum);
+				if (ret < 1 || ret == EOF || m_iMDNum > 127 || m_iMDNum < 0) {
+					m_iMDNum = -1;
+				}
+		}
+
+		udev_device_unref(dev);
+		udev_unref(udev);
+		return;
+	}
+
+	void ReadMDStat()
+	{
+		struct mdstat_ent *ms = md_read(0, 0);
+		struct mdstat_ent *e = ms;
+		m_vMembers.clear();
+		for (; e; e = e->next) {
+			if (m_strSysName == e->dev) {
+				struct dev_member *dev = e->members;
+				for (; dev; dev = dev->next) {
+					m_vMembers.push_back(dev->name);
+				}
+
+				m_iRaidDisks = e->raid_disks;
+				m_iDevCount = e->devcnt;
+				break;
+			}
+		}
+		free_mdstat(ms);
+	}
+
+	bool InitializeFSManager() {
+		try {
+#ifdef NUUO
+			m_fsMgr = new FilesystemManager(m_strDevPath);
+#else
+			m_fsMgr = shared_ptr<FilesystemManager>(new FilesystemManager(m_strDevPath));
+#endif
+			if (!m_fsMgr->IsInitialied()) {
+				WriteHWLog(LOG_LOCAL0, LOG_ERR, "RAIDInfo",
+					   "Iniitialize FilesystemManager failed.");
+				return false;
+			}
+		} catch (bad_alloc&) {
+			m_fsMgr = NULL;
+			WriteHWLog(LOG_LOCAL0, LOG_ERR, "RAIDInfo",
+				   "Allocate memory failed.");
+			return false;
+		}
+
+		return true;
+	}	
+};
+
+struct RAIDInfo {
 	vector<RAIDDiskInfo>	m_vDiskList;
-	string			m_strDevNodeName;
+	string			m_strSysName;
 	string			m_strState;
 	string			m_strLayout;
 	string			m_strRebuildingOperation;
+	string			m_strMountPoint;
 	time_t			m_CreationTime;
 	time_t			m_UpdateTime;
 	uint32_t		m_UUID[4];
@@ -278,16 +497,20 @@ struct RAIDInfo {
 	int32_t			m_iChunkSize;
 	int32_t			m_iRebuildingProgress;
 	int32_t			m_iMDNum;
+	int32_t			m_iFormatingState;
+	int32_t			m_iFormatProgress;
+	bool			m_bFormat;
+	bool			m_bMount;
 	bool			m_bSuperBlockPersistent;
 	bool			m_bInactive;
 	bool			m_bRebuilding;
 	
 	RAIDInfo()
-	: m_fsMgr(NULL)
-	, m_strDevNodeName("")
+	: m_strDevNodeName("")
 	, m_strState("")
 	, m_strLayout("")
 	, m_strRebuildingOperation("")
+	, m_strMountPoint("")
 	, m_CreationTime(0)
 	, m_UpdateTime(0)
 	, m_ullTotalCapacity(0ull)
@@ -303,6 +526,10 @@ struct RAIDInfo {
 	, m_iChunkSize(512)
 	, m_iRebuildingProgress(-1)
 	, m_iMDNum(-1)
+	, m_iFormatingState(-1)
+	, m_iFormatProgress(-1)
+	, m_bFormat(false)
+	, m_bMount(false)
 	, m_bSuperBlockPersistent(false)
 	, m_bInactive(false)
 	, m_bRebuilding(false)
@@ -312,30 +539,7 @@ struct RAIDInfo {
 	}
 
 	~RAIDInfo() {
-		m_fsMgr = NULL;
 	}
-
-	bool InitializeFSManager() {
-		try {
-#ifdef NUUO
-			m_fsMgr = new FilesystemManager;
-#else
-			m_fsMgr = shared_ptr<FilesystemManager>(new FilesystemManager);
-#endif
-			if (!m_fsMgr->SetDeviceNode(m_strDevNodeName)) {
-				WriteHWLog(LOG_LOCAL0, LOG_ERR, "RAIDInfo",
-					   "Iniitialize FilesystemManager failed.");
-				return false;
-			}
-		} catch (bad_alloc&) {
-			m_fsMgr = NULL;
-			WriteHWLog(LOG_LOCAL0, LOG_ERR, "RAIDInfo",
-				   "Allocate memory failed.");
-			return false;
-		}
-
-		return true;
-	}	
 
 	RAIDInfo& operator=(const struct array_detail& rhs)
 	{
@@ -408,21 +612,24 @@ struct RAIDInfo {
 		m_bSuperBlockPersistent = rhs.m_bSuperBlockPersistent;
 		m_CreationTime = rhs.m_CreationTime;
 		m_UpdateTime = rhs.m_UpdateTime;
-		m_fsMgr = rhs.m_fsMgr;
 		m_iMDNum = rhs.m_iMDNum;
+		m_iFormatProgress = rhs.m_iFormatProgress;
+		m_iFormatingState = rhs.m_iFormatingState;
+		m_bMount = rhs.m_bMount;
+		m_bFormat = rhs.m_bFormat;
 
 		return *this;
 	}
 
 	bool operator==(const RAIDInfo& rhs) const
 	{
-		return (m_strDevNodeName == rhs.m_strDevNodeName &&
+		return (m_strSysName == rhs.m_strSysName &&
 			0 == memcmp(rhs.m_UUID, m_UUID, sizeof(m_UUID)));
 	}
 
 	bool operator==(const string& rhs) const
 	{
-		return (m_strDevNodeName == rhs);
+		return (m_strSysName == rhs);
 	}
 
 	bool IsRAIDStatusChanged(const RAIDInfo& previous) {
@@ -439,20 +646,19 @@ struct RAIDInfo {
 			"\tTotal Capacity: %lld\n\tUsed Capacity: %lld\n"
 			"\tTotal Disks: %d (R: %d, A: %d, W: %d, F: %d, S: %d)\n"
 			"\tCreatetion Time: %.24s\n\tUpdate Time: %.24s\n"
-			"\tRebuilding: %s (%d%%)\n\n",
+			"\tRebuilding: %s (%d%%)\n\tMounted: %s\n\tFormated: %s\n"
+			"\tFormating Progress: %d\n\n",
 			m_strDevNodeName.c_str(), m_strState.c_str(),
 			m_iRAIDLevel, m_iChunkSize,
 			m_ullTotalCapacity, m_ullUsedSize,
 			m_iTotalDiskNum, m_iRAIDDiskNum, m_iActiveDiskNum,
 			m_iWorkingDiskNum, m_iFailedDiskNum, m_iSpareDiskNum,
 			ctime(&m_CreationTime), ctime(&m_UpdateTime),
-			m_bRebuilding?"Yes":"No", (m_iRebuildingProgress < 0)?100:m_iRebuildingProgress
+			m_bRebuilding?"Yes":"No", (m_iRebuildingProgress < 0)?100:m_iRebuildingProgress,
+			m_bMount?"Yes":"No", m_bFormat?"Yes":"No",
+			m_iFormatingState
 			);
 		
-		if (m_fsMgr.get() != NULL)
-			m_fsMgr->Dump();
-		printf("\n");
-
 		for (size_t i =0 ; i < m_vDiskList.size(); i++) {
 			printf("\t");
 			m_vDiskList[i].Dump();
@@ -461,20 +667,19 @@ struct RAIDInfo {
 	}
 };
 
-class RAIDManager {
+class RAIDManager : public AprThreadWorker {
 private:
-	vector<RAIDInfo> m_vRAIDInfoList;
-	vector<RAIDDiskInfo> m_vRAIDDiskList;
-	map<string, MiscDiskInfo> m_mapSymLinkTable; /* string: real device node*/
-	
-	CriticalSection m_csRAIDInfoList;
-	CriticalSection m_csRAIDDiskList;
-	CriticalSection m_csUsedMD;
-	CriticalSection m_csUsedVolume;
-	CriticalSection m_csSymLinkTable;
-
+	map<string, MDProfile> m_mapMDProfiles; /* /dev/mdX, profile */
+	map<string, DiskProfile> m_mapDiskProfiles; /* /dev/sdX, profile */
 	bool m_bUsedMD[128];
 	bool m_bUsedVolume[128];
+	
+	CriticalSection m_csMDProfiles;
+	CriticalSection m_csDiskProfiles;
+	CriticalSection m_csNotifyChange;
+	CriticalSection m_csUsedMD;
+	CriticalSection m_csUsedVolume;
+	AprCond *m_pNotifyChange;
 
 private:
 	vector<RAIDInfo>::iterator SearchDiskBelong2RAID(RAIDDiskInfo& devInfo);
@@ -493,13 +698,16 @@ private:
 
 	int CreateRAID(const int& mdnum, string& mddev, vector<string>& vDevList, int level);
 	int CreateRAID(const string& mddev, vector<string>& vDevList, int level);
+
 	int AssembleRAID(const int& mdnum, string& mddev, const int uuid[4]);
 	int AssembleRAID(const string& mddev, const int uuid[4]);
 	int AssembleRAID(const int& mdnum, string& mddev, vector<string>& vDevList);
 	int AssembleRAID(const string& mddev, vector<string>& vDevList);
+
 	int GetFreeMDNum();
 	void FreeMDNum(int n);
 	void SetMDNum(int n);
+
 	int GetFormerVolumeNum(int n);
 	int GetFreeVolumeNum();
 	void FreeVolumeNum(int n);
@@ -519,23 +727,27 @@ private:
 	bool GetRAIDDetail(const string& mddev, array_detail &ad);
 	bool IsRAIDAbnormal(const RAIDInfo &info);
 
+protected:
+	void ThreadProc();
+
 public:
 	RAIDManager();
 	~RAIDManager();
 
-	bool AddDiskSymLink(const string& symlink, eDiskType type);
-	bool RemoveDiskSymLink(const string& symlink);
 	bool AddDisk(const string& dev);
 	bool RemoveDisk(const string& dev);
 
-	bool CreateRAID(vector<string>& vDevList, int level, string& strMDName);
-	bool AssembleRAID(const int uuid[4], string& strMDName);
-	bool AssembleRAID(vector<string>& vDevList, string& strMDName);
+	bool CreateRAID(vector<string>& vDevList, int level);
+
+	bool AssembleRAID(const int uuid[4]);
+	bool AssembleRAID(vector<string>& vDevList);
+
 	bool RemoveMDDisks(const string& mddev, vector<string>& vDevList);
 	bool MarkFaultyMDDisks(const string& mddev, vector<string>& vDevList);
 	bool AddMDDisks(const string& mddev, vector<string>& vDevList);
 	bool ReaddMDDisks(const string& mddev, vector<string>& vDevList);
 	bool ReplaceMDDisk(const string& mddev, const string& replace, const string& with);
+
 	bool DeleteRAID(const string& mddev);
 	bool StopRAID(const string& mddev);
 
@@ -543,12 +755,6 @@ public:
 	void GetRAIDInfo(vector<RAIDInfo>& list);
 	void GetDisksInfo(vector<RAIDDiskInfo> &list);
 	bool GetDisksInfo(const string& dev, RAIDDiskInfo &info);
-	bool GetDisksInfoBySymLink(const string& link, RAIDDiskInfo &info);
-	bool GetDisksInfoBySymLink(vector<RAIDDiskInfo> &list);
-
-	bool UpdateRAIDInfo(); // May need for periodically update.
-	bool UpdateRAIDInfo(const string& mddev, int mdnum = -1);
-	bool UpdateRAIDInfo(const int uuid[4]);
 
 	bool CheckFileSystem();
 	bool DoFileSystemRecovery();

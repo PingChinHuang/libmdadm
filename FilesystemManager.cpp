@@ -26,8 +26,10 @@ FilesystemManager::FilesystemManager(const string& dev)
 , m_iFormatProgress(0)
 , m_bFormat(false)
 , m_bMount(false)
+, m_bInitilzed(false)
 {
-	Initialize();
+	CriticalSectionLock cs(m_csInitialized);
+	m_bInitilized = Initialize();
 }
 
 FilesystemManager::FilesystemManager()
@@ -40,18 +42,22 @@ FilesystemManager::FilesystemManager()
 , m_iFormatProgress(0)
 , m_bFormat(false)
 , m_bMount(false)
+, m_bInitilzed(false)
 {
 }
 
 FilesystemManager::~FilesystemManager()
 {
-
+	CriticalSectionLock cs(m_csInitialized);
+	m_bInitilized = false;
 }
 
 bool FilesystemManager::SetDeviceNode(const string &dev)
 {
 	m_strDevNode = dev;
-	return Initialize();
+	CriticalSectionLock cs(m_csInitialized);
+	m_bInitilzed = Initialize();
+	return m_bInitilzed;
 }
 
 bool FilesystemManager::Initialize()
@@ -79,6 +85,12 @@ bool FilesystemManager::Initialize()
 	return true;
 }
 
+void FilesystemManager::IsInitialized()
+{
+	CriticalSectionLock cs(m_csInitialized);
+	return m_bInitilized;
+}
+
 void FilesystemManager::SetMountPoint(const string &mountpoint)
 {
 	m_strMountPoint = mountpoint;
@@ -87,11 +99,9 @@ void FilesystemManager::SetMountPoint(const string &mountpoint)
 #ifdef NUUO
 void FilesystemManager::ThreadProc()
 {
-	if (!Format()) {
-		return;
-	}
+	Format();
 
-	SleepMS(100); // Wait for MD device's fs ready.
+	/*SleepMS(2000); // Wait for MD device's fs ready.
 
 	if (!Mount(m_strMountPoint)) {
 		return;
@@ -99,13 +109,19 @@ void FilesystemManager::ThreadProc()
 
 	GenerateUUIDFile();
 	CreateDefaultFolders();
-	Dump();
+	Dump();*/
 }
 #endif
 
 bool FilesystemManager::Format(bool force)
 {
 	int ret = 0;
+
+	if (m_strDevNode.empty()) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+			   "Device node is not specified.\n");
+		return false;
+	}
 
 	CriticalSectionLock cs(&m_csFormat);
 
@@ -124,6 +140,11 @@ format_done:
 	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 		   "Format %s successfully.\n", m_strDevNode.c_str());
 	return true;
+}
+
+bool FilesystemManager::Mount()
+{
+	return Mount(m_strMountPoint);
 }
 
 bool FilesystemManager::Mount(const string& strMountPoint)
@@ -188,11 +209,17 @@ bool FilesystemManager::Mount(const string& strMountPoint)
 
 	if (mount(m_strDevNode.c_str(), strMountPoint.c_str(),
 		  m_strFSType.c_str(), 0, "") < 0) {
-		strErrorLog = string_format("Fail to mount %s to %s. (%s)",
-					  m_strDevNode.c_str(),
-					  m_strMountPoint.c_str(),
-					  strerror(errno));
-		goto mount_err;
+
+		SleepMS(2000);
+		/* Retry */
+		if (mount(m_strDevNode.c_str(), strMountPoint.c_str(),
+			m_strFSType.c_str(), 0, "") < 0) {
+			strErrorLog = string_format("Fail to mount %s to %s. (%s)",
+										m_strDevNode.c_str(),
+										m_strMountPoint.c_str(),
+										strerror(errno));
+			goto mount_err;
+		}
 	}
 
 mount_ok:
@@ -535,4 +562,21 @@ void FilesystemManager::SetVolumeNum(const int &num)
 {
 	m_iVolumeNum = num;
 	m_strMountPoint = string_format("/mnt/VOLUME%d", m_iVolumeNum + 1);
+}
+
+int FilesystemManager::GetVolumeNum()
+{
+	return m_iVolumeNum;
+}
+
+string FilesystemManager::GetMountPoint()
+{
+	return m_strMountPoint;
+}
+
+string FilesystemManager::GetMountPoint(const int& num)
+{
+	m_iVolumeNum = num;
+	m_strMountPoint = string_format("/mnt/VOLUME%d", m_iVolumeNum + 1);
+	return m_strMountPoint;
 }
