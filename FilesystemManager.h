@@ -54,7 +54,6 @@ protected:
 
 private:
 	void InitializeMke2fsHandle();
-	bool Initialize();
 	int blkid();
 
 public:
@@ -65,6 +64,7 @@ public:
 	static void MakeFilesystemProgress(void *pData, int stat,
 					   int current, int total);
 	//static void CheckFilesystemProgress();
+	bool Initialize();
 
 	bool Format(bool force = true);
 	//bool Check();
@@ -74,7 +74,7 @@ public:
 	bool SetDeviceNode(const string &dev);
 	void SetMountPoint(const string &mountpoint);
 	void SetVolumeNum(const int &num);
-	string GetVolumeNum(const int &num);
+	int GetVolumeNum();
 	string GetMountPoint();
 	string GetMountPoint(const int &num);
 
@@ -86,7 +86,7 @@ public:
 	bool IsFormating(int& progress, int& stat);
 	bool IsMounted(string& strMountPoint);
 	bool IsMounted(int& num);
-	bool IsInitialied();
+	bool IsInitialized();
 	void SetFormatInfo(bool format, int progress,
 			   int stat);
 

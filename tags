@@ -267,8 +267,6 @@ AddClientSessionToCache	../../titanutils/MsClient/LoginCtrl/SessionKeyCtrlMgr.cp
 AddClientSessionToCache	../../titanutils/MsClient/LoginCtrl/SessionKeyCtrlMgr.h	/^    bool AddClientSessionToCache(const MsClientCommand::stSession& clientSession);$/;"	p	class:CSessionKeyControlMgr	access:public	signature:(const MsClientCommand::stSession& clientSession)
 AddDisk	./RAIDManager.cpp	/^bool RAIDManager::AddDisk(const string& dev)$/;"	f	class:RAIDManager	signature:(const string& dev)
 AddDisk	./RAIDManager.h	/^	bool AddDisk(const string& dev);$/;"	p	class:RAIDManager	access:public	signature:(const string& dev)
-AddDiskSymLink	./RAIDManager.cpp	/^bool RAIDManager::AddDiskSymLink(const string& symlink, eDiskType type)$/;"	f	class:RAIDManager	signature:(const string& symlink, eDiskType type)
-AddDiskSymLink	./RAIDManager.h	/^	bool AddDiskSymLink(const string& symlink, eDiskType type);$/;"	p	class:RAIDManager	access:public	signature:(const string& symlink, eDiskType type)
 AddEPOCHTimeMS	../common/system.cpp	/^DLL_PUBLIC uint64_t SYSUTILS_SPACE::AddEPOCHTimeMS(uint64_t ms)$/;"	f	class:SYSUTILS_SPACE	signature:(uint64_t ms)
 AddEPOCHTimeMS	../common/system.h	/^DLL_PUBLIC uint64_t AddEPOCHTimeMS(uint64_t ms);$/;"	p	namespace:SYSUTILS_SPACE	signature:(uint64_t ms)
 AddMDDisks	./RAIDManager.cpp	/^bool RAIDManager::AddMDDisks(const string& mddev, vector<string>& vDevList)$/;"	f	class:RAIDManager	signature:(const string& mddev, vector<string>& vDevList)
@@ -711,18 +709,10 @@ AprUdpSocket::send	../apr/apr_socket.cpp	/^DLL_PUBLIC apr_status_t AprUdpSocket:
 AprUdpSocket::sendto	../apr/apr_socket.cpp	/^DLL_PUBLIC apr_status_t AprUdpSocket::sendto($/;"	f	class:AprUdpSocket	signature:( const char *buf, apr_size_t* size, apr_sockaddr_t* addr )
 AprUdpSocket::~AprUdpSocket	../apr/apr_socket.cpp	/^DLL_PUBLIC AprUdpSocket::~AprUdpSocket()$/;"	f	class:AprUdpSocket	signature:()
 Assemble	./libmdadm/mdadm.h	/^extern int Assemble(struct supertype *st, char *mddev,$/;"	p	signature:(struct supertype *st, char *mddev, struct mddev_ident *ident, struct mddev_dev *devlist, struct context *c)
-AssembleRAID	./RAIDManager.cpp	/^bool RAIDManager::AssembleRAID(const int uuid[4], string& strMDName)$/;"	f	class:RAIDManager	signature:(const int uuid[4], string& strMDName)
-AssembleRAID	./RAIDManager.cpp	/^bool RAIDManager::AssembleRAID(vector<string>& vDevList, string& strMDName)$/;"	f	class:RAIDManager	signature:(vector<string>& vDevList, string& strMDName)
-AssembleRAID	./RAIDManager.cpp	/^int RAIDManager::AssembleRAID(const int& mdnum, string& mddev, const int uuid[4])$/;"	f	class:RAIDManager	signature:(const int& mdnum, string& mddev, const int uuid[4])
-AssembleRAID	./RAIDManager.cpp	/^int RAIDManager::AssembleRAID(const int& mdnum, string& mddev, vector<string>& vDevList)$/;"	f	class:RAIDManager	signature:(const int& mdnum, string& mddev, vector<string>& vDevList)
+AssembleRAID	./RAIDManager.cpp	/^bool RAIDManager::AssembleRAID(const int uuid[4], string& mddev)$/;"	f	class:RAIDManager	signature:(const int uuid[4], string& mddev)
 AssembleRAID	./RAIDManager.cpp	/^int RAIDManager::AssembleRAID(const string& mddev, const int uuid[4])$/;"	f	class:RAIDManager	signature:(const string& mddev, const int uuid[4])
-AssembleRAID	./RAIDManager.cpp	/^int RAIDManager::AssembleRAID(const string& mddev, vector<string>& vDevList)$/;"	f	class:RAIDManager	signature:(const string& mddev, vector<string>& vDevList)
-AssembleRAID	./RAIDManager.h	/^	bool AssembleRAID(const int uuid[4], string& strMDName);$/;"	p	class:RAIDManager	access:public	signature:(const int uuid[4], string& strMDName)
-AssembleRAID	./RAIDManager.h	/^	bool AssembleRAID(vector<string>& vDevList, string& strMDName);$/;"	p	class:RAIDManager	access:public	signature:(vector<string>& vDevList, string& strMDName)
-AssembleRAID	./RAIDManager.h	/^	int AssembleRAID(const int& mdnum, string& mddev, const int uuid[4]);$/;"	p	class:RAIDManager	access:private	signature:(const int& mdnum, string& mddev, const int uuid[4])
-AssembleRAID	./RAIDManager.h	/^	int AssembleRAID(const int& mdnum, string& mddev, vector<string>& vDevList);$/;"	p	class:RAIDManager	access:private	signature:(const int& mdnum, string& mddev, vector<string>& vDevList)
+AssembleRAID	./RAIDManager.h	/^	bool AssembleRAID(const int uuid[4], string &mddev);$/;"	p	class:RAIDManager	access:private	signature:(const int uuid[4], string &mddev)
 AssembleRAID	./RAIDManager.h	/^	int AssembleRAID(const string& mddev, const int uuid[4]);$/;"	p	class:RAIDManager	access:private	signature:(const string& mddev, const int uuid[4])
-AssembleRAID	./RAIDManager.h	/^	int AssembleRAID(const string& mddev, vector<string>& vDevList);$/;"	p	class:RAIDManager	access:private	signature:(const string& mddev, vector<string>& vDevList)
 Assign	../../titanutils/serverConfig/MSConfigFile.h	/^	void Assign(const stConfigBaseItem& item)$/;"	f	struct:stConfigBaseItem	access:public	signature:(const stConfigBaseItem& item)
 AssociateListChangedRequest	../../titanutils/MsClient/ProtocolDefine/MsClientEventSessionDefine.h	/^    struct AssociateListChangedRequest: public CommonRequest$/;"	s	class:MsClientEventSession	inherits:CommonRequest	access:public
 AsyncObserver	../thread_object/async_observer.cpp	/^DLL_PUBLIC AsyncObserver::AsyncObserver()$/;"	f	class:AsyncObserver	signature:()
@@ -2231,11 +2221,9 @@ CreateHandler	../../titanutils/server/SessionManager.cpp	/^bool SessionManager::
 CreateHandler	../../titanutils/server/SessionManager.h	/^    virtual bool CreateHandler(SessionHandlerGenerator *generator, SYSUTILS_SPACE::AprTcpSocket *socket, $/;"	p	class:SessionManager	access:public	signature:(SessionHandlerGenerator *generator, SYSUTILS_SPACE::AprTcpSocket *socket, SYSUTILS_SPACE::EventBuffer &buffer, uint32_t session_id, uint32_t client_session_id)
 CreateHandler	../../titanutils/server/SessionManager.h	/^    virtual bool CreateHandler(SessionHandlerGenerator *generator, SYSUTILS_SPACE::AprTcpSocket *socket, SYSUTILS_SPACE::EventBuffer &buffer, uint32_t session_id);$/;"	p	class:SessionManager	access:public	signature:(SessionHandlerGenerator *generator, SYSUTILS_SPACE::AprTcpSocket *socket, SYSUTILS_SPACE::EventBuffer &buffer, uint32_t session_id)
 CreateLog	../../titanutils/EventAction/EventActionManager.h	/^    virtual void CreateLog(const EventParameter::EventNotifyParam& param) = 0;  \/\/ create event log.$/;"	p	class:EventActionManager	access:public	signature:(const EventParameter::EventNotifyParam& param)
-CreateRAID	./RAIDManager.cpp	/^bool RAIDManager::CreateRAID(vector<string>& vDevList, int level, string& strMDName)$/;"	f	class:RAIDManager	signature:(vector<string>& vDevList, int level, string& strMDName)
-CreateRAID	./RAIDManager.cpp	/^int RAIDManager::CreateRAID(const int& mdnum, string& mddev, vector<string>& vDevList, int level)$/;"	f	class:RAIDManager	signature:(const int& mdnum, string& mddev, vector<string>& vDevList, int level)
+CreateRAID	./RAIDManager.cpp	/^bool RAIDManager::CreateRAID(vector<string>& vDevList, int level)$/;"	f	class:RAIDManager	signature:(vector<string>& vDevList, int level)
 CreateRAID	./RAIDManager.cpp	/^int RAIDManager::CreateRAID(const string& mddev, vector<string>& vDevList, int level)$/;"	f	class:RAIDManager	signature:(const string& mddev, vector<string>& vDevList, int level)
-CreateRAID	./RAIDManager.h	/^	bool CreateRAID(vector<string>& vDevList, int level, string& strMDName);$/;"	p	class:RAIDManager	access:public	signature:(vector<string>& vDevList, int level, string& strMDName)
-CreateRAID	./RAIDManager.h	/^	int CreateRAID(const int& mdnum, string& mddev, vector<string>& vDevList, int level);$/;"	p	class:RAIDManager	access:private	signature:(const int& mdnum, string& mddev, vector<string>& vDevList, int level)
+CreateRAID	./RAIDManager.h	/^	bool CreateRAID(vector<string>& vDevList, int level);$/;"	p	class:RAIDManager	access:public	signature:(vector<string>& vDevList, int level)
 CreateRAID	./RAIDManager.h	/^	int CreateRAID(const string& mddev, vector<string>& vDevList, int level);$/;"	p	class:RAIDManager	access:private	signature:(const string& mddev, vector<string>& vDevList, int level)
 CreateResponder	../../titanutils/server/AprTcpSocketPoolResponder.h	/^    virtual AprTcpSocketPoolResponder *CreateResponder(AprTcpSocketPool *pPool) = 0;$/;"	p	class:AprTcpResponderGenerator	access:public	signature:(AprTcpSocketPool *pPool)
 CreateResponder	../../titanutils/server/unittest/apr_tcp_responder_pool_test.cpp	/^    virtual AprTcpSocketPoolResponder *CreateResponder(AprTcpSocketPool *pPool) { return new BounceResponder(pPool); }$/;"	f	class:BounceResponderGenerator	access:public	signature:(AprTcpSocketPool *pPool)
@@ -2332,6 +2320,7 @@ DETAIL_MDDEV_CANNOT_GET_DETAIL	./libmdadm/mdadm_errcode.h	/^	DETAIL_MDDEV_CANNOT
 DETAIL_MDDEV_ILLEGAL	./libmdadm/mdadm_errcode.h	/^	DETAIL_MDDEV_ILLEGAL,$/;"	e	enum:__anon47
 DETAIL_MDDEV_OPEN_FAIL	./libmdadm/mdadm_errcode.h	/^	DETAIL_MDDEV_OPEN_FAIL = 101,$/;"	e	enum:__anon47
 DETAIL_MDDEV_REQUIRE_NEWER_DRIVER	./libmdadm/mdadm_errcode.h	/^	DETAIL_MDDEV_REQUIRE_NEWER_DRIVER,$/;"	e	enum:__anon47
+DETAIL_NULL_POINTER	./libmdadm/mdadm_errcode.h	/^	DETAIL_NULL_POINTER,$/;"	e	enum:__anon47
 DEVICES	../sysstat/nusysstat/common.h	60;"	d
 DEVICE_MANAGER_PROG_NAME	../../titanutils/const/PathConst.h	101;"	d
 DEVMAP_DIR	../sysstat/nusysstat/common.h	59;"	d
@@ -2582,6 +2571,29 @@ DiskHelper::SafeFreeCurrentAvailableVideoFolder	../../titanutils/titanminihelper
 DiskHelper::SafeFreeCurrentAvailableVideoFolder	../../titanutils/titanminihelper/DiskHelper.h	/^    int SafeFreeCurrentAvailableVideoFolder(int *count, char ***location);\/\/free memory allocated by GetCurrentAvailableVideoFolder()$/;"	p	namespace:DiskHelper	signature:(int *count, char ***location)
 DiskHelper::mountpoint	../../titanutils/titanminihelper/DiskHelper.cpp	/^struct mntent *mountpoint(const char *filename, struct mntent *mnt, char *buf, size_t buflen)$/;"	f	namespace:DiskHelper	signature:(const char *filename, struct mntent *mnt, char *buf, size_t buflen)
 DiskHelper::mountpoint	../../titanutils/titanminihelper/DiskHelper.h	/^	struct mntent *mountpoint(const char *filename, struct mntent *mnt, char *buf, size_t buflen);$/;"	p	namespace:DiskHelper	signature:(const char *filename, struct mntent *mnt, char *buf, size_t buflen)
+DiskProfile	./RAIDManager.h	/^	DiskProfile()$/;"	f	struct:DiskProfile	access:public	signature:()
+DiskProfile	./RAIDManager.h	/^	DiskProfile(string dev)$/;"	f	struct:DiskProfile	access:public	signature:(string dev)
+DiskProfile	./RAIDManager.h	/^struct DiskProfile {$/;"	s
+DiskProfile::DiskProfile	./RAIDManager.h	/^	DiskProfile()$/;"	f	struct:DiskProfile	access:public	signature:()
+DiskProfile::DiskProfile	./RAIDManager.h	/^	DiskProfile(string dev)$/;"	f	struct:DiskProfile	access:public	signature:(string dev)
+DiskProfile::Dump	./RAIDManager.h	/^	void Dump()$/;"	f	struct:DiskProfile	access:public	signature:()
+DiskProfile::ReadMDStat	./RAIDManager.h	/^	void ReadMDStat()$/;"	f	struct:DiskProfile	access:public	signature:()
+DiskProfile::SetDiskVendorInfomation	./RAIDManager.h	/^	void SetDiskVendorInfomation()$/;"	f	struct:DiskProfile	access:public	signature:()
+DiskProfile::SetUDEVInformation	./RAIDManager.h	/^	void SetUDEVInformation()$/;"	f	struct:DiskProfile	access:public	signature:()
+DiskProfile::m_diskType	./RAIDManager.h	/^	eDiskType m_diskType;$/;"	m	struct:DiskProfile	access:public
+DiskProfile::m_iBay	./RAIDManager.h	/^	int m_iBay;$/;"	m	struct:DiskProfile	access:public
+DiskProfile::m_llCapacity	./RAIDManager.h	/^	int64_t	m_llCapacity;$/;"	m	struct:DiskProfile	access:public
+DiskProfile::m_strDevPath	./RAIDManager.h	/^	string m_strDevPath;$/;"	m	struct:DiskProfile	access:public
+DiskProfile::m_strFWVer	./RAIDManager.h	/^	string m_strFWVer;$/;"	m	struct:DiskProfile	access:public
+DiskProfile::m_strMDDev	./RAIDManager.h	/^	string m_strMDDev;$/;"	m	struct:DiskProfile	access:public
+DiskProfile::m_strModel	./RAIDManager.h	/^	string m_strModel;$/;"	m	struct:DiskProfile	access:public
+DiskProfile::m_strSerialNum	./RAIDManager.h	/^	string m_strSerialNum;$/;"	m	struct:DiskProfile	access:public
+DiskProfile::m_strSymLink	./RAIDManager.h	/^	string m_strSymLink;$/;"	m	struct:DiskProfile	access:public
+DiskProfile::m_strSysName	./RAIDManager.h	/^	string m_strSysName;$/;"	m	struct:DiskProfile	access:public
+DiskProfile::m_strVendor	./RAIDManager.h	/^	string m_strVendor;$/;"	m	struct:DiskProfile	access:public
+DiskProfile::operator =	./RAIDManager.h	/^	DiskProfile& operator=(const DiskProfile& rhs)$/;"	f	struct:DiskProfile	access:public	signature:(const DiskProfile& rhs)
+DiskProfile::operator ==	./RAIDManager.h	/^	bool operator==(const DiskProfile& rhs)$/;"	f	struct:DiskProfile	access:public	signature:(const DiskProfile& rhs)
+DiskProfile::~DiskProfile	./RAIDManager.h	/^	~DiskProfile()$/;"	f	struct:DiskProfile	access:public	signature:()
 Dispatch	../libevent/event_base.cpp	/^DLL_PUBLIC bool EventBase::Dispatch()$/;"	f	class:EventBase	signature:()
 Dispatch	../libevent/event_base.h	/^    bool Dispatch();$/;"	p	class:SYSUTILS_SPACE::EventBase	access:public	signature:()
 DllLoader	../common/read_write_lock.cpp	/^    DllLoader();$/;"	p	class:__anon39::DllLoader	file:	access:private	signature:()
@@ -2626,7 +2638,8 @@ Dump	../../titanutils/serverConfig/NetworkSettingConfig.h	/^    virtual void Dum
 Dump	./FilesystemManager.cpp	/^void FilesystemManager::Dump()$/;"	f	class:FilesystemManager	signature:()
 Dump	./FilesystemManager.h	/^	void Dump();$/;"	p	class:FilesystemManager	access:public	signature:()
 Dump	./RAIDManager.cpp	/^void RAIDManager::Dump()$/;"	f	class:RAIDManager	signature:()
-Dump	./RAIDManager.h	/^	void Dump()$/;"	f	struct:MiscDiskInfo	access:public	signature:()
+Dump	./RAIDManager.h	/^	void Dump() {$/;"	f	struct:MDProfile	access:public	signature:()
+Dump	./RAIDManager.h	/^	void Dump()$/;"	f	struct:DiskProfile	access:public	signature:()
 Dump	./RAIDManager.h	/^	void Dump()$/;"	f	struct:RAIDDiskInfo	access:public	signature:()
 Dump	./RAIDManager.h	/^	void Dump()$/;"	f	struct:RAIDInfo	access:public	signature:()
 Dump	./RAIDManager.h	/^	void Dump();$/;"	p	class:RAIDManager	access:public	signature:()
@@ -3426,14 +3439,22 @@ FilesystemManager::Format	./FilesystemManager.cpp	/^bool FilesystemManager::Form
 FilesystemManager::Format	./FilesystemManager.h	/^	bool Format(bool force = true);$/;"	p	class:FilesystemManager	access:public	signature:(bool force = true)
 FilesystemManager::GenerateUUIDFile	./FilesystemManager.cpp	/^void FilesystemManager::GenerateUUIDFile()$/;"	f	class:FilesystemManager	signature:()
 FilesystemManager::GenerateUUIDFile	./FilesystemManager.h	/^	void GenerateUUIDFile();$/;"	p	class:FilesystemManager	access:public	signature:()
+FilesystemManager::GetMountPoint	./FilesystemManager.cpp	/^string FilesystemManager::GetMountPoint()$/;"	f	class:FilesystemManager	signature:()
+FilesystemManager::GetMountPoint	./FilesystemManager.cpp	/^string FilesystemManager::GetMountPoint(const int& num)$/;"	f	class:FilesystemManager	signature:(const int& num)
+FilesystemManager::GetMountPoint	./FilesystemManager.h	/^	string GetMountPoint();$/;"	p	class:FilesystemManager	access:public	signature:()
+FilesystemManager::GetMountPoint	./FilesystemManager.h	/^	string GetMountPoint(const int &num);$/;"	p	class:FilesystemManager	access:public	signature:(const int &num)
+FilesystemManager::GetVolumeNum	./FilesystemManager.cpp	/^int FilesystemManager::GetVolumeNum()$/;"	f	class:FilesystemManager	signature:()
+FilesystemManager::GetVolumeNum	./FilesystemManager.h	/^	int GetVolumeNum();$/;"	p	class:FilesystemManager	access:public	signature:()
 FilesystemManager::Initialize	./FilesystemManager.cpp	/^bool FilesystemManager::Initialize()$/;"	f	class:FilesystemManager	signature:()
-FilesystemManager::Initialize	./FilesystemManager.h	/^	bool Initialize();$/;"	p	class:FilesystemManager	access:private	signature:()
+FilesystemManager::Initialize	./FilesystemManager.h	/^	bool Initialize();$/;"	p	class:FilesystemManager	access:public	signature:()
 FilesystemManager::InitializeMke2fsHandle	./FilesystemManager.cpp	/^void FilesystemManager::InitializeMke2fsHandle()$/;"	f	class:FilesystemManager	signature:()
 FilesystemManager::InitializeMke2fsHandle	./FilesystemManager.h	/^	void InitializeMke2fsHandle();$/;"	p	class:FilesystemManager	access:private	signature:()
 FilesystemManager::IsFormated	./FilesystemManager.cpp	/^bool FilesystemManager::IsFormated()$/;"	f	class:FilesystemManager	signature:()
 FilesystemManager::IsFormated	./FilesystemManager.h	/^	bool IsFormated();$/;"	p	class:FilesystemManager	access:public	signature:()
 FilesystemManager::IsFormating	./FilesystemManager.cpp	/^bool FilesystemManager::IsFormating(int& progress, int& stat)$/;"	f	class:FilesystemManager	signature:(int& progress, int& stat)
 FilesystemManager::IsFormating	./FilesystemManager.h	/^	bool IsFormating(int& progress, int& stat);$/;"	p	class:FilesystemManager	access:public	signature:(int& progress, int& stat)
+FilesystemManager::IsInitialized	./FilesystemManager.cpp	/^bool FilesystemManager::IsInitialized()$/;"	f	class:FilesystemManager	signature:()
+FilesystemManager::IsInitialized	./FilesystemManager.h	/^	bool IsInitialized();$/;"	p	class:FilesystemManager	access:public	signature:()
 FilesystemManager::IsMountPoint	./FilesystemManager.cpp	/^bool FilesystemManager::IsMountPoint(const string& path)$/;"	f	class:FilesystemManager	signature:(const string& path)
 FilesystemManager::IsMountPoint	./FilesystemManager.h	/^	static bool IsMountPoint(const string& path);$/;"	p	class:FilesystemManager	access:public	signature:(const string& path)
 FilesystemManager::IsMounted	./FilesystemManager.cpp	/^bool FilesystemManager::IsMounted(int& num)$/;"	f	class:FilesystemManager	signature:(int& num)
@@ -3442,7 +3463,9 @@ FilesystemManager::IsMounted	./FilesystemManager.h	/^	bool IsMounted(int& num);$
 FilesystemManager::IsMounted	./FilesystemManager.h	/^	bool IsMounted(string& strMountPoint);$/;"	p	class:FilesystemManager	access:public	signature:(string& strMountPoint)
 FilesystemManager::MakeFilesystemProgress	./FilesystemManager.cpp	/^void FilesystemManager::MakeFilesystemProgress(void *pData, int stat,$/;"	f	class:FilesystemManager	signature:(void *pData, int stat, int current, int total)
 FilesystemManager::MakeFilesystemProgress	./FilesystemManager.h	/^	static void MakeFilesystemProgress(void *pData, int stat,$/;"	p	class:FilesystemManager	access:public	signature:(void *pData, int stat, int current, int total)
+FilesystemManager::Mount	./FilesystemManager.cpp	/^bool FilesystemManager::Mount()$/;"	f	class:FilesystemManager	signature:()
 FilesystemManager::Mount	./FilesystemManager.cpp	/^bool FilesystemManager::Mount(const string& strMountPoint)$/;"	f	class:FilesystemManager	signature:(const string& strMountPoint)
+FilesystemManager::Mount	./FilesystemManager.h	/^	bool Mount();$/;"	p	class:FilesystemManager	access:public	signature:()
 FilesystemManager::Mount	./FilesystemManager.h	/^	bool Mount(const string& strMountPoint);$/;"	p	class:FilesystemManager	access:public	signature:(const string& strMountPoint)
 FilesystemManager::SetDeviceNode	./FilesystemManager.cpp	/^bool FilesystemManager::SetDeviceNode(const string &dev)$/;"	f	class:FilesystemManager	signature:(const string &dev)
 FilesystemManager::SetDeviceNode	./FilesystemManager.h	/^	bool SetDeviceNode(const string &dev);$/;"	p	class:FilesystemManager	access:public	signature:(const string &dev)
@@ -3461,8 +3484,10 @@ FilesystemManager::blkid	./FilesystemManager.h	/^	int blkid();$/;"	p	class:Files
 FilesystemManager::dostat	./FilesystemManager.cpp	/^bool FilesystemManager::dostat(const string& path, struct stat *st,$/;"	f	class:FilesystemManager	signature:(const string& path, struct stat *st, int do_lstat, int quiet)
 FilesystemManager::dostat	./FilesystemManager.h	/^	static bool dostat(const string& path, struct stat *st,$/;"	p	class:FilesystemManager	access:public	signature:(const string& path, struct stat *st, int do_lstat, int quiet)
 FilesystemManager::m_bFormat	./FilesystemManager.h	/^	bool m_bFormat;$/;"	m	class:FilesystemManager	access:private
+FilesystemManager::m_bInitialized	./FilesystemManager.h	/^	bool m_bInitialized;$/;"	m	class:FilesystemManager	access:private
 FilesystemManager::m_bMount	./FilesystemManager.h	/^	bool m_bMount;$/;"	m	class:FilesystemManager	access:private
 FilesystemManager::m_csFormat	./FilesystemManager.h	/^	CriticalSection m_csFormat;$/;"	m	class:FilesystemManager	access:private
+FilesystemManager::m_csInitialized	./FilesystemManager.h	/^	CriticalSection m_csInitialized;$/;"	m	class:FilesystemManager	access:private
 FilesystemManager::m_csMount	./FilesystemManager.h	/^	CriticalSection m_csMount;$/;"	m	class:FilesystemManager	access:private
 FilesystemManager::m_iFormatProgress	./FilesystemManager.h	/^	int m_iFormatProgress;$/;"	m	class:FilesystemManager	access:private
 FilesystemManager::m_iFormatingState	./FilesystemManager.h	/^	int m_iFormatingState;$/;"	m	class:FilesystemManager	access:private
@@ -3654,10 +3679,12 @@ GenerateLoginRequest	../../titanutils/MsClient/ProtocolOperation/MsClientCommand
 GenerateLoginRequest	../../titanutils/MsClient/ProtocolOperation/MsClientCommandGenerate.h	/^    static bool GenerateLoginRequest(const MsClientCommand::LoginRequest *loginRequest, const MsClient::LocalServerType localServerType, std::string &strMessage);$/;"	p	class:MsClientCommandGenerate	access:public	signature:(const MsClientCommand::LoginRequest *loginRequest, const MsClient::LocalServerType localServerType, std::string &strMessage)
 GenerateLogoutRequest	../../titanutils/MsClient/ProtocolOperation/MsClientCommandGenerate.cpp	/^bool MsClientCommandGenerate::GenerateLogoutRequest(const MsClientCommand::LogoutRequest *logoutRequest, const MsClient::LocalServerType localServerType, std::string &strMessage)$/;"	f	class:MsClientCommandGenerate	signature:(const MsClientCommand::LogoutRequest *logoutRequest, const MsClient::LocalServerType localServerType, std::string &strMessage)
 GenerateLogoutRequest	../../titanutils/MsClient/ProtocolOperation/MsClientCommandGenerate.h	/^    static bool GenerateLogoutRequest(const MsClientCommand::LogoutRequest *logoutRequest, const MsClient::LocalServerType localServerType, std::string &strMessage);$/;"	p	class:MsClientCommandGenerate	access:public	signature:(const MsClientCommand::LogoutRequest *logoutRequest, const MsClient::LocalServerType localServerType, std::string &strMessage)
-GenerateMDDevName	./RAIDManager.cpp	/^string RAIDManager::GenerateMDDevName(int num)$/;"	f	class:RAIDManager	signature:(int num)
-GenerateMDDevName	./RAIDManager.h	/^	string GenerateMDDevName(int num);$/;"	p	class:RAIDManager	access:private	signature:(int num)
+GenerateMDSysName	./RAIDManager.cpp	/^string RAIDManager::GenerateMDSysName(int num)$/;"	f	class:RAIDManager	signature:(int num)
+GenerateMDSysName	./RAIDManager.h	/^	string GenerateMDSysName(int num);$/;"	p	class:RAIDManager	access:private	signature:(int num)
 GenerateMessageHeader	../../titanutils/TitanCommon/CommonString.cpp	/^std::string GenerateMessageHeader(uint32_t length)$/;"	f	signature:(uint32_t length)
 GenerateMessageHeader	../../titanutils/TitanCommon/CommonString.h	/^std::string GenerateMessageHeader(uint32_t length);$/;"	p	signature:(uint32_t length)
+GenerateRAIDInfo	./RAIDManager.cpp	/^bool RAIDManager::GenerateRAIDInfo(const MDProfile &profile, RAIDInfo& info)$/;"	f	class:RAIDManager	signature:(const MDProfile &profile, RAIDInfo& info)
+GenerateRAIDInfo	./RAIDManager.h	/^	bool GenerateRAIDInfo(const MDProfile &profile, RAIDInfo& info);$/;"	p	class:RAIDManager	access:private	signature:(const MDProfile &profile, RAIDInfo& info)
 GenerateRegisterRequest	../../titanutils/MsClient/ProtocolOperation/MsClientCommandGenerate.cpp	/^bool MsClientCommandGenerate::GenerateRegisterRequest(const MsClientCommand::RegisterRequest *registerRequest, const MsClientCommon::AuthorizationHeader *authorization, const MsClient::LocalServerType localServerType, std::string &strMessage)$/;"	f	class:MsClientCommandGenerate	signature:(const MsClientCommand::RegisterRequest *registerRequest, const MsClientCommon::AuthorizationHeader *authorization, const MsClient::LocalServerType localServerType, std::string &strMessage)
 GenerateRegisterRequest	../../titanutils/MsClient/ProtocolOperation/MsClientCommandGenerate.h	/^    static bool GenerateRegisterRequest(const MsClientCommand::RegisterRequest *registerRequest, const MsClientCommon::AuthorizationHeader *authorization, const MsClient::LocalServerType localServerType, std::string &strMessage);$/;"	p	class:MsClientCommandGenerate	access:public	signature:(const MsClientCommand::RegisterRequest *registerRequest, const MsClientCommon::AuthorizationHeader *authorization, const MsClient::LocalServerType localServerType, std::string &strMessage)
 GenerateRemotControlResponse	../../titanutils/MsClient/ProtocolOperation/MsClientDataSessionGenerate.cpp	/^bool MsClientDataSessionGenerate::GenerateRemotControlResponse($/;"	f	class:MsClientDataSessionGenerate	signature:( const MsClientDataSession::RemoteControlResponse& response, std::string& strMessage)
@@ -3680,8 +3707,6 @@ GenerateUUIDFile	./FilesystemManager.cpp	/^void FilesystemManager::GenerateUUIDF
 GenerateUUIDFile	./FilesystemManager.h	/^	void GenerateUUIDFile();$/;"	p	class:FilesystemManager	access:public	signature:()
 GenerateUnregisterRequest	../../titanutils/MsClient/ProtocolOperation/MsClientCommandGenerate.cpp	/^bool MsClientCommandGenerate::GenerateUnregisterRequest(const MsClientCommand::UnregisterRequest *unregisterRequest, const MsClientCommon::AuthorizationHeader *authorization, const MsClient::LocalServerType localServerType, std::string &strMessage)$/;"	f	class:MsClientCommandGenerate	signature:(const MsClientCommand::UnregisterRequest *unregisterRequest, const MsClientCommon::AuthorizationHeader *authorization, const MsClient::LocalServerType localServerType, std::string &strMessage)
 GenerateUnregisterRequest	../../titanutils/MsClient/ProtocolOperation/MsClientCommandGenerate.h	/^    static bool GenerateUnregisterRequest(const MsClientCommand::UnregisterRequest *unregisterRequest, const MsClientCommon::AuthorizationHeader *authorization, const MsClient::LocalServerType localServerType, std::string &strMessage);$/;"	p	class:MsClientCommandGenerate	access:public	signature:(const MsClientCommand::UnregisterRequest *unregisterRequest, const MsClientCommon::AuthorizationHeader *authorization, const MsClient::LocalServerType localServerType, std::string &strMessage)
-GenerateVolumeName	./RAIDManager.cpp	/^int RAIDManager::GenerateVolumeName(string& name)$/;"	f	class:RAIDManager	signature:(string& name)
-GenerateVolumeName	./RAIDManager.h	/^	int GenerateVolumeName(string& name);$/;"	p	class:RAIDManager	access:private	signature:(string& name)
 Get	../scew/xml_utility.cpp	/^    T *Get() const { return m_p; };$/;"	f	class:__anon28::AutoArrayPointer	access:public	signature:() const
 GetAbsMSCount	../../titanutils/titanminihelper/titanutils.cpp	/^unsigned long GetAbsMSCount(void)$/;"	f	signature:(void)
 GetAbsoluteXMLFileName	../../titanutils/MsClient/LoginCtrl/SyncMSConfig/MSConfigBase.cpp	/^std::string CMSConfigBase::GetAbsoluteXMLFileName(uint64_t ullID) const$/;"	f	class:CMSConfigBase	signature:(uint64_t ullID) const
@@ -3846,7 +3871,6 @@ GetDayTimeSavingLink	../../titanutils/serverConfig/TimeInfoHelper.cpp	/^std::str
 GetDefaultPrivilege	../../titanutils/MsClient/LoginCtrl/SyncMSConfig/MSConfigRole.cpp	/^bool CMSConfigRole::GetDefaultPrivilege(uint64_t ullID, std::string& sGeneralItemPrivilege, std::vector<stDefaultDevAccessBitStream>& defaultDevPrivilege)$/;"	f	class:CMSConfigRole	signature:(uint64_t ullID, std::string& sGeneralItemPrivilege, std::vector<stDefaultDevAccessBitStream>& defaultDevPrivilege)
 GetDefaultPrivilege	../../titanutils/MsClient/LoginCtrl/SyncMSConfig/MSConfigRole.h	/^    bool GetDefaultPrivilege(uint64_t ullID, std::string& sGeneralItemPrivilege, std::vector<stDefaultDevAccessBitStream>& defaultDevPrivilege);$/;"	p	class:CMSConfigRole	access:public	signature:(uint64_t ullID, std::string& sGeneralItemPrivilege, std::vector<stDefaultDevAccessBitStream>& defaultDevPrivilege)
 GetDestination	../../titanutils/EventAction/ActionModel.h	/^    virtual ActionDestination GetDestination() = 0;$/;"	p	class:ActionBase	access:public	signature:()
-GetDeviceNodeBySymLink	./RAIDManager.cpp	/^string RAIDManager::GetDeviceNodeBySymLink(const string& symlink)$/;"	f	class:RAIDManager	signature:(const string& symlink)
 GetDeviceNodeBySymLink	./RAIDManager.h	/^	static string GetDeviceNodeBySymLink(const string& symlink);$/;"	p	class:RAIDManager	access:public	signature:(const string& symlink)
 GetDirectoryStorageSize	../common/file.cpp	/^DLL_PUBLIC uint64_t SYSUTILS_SPACE::GetDirectoryStorageSize(const std::string &pathname)$/;"	f	class:SYSUTILS_SPACE	signature:(const std::string &pathname)
 GetDirectoryStorageSize	../common/file.h	/^DLL_PUBLIC uint64_t GetDirectoryStorageSize(const std::string &pathname);$/;"	p	namespace:SYSUTILS_SPACE	signature:(const std::string &pathname)
@@ -3858,12 +3882,6 @@ GetDiskSpaceStatus	../common/fsusage.cpp	/^DLL_PUBLIC uint32_t SYSUTILS_SPACE::G
 GetDiskSpaceStatus	../common/fsusage.h	/^    DLL_PUBLIC uint32_t GetDiskSpaceStatus(const std::string& file, uint32_t* free, uint32_t* total);$/;"	p	namespace:SYSUTILS_SPACE	signature:(const std::string& file, uint32_t* free, uint32_t* total)
 GetDiskSpaceStatus64	../common/fsusage64.cpp	/^DLL_PUBLIC uint32_t SYSUTILS_SPACE::GetDiskSpaceStatus64(const std::string& dir, uint64_t* free, uint64_t* total)$/;"	f	class:SYSUTILS_SPACE	signature:(const std::string& dir, uint64_t* free, uint64_t* total)
 GetDiskSpaceStatus64	../common/fsusage64.h	/^    DLL_PUBLIC uint32_t GetDiskSpaceStatus64(const std::string& file, uint64_t* free, uint64_t* total);$/;"	p	namespace:SYSUTILS_SPACE	signature:(const std::string& file, uint64_t* free, uint64_t* total)
-GetDisksInfo	./RAIDManager.cpp	/^bool RAIDManager::GetDisksInfo(const string& dev, RAIDDiskInfo &info)$/;"	f	class:RAIDManager	signature:(const string& dev, RAIDDiskInfo &info)
-GetDisksInfo	./RAIDManager.cpp	/^void RAIDManager::GetDisksInfo(vector<RAIDDiskInfo> &list)$/;"	f	class:RAIDManager	signature:(vector<RAIDDiskInfo> &list)
-GetDisksInfo	./RAIDManager.h	/^	bool GetDisksInfo(const string& dev, RAIDDiskInfo &info);$/;"	p	class:RAIDManager	access:public	signature:(const string& dev, RAIDDiskInfo &info)
-GetDisksInfo	./RAIDManager.h	/^	void GetDisksInfo(vector<RAIDDiskInfo> &list);$/;"	p	class:RAIDManager	access:public	signature:(vector<RAIDDiskInfo> &list)
-GetDisksInfoBySymLink	./RAIDManager.h	/^	bool GetDisksInfoBySymLink(const string& link, RAIDDiskInfo &info);$/;"	p	class:RAIDManager	access:public	signature:(const string& link, RAIDDiskInfo &info)
-GetDisksInfoBySymLink	./RAIDManager.h	/^	bool GetDisksInfoBySymLink(vector<RAIDDiskInfo> &list);$/;"	p	class:RAIDManager	access:public	signature:(vector<RAIDDiskInfo> &list)
 GetDisplayMsg	../../titanutils/EventAction/ActionParameter.cpp	/^std::string OnScreenDisplayActionParameter::GetDisplayMsg() const$/;"	f	class:OnScreenDisplayActionParameter	signature:() const
 GetDisplayMsg	../../titanutils/EventAction/ActionParameter.h	/^    std::string GetDisplayMsg() const;$/;"	p	class:OnScreenDisplayActionParameter	access:public	signature:() const
 GetDouble	../sqlite/sqlite_stmt.cpp	/^DLL_PUBLIC double SQLiteStmt::GetDouble(int column)$/;"	f	class:SQLiteStmt	signature:(int column)
@@ -3917,6 +3935,8 @@ GetFreeDiskSpace	../common/fsusage.cpp	/^DLL_PUBLIC uint32_t SYSUTILS_SPACE::Get
 GetFreeDiskSpace	../common/fsusage.h	/^    DLL_PUBLIC uint32_t GetFreeDiskSpace(const std::string& file);$/;"	p	namespace:SYSUTILS_SPACE	signature:(const std::string& file)
 GetFreeDiskSpace64	../common/fsusage64.cpp	/^DLL_PUBLIC uint64_t SYSUTILS_SPACE::GetFreeDiskSpace64(const std::string& dir)$/;"	f	class:SYSUTILS_SPACE	signature:(const std::string& dir)
 GetFreeDiskSpace64	../common/fsusage64.h	/^    DLL_PUBLIC uint64_t GetFreeDiskSpace64(const std::string& file);$/;"	p	namespace:SYSUTILS_SPACE	signature:(const std::string& file)
+GetFreeDisksInfo	./RAIDManager.cpp	/^void RAIDManager::GetFreeDisksInfo(vector<RAIDDiskInfo> &list)$/;"	f	class:RAIDManager	signature:(vector<RAIDDiskInfo> &list)
+GetFreeDisksInfo	./RAIDManager.h	/^	void GetFreeDisksInfo(vector<RAIDDiskInfo> &list);$/;"	p	class:RAIDManager	access:public	signature:(vector<RAIDDiskInfo> &list)
 GetFreeMDNum	./RAIDManager.cpp	/^int RAIDManager::GetFreeMDNum()$/;"	f	class:RAIDManager	signature:()
 GetFreeMDNum	./RAIDManager.h	/^	int GetFreeMDNum();$/;"	p	class:RAIDManager	access:private	signature:()
 GetFreeVolumeNum	./RAIDManager.cpp	/^int RAIDManager::GetFreeVolumeNum()$/;"	f	class:RAIDManager	signature:()
@@ -3986,6 +4006,10 @@ GetMaxID	../../titanutils/log/EventLog.h	/^    int GetMaxID();$/;"	p	class:Event
 GetMinute	../common/time.cpp	/^DLL_PUBLIC int32_t UTCTimeSpan::GetMinute() const$/;"	f	class:UTCTimeSpan	signature:() const
 GetMinute	../common/time.h	/^    int32_t GetMinute() const;$/;"	p	class:SYSUTILS_SPACE::UTCTimeSpan	access:public	signature:() const
 GetModelType	../platform/platform_spec.cpp	/^static string GetModelType()$/;"	f	file:	signature:()
+GetMountPoint	./FilesystemManager.cpp	/^string FilesystemManager::GetMountPoint()$/;"	f	class:FilesystemManager	signature:()
+GetMountPoint	./FilesystemManager.cpp	/^string FilesystemManager::GetMountPoint(const int& num)$/;"	f	class:FilesystemManager	signature:(const int& num)
+GetMountPoint	./FilesystemManager.h	/^	string GetMountPoint();$/;"	p	class:FilesystemManager	access:public	signature:()
+GetMountPoint	./FilesystemManager.h	/^	string GetMountPoint(const int &num);$/;"	p	class:FilesystemManager	access:public	signature:(const int &num)
 GetMsClientRef	../../titanutils/MsClient/Handler/MsClientDataSessionHandler.cpp	/^const MsClient* MsClientDataSessionHandler::GetMsClientRef(void) const$/;"	f	class:MsClientDataSessionHandler	signature:(void) const
 GetMsClientRef	../../titanutils/MsClient/Handler/MsClientDataSessionHandler.h	/^    const MsClient* GetMsClientRef(void) const;$/;"	p	class:MsClientDataSessionHandler	access:public	signature:(void) const
 GetMsClientRef	../../titanutils/MsClient/Handler/MsClientEventSessionHandler.cpp	/^const MsClient* MsClientEventSessionHandler::GetMsClientRef(void) const$/;"	f	class:MsClientEventSessionHandler	signature:(void) const
@@ -4068,8 +4092,6 @@ GetProtoID	../../titanutils/schedule/ScheduleProfile.h	/^        inline uint32_t
 GetProtoInfo	../../titanutils/schedule/ScheduleProfile.h	/^        inline const char *GetProtoInfo(void)  const { return proto_info; }$/;"	f	class:Schedule::ScheduleItemSet	access:public	signature:(void) const
 GetProtoName	../../titanutils/schedule/ScheduleProfile.h	/^        inline const char *GetProtoName(void)  const { return proto_name; }$/;"	f	class:Schedule::ScheduleItemSet	access:public	signature:(void) const
 GetProtoOrder	../../titanutils/schedule/ScheduleProfile.h	/^        inline uint32_t    GetProtoOrder(void) const { return proto_order; }$/;"	f	class:Schedule::ScheduleItemSet	access:public	signature:(void) const
-GetRAIDDetail	./RAIDManager.cpp	/^bool RAIDManager::GetRAIDDetail(const string& mddev,$/;"	f	class:RAIDManager	signature:(const string& mddev, array_detail &ad)
-GetRAIDDetail	./RAIDManager.h	/^	bool GetRAIDDetail(const string& mddev, array_detail &ad);$/;"	p	class:RAIDManager	access:private	signature:(const string& mddev, array_detail &ad)
 GetRAIDInfo	./RAIDManager.cpp	/^bool RAIDManager::GetRAIDInfo(const string& mddev, RAIDInfo& info)$/;"	f	class:RAIDManager	signature:(const string& mddev, RAIDInfo& info)
 GetRAIDInfo	./RAIDManager.cpp	/^void RAIDManager::GetRAIDInfo(vector<RAIDInfo>& list)$/;"	f	class:RAIDManager	signature:(vector<RAIDInfo>& list)
 GetRAIDInfo	./RAIDManager.h	/^	bool GetRAIDInfo(const string& mddev, RAIDInfo& info);$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev, RAIDInfo& info)
@@ -4260,6 +4282,8 @@ GetValue	../scew/xml_attribute.cpp	/^DLL_PUBLIC std::string XMLAttribute::GetVal
 GetValue	../scew/xml_attribute.h	/^    std::string GetValue() const;$/;"	p	class:SYSUTILS_SPACE::XMLAttribute	access:public	signature:() const
 GetVolumeName	../../titanutils/titanminihelper/DiskHelper.cpp	/^std::string GetVolumeName(const char* full_volume_path) \/\/ \/mnt\/VOLUME1\/, \/nfs\/VOLUME1, ...$/;"	f	namespace:DiskHelper	signature:(const char* full_volume_path)
 GetVolumeName	../../titanutils/titanminihelper/DiskHelper.h	/^	std::string GetVolumeName(const char* full_volume_path);$/;"	p	namespace:DiskHelper	signature:(const char* full_volume_path)
+GetVolumeNum	./FilesystemManager.cpp	/^int FilesystemManager::GetVolumeNum()$/;"	f	class:FilesystemManager	signature:()
+GetVolumeNum	./FilesystemManager.h	/^	int GetVolumeNum();$/;"	p	class:FilesystemManager	access:public	signature:()
 GetVolumeSpec	../platform/include/platform_spec.h	/^void GetVolumeSpec(struct volume_spec* spec);$/;"	p	signature:(struct volume_spec* spec)
 GetVolumeSpec	../platform/platform_spec.cpp	/^void GetVolumeSpec(struct volume_spec* spec)$/;"	f	signature:(struct volume_spec* spec)
 GetWhiteEnable	../../titanutils/server/AprIPFilter.cpp	/^bool AprIPFilter::GetWhiteEnable()$/;"	f	class:AprIPFilter	signature:()
@@ -4756,7 +4780,9 @@ Initialize	../../titanutils/MsClient/LoginCtrl/SessionKeyCtrlMgr.h	/^    void In
 Initialize	../../titanutils/log/EventLogRecycler2.cpp	/^    void Initialize(_in_ const uint64_t server_id, _in_ const std::string& log_root_path);$/;"	p	class:CDbFileHolder	file:	access:public	signature:(_in_ const uint64_t server_id, _in_ const std::string& log_root_path)
 Initialize	../../titanutils/log/EventLogRecycler2.cpp	/^void CDbFileHolder::Initialize(_in_ const uint64_t     server_id,     \/\/ target server id$/;"	f	class:CDbFileHolder	signature:(_in_ const uint64_t server_id, _in_ const std::string& log_root_path)
 Initialize	./FilesystemManager.cpp	/^bool FilesystemManager::Initialize()$/;"	f	class:FilesystemManager	signature:()
-Initialize	./FilesystemManager.h	/^	bool Initialize();$/;"	p	class:FilesystemManager	access:private	signature:()
+Initialize	./FilesystemManager.h	/^	bool Initialize();$/;"	p	class:FilesystemManager	access:public	signature:()
+Initialize	./RAIDManager.cpp	/^bool RAIDManager::Initialize()$/;"	f	class:RAIDManager	signature:()
+Initialize	./RAIDManager.h	/^	bool Initialize();$/;"	p	class:RAIDManager	access:private	signature:()
 InitializeContext	./RAIDManager.cpp	/^void RAIDManager::InitializeContext(struct context& c, int force, int runstop, int verbose)$/;"	f	class:RAIDManager	signature:(struct context& c, int force, int runstop, int verbose)
 InitializeContext	./RAIDManager.h	/^	void InitializeContext(struct context& c, int force = 1, int runstop = 1, int verbose = 0);$/;"	p	class:RAIDManager	access:private	signature:(struct context& c, int force = 1, int runstop = 1, int verbose = 0)
 InitializeContext	./RAIDManager.h	/^	void InitializeContext(struct context& c, int force = 1, int runstop = 1, int verbose = 1);$/;"	p	class:RAIDManager	access:private	signature:(struct context& c, int force = 1, int runstop = 1, int verbose = 1)
@@ -4764,7 +4790,7 @@ InitializeDevList	./RAIDManager.cpp	/^struct mddev_dev* RAIDManager::InitializeD
 InitializeDevList	./RAIDManager.cpp	/^struct mddev_dev* RAIDManager::InitializeDevList(vector<string>& devNameList, int disposition)$/;"	f	class:RAIDManager	signature:(vector<string>& devNameList, int disposition)
 InitializeDevList	./RAIDManager.h	/^	struct mddev_dev* InitializeDevList(const string& replace, const string& with);$/;"	p	class:RAIDManager	access:private	signature:(const string& replace, const string& with)
 InitializeDevList	./RAIDManager.h	/^	struct mddev_dev* InitializeDevList(vector<string>& devNameList, int disposition = 0);$/;"	p	class:RAIDManager	access:private	signature:(vector<string>& devNameList, int disposition = 0)
-InitializeFSManager	./RAIDManager.h	/^	bool InitializeFSManager() {$/;"	f	struct:RAIDInfo	access:public	signature:()
+InitializeFSManager	./RAIDManager.h	/^	bool InitializeFSManager() {$/;"	f	struct:MDProfile	access:public	signature:()
 InitializeMDDevIdent	./RAIDManager.cpp	/^void RAIDManager::InitializeMDDevIdent(struct mddev_ident& ident, int uuid_set, const int uuid[4], int bitmap_fd, char* bitmap_file)$/;"	f	class:RAIDManager	signature:(struct mddev_ident& ident, int uuid_set, const int uuid[4], int bitmap_fd, char* bitmap_file)
 InitializeMDDevIdent	./RAIDManager.h	/^	void InitializeMDDevIdent(struct mddev_ident& ident, int uuid_set, const int uuid[4], int bitmap_fd = -1, char* bitmap_file = NULL);$/;"	p	class:RAIDManager	access:private	signature:(struct mddev_ident& ident, int uuid_set, const int uuid[4], int bitmap_fd = -1, char* bitmap_file = NULL)
 InitializeMke2fsHandle	./FilesystemManager.cpp	/^void FilesystemManager::InitializeMke2fsHandle()$/;"	f	class:FilesystemManager	signature:()
@@ -4784,12 +4810,8 @@ InsertIDToString	../../titanutils/log/EventLog.cpp	/^bool EventLog::InsertIDToSt
 InsertIDToString	../../titanutils/log/EventLog.h	/^    bool InsertIDToString(const std::string& table, const std::map<int, std::string>& mapIDToString);$/;"	p	class:EventLog	access:private	signature:(const std::string& table, const std::map<int, std::string>& mapIDToString)
 InvalidRange	../../titanutils/schedule/ActiveTable.h	/^        inline void InvalidRange(int start, int end, void *obj) \/\/ zero-based$/;"	f	class:Schedule::ActiveTable	access:public	signature:(int start, int end, void *obj)
 IsConfigImport	../../titanutils/MsClient/MsClient.h	/^    bool IsConfigImport(){ return m_config_import;}$/;"	f	class:MsClient	access:public	signature:()
-IsDiskExistInRAIDDiskList	./RAIDManager.cpp	/^bool RAIDManager::IsDiskExistInRAIDDiskList(const string& dev)$/;"	f	class:RAIDManager	signature:(const string& dev)
-IsDiskExistInRAIDDiskList	./RAIDManager.cpp	/^bool RAIDManager::IsDiskExistInRAIDDiskList(vector<string>& vDevList)$/;"	f	class:RAIDManager	signature:(vector<string>& vDevList)
 IsDiskExistInRAIDDiskList	./RAIDManager.h	/^	bool IsDiskExistInRAIDDiskList(const string& dev);$/;"	p	class:RAIDManager	access:private	signature:(const string& dev)
 IsDiskExistInRAIDDiskList	./RAIDManager.h	/^	bool IsDiskExistInRAIDDiskList(vector<string>& vDevList);$/;"	p	class:RAIDManager	access:private	signature:(vector<string>& vDevList)
-IsDiskHaveMDSuperBlock	./RAIDManager.cpp	/^bool RAIDManager::IsDiskHaveMDSuperBlock(const string& dev, examine_result &result, int &err)$/;"	f	class:RAIDManager	signature:(const string& dev, examine_result &result, int &err)
-IsDiskHaveMDSuperBlock	./RAIDManager.h	/^	bool IsDiskHaveMDSuperBlock(const string& dev, examine_result &result, int &err);$/;"	p	class:RAIDManager	access:private	signature:(const string& dev, examine_result &result, int &err)
 IsEMailEvent	../../titanutils/EventAction/EventUtility.cpp	/^bool CEventUtility::IsEMailEvent(uint32_t uiEventID)$/;"	f	class:CEventUtility	signature:(uint32_t uiEventID)
 IsEMailEvent	../../titanutils/EventAction/EventUtility.h	/^    static bool IsEMailEvent(uint32_t uiEventID);$/;"	p	class:CEventUtility	access:public	signature:(uint32_t uiEventID)
 IsFailover	../../titanutils/serverConfig/ServerProtocolDataStruct.h	/^		bool IsFailover;$/;"	m	struct:SERVER_PROTOCOL_DATA::AutoBackupConfig	access:public
@@ -4810,10 +4832,10 @@ IsInRange	../../titanutils/schedule/ScheduleProfileShareImp.cpp	/^bool ProfileSh
 IsInRange	../../titanutils/schedule/ScheduleProfileShareImp.h	/^        virtual bool IsInRange(const SYSUTILS_SPACE::UTCTime &date_time, void **related_obj = NULL);$/;"	p	class:Schedule::ProfileShare	access:public	signature:(const SYSUTILS_SPACE::UTCTime &date_time, void **related_obj = NULL)
 IsInTickRange	../../titanutils/schedule/ActiveTable.h	/^        inline virtual bool IsInTickRange(int n) const { return true; }$/;"	f	class:Schedule::ActiveTable	access:protected	signature:(int n) const
 IsInTickRange	../../titanutils/schedule/ActiveTable.h	/^    inline bool IsInTickRange(int n) const { return (n>=tick1 && n<tick2); }$/;"	f	class:Schedule::AdaptiveActiveTable	access:protected	signature:(int n) const
+IsInitialized	./FilesystemManager.cpp	/^bool FilesystemManager::IsInitialized()$/;"	f	class:FilesystemManager	signature:()
+IsInitialized	./FilesystemManager.h	/^	bool IsInitialized();$/;"	p	class:FilesystemManager	access:public	signature:()
 IsItemUpdated	../../titanutils/schedule/ScheduleProfile.h	/^        bool IsItemUpdated(void) {return item_updated;}$/;"	f	class:Schedule::ProfileSource	access:public	signature:(void)
 IsLogin	../../titanutils/MsClient/MsClient.h	/^    virtual bool IsLogin() = 0;$/;"	p	class:MsClient	access:public	signature:()
-IsMDDevInRAIDInfoList	./RAIDManager.cpp	/^vector<RAIDInfo>::iterator RAIDManager::IsMDDevInRAIDInfoList(const string &mddev)$/;"	f	class:RAIDManager	signature:(const string &mddev)
-IsMDDevInRAIDInfoList	./RAIDManager.cpp	/^vector<RAIDInfo>::iterator RAIDManager::IsMDDevInRAIDInfoList(const string &mddev, RAIDInfo& info)$/;"	f	class:RAIDManager	signature:(const string &mddev, RAIDInfo& info)
 IsMDDevInRAIDInfoList	./RAIDManager.h	/^	vector<RAIDInfo>::iterator IsMDDevInRAIDInfoList(const string &mddev);$/;"	p	class:RAIDManager	access:private	signature:(const string &mddev)
 IsMDDevInRAIDInfoList	./RAIDManager.h	/^	vector<RAIDInfo>::iterator IsMDDevInRAIDInfoList(const string &mddev, RAIDInfo& info);$/;"	p	class:RAIDManager	access:private	signature:(const string &mddev, RAIDInfo& info)
 IsMountPoint	./FilesystemManager.cpp	/^bool FilesystemManager::IsMountPoint(const string& path)$/;"	f	class:FilesystemManager	signature:(const string& path)
@@ -4826,8 +4848,6 @@ IsMounted	./RAIDManager.cpp	/^bool RAIDManager::IsMounted(const string& mddev, i
 IsMounted	./RAIDManager.h	/^	bool IsMounted(const string& mddev, int &num);$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev, int &num)
 IsNTPServerEnable	../../titanutils/serverConfig/NTPConfig.cpp	/^bool CNTPConfig::IsNTPServerEnable(bool &NTPStatus)$/;"	f	class:CNTPConfig	signature:(bool &NTPStatus)
 IsNTPServerEnable	../../titanutils/serverConfig/NTPConfig.h	/^	static bool IsNTPServerEnable(bool &NTPStatus);$/;"	p	class:CNTPConfig	access:public	signature:(bool &NTPStatus)
-IsRAIDAbnormal	./RAIDManager.cpp	/^bool RAIDManager::IsRAIDAbnormal(const RAIDInfo &info)$/;"	f	class:RAIDManager	signature:(const RAIDInfo &info)
-IsRAIDAbnormal	./RAIDManager.h	/^	bool IsRAIDAbnormal(const RAIDInfo &info);$/;"	p	class:RAIDManager	access:private	signature:(const RAIDInfo &info)
 IsRAIDStatusChanged	./RAIDManager.h	/^	bool IsRAIDStatusChanged(const RAIDInfo& previous) {$/;"	f	struct:RAIDInfo	access:public	signature:(const RAIDInfo& previous)
 IsRedundantPower	../../titanutils/EventAction/SystemEventCtrl.cpp	/^bool CSystemEventCtrl::IsRedundantPower()$/;"	f	class:CSystemEventCtrl	signature:()
 IsRedundantPower	../../titanutils/EventAction/SystemEventCtrl.h	/^    static bool IsRedundantPower();$/;"	p	class:CSystemEventCtrl	access:public	signature:()
@@ -4957,7 +4977,7 @@ LOCAL	./libmdadm/mdadm.h	1323;"	d
 LOCAL_ANY	./libmdadm/mdadm.h	1324;"	d
 LOCK_FILE	../sysstat/nusysstat/sa.h	100;"	d
 LOG_LABEL	./FilesystemManager.cpp	17;"	d	file:
-LOG_LABEL	./RAIDManager.cpp	9;"	d	file:
+LOG_LABEL	./RAIDManager.cpp	11;"	d	file:
 LOG_LEVEL	../../titanutils/log/Log.h	/^} LOG_LEVEL;$/;"	t	typeref:enum:E_LOG_LEVEL
 LOG_LOGIN_FOLDER	../../titanutils/const/PathConst.h	471;"	d
 LOG_LOGOUT_FOLDER	../../titanutils/const/PathConst.h	475;"	d
@@ -5137,6 +5157,25 @@ MD5_memcpy	../../titanutils/titanminihelper/md5.cpp	/^static void MD5_memcpy(POI
 MD5_memset	../../titanutils/titanminihelper/md5.cpp	/^static void MD5_memset (POINTER output,int value,unsigned int len)$/;"	f	file:	signature:(POINTER output,int value,unsigned int len)
 MD5_memset	../../titanutils/titanminihelper/md5.cpp	/^static void MD5_memset(POINTER, int, unsigned int);$/;"	p	file:	signature:(POINTER, int, unsigned int)
 MDMON_DIR	./libmdadm/mdadm.h	93;"	d
+MDProfile	./RAIDManager.h	/^	MDProfile()$/;"	f	struct:MDProfile	access:public	signature:()
+MDProfile	./RAIDManager.h	/^	MDProfile(string dev)$/;"	f	struct:MDProfile	access:public	signature:(string dev)
+MDProfile	./RAIDManager.h	/^struct MDProfile {$/;"	s
+MDProfile::Dump	./RAIDManager.h	/^	void Dump() {$/;"	f	struct:MDProfile	access:public	signature:()
+MDProfile::InitializeFSManager	./RAIDManager.h	/^	bool InitializeFSManager() {$/;"	f	struct:MDProfile	access:public	signature:()
+MDProfile::MDProfile	./RAIDManager.h	/^	MDProfile()$/;"	f	struct:MDProfile	access:public	signature:()
+MDProfile::MDProfile	./RAIDManager.h	/^	MDProfile(string dev)$/;"	f	struct:MDProfile	access:public	signature:(string dev)
+MDProfile::ReadMDStat	./RAIDManager.h	/^	void ReadMDStat()$/;"	f	struct:MDProfile	access:public	signature:()
+MDProfile::SetUDEVInformation	./RAIDManager.h	/^	void SetUDEVInformation()$/;"	f	struct:MDProfile	access:public	signature:()
+MDProfile::m_fsMgr	./RAIDManager.h	/^	smart_ptr<FilesystemManager> m_fsMgr;$/;"	m	struct:MDProfile	access:public
+MDProfile::m_iDevCount	./RAIDManager.h	/^	int m_iDevCount;$/;"	m	struct:MDProfile	access:public
+MDProfile::m_iMDNum	./RAIDManager.h	/^	int m_iMDNum;$/;"	m	struct:MDProfile	access:public
+MDProfile::m_iRaidDisks	./RAIDManager.h	/^	int m_iRaidDisks; $/;"	m	struct:MDProfile	access:public
+MDProfile::m_strDevPath	./RAIDManager.h	/^	string m_strDevPath;$/;"	m	struct:MDProfile	access:public
+MDProfile::m_strSysName	./RAIDManager.h	/^	string m_strSysName;$/;"	m	struct:MDProfile	access:public
+MDProfile::m_vMembers	./RAIDManager.h	/^	vector<string> m_vMembers;$/;"	m	struct:MDProfile	access:public
+MDProfile::operator =	./RAIDManager.h	/^	MDProfile& operator=(MDProfile& rhs)$/;"	f	struct:MDProfile	access:public	signature:(MDProfile& rhs)
+MDProfile::operator ==	./RAIDManager.h	/^	bool operator==(MDProfile& rhs)$/;"	f	struct:MDProfile	access:public	signature:(MDProfile& rhs)
+MDProfile::~MDProfile	./RAIDManager.h	/^	~MDProfile()$/;"	f	struct:MDProfile	access:public	signature:()
 MD_DISK_ACTIVE	./libmdadm/md_p.h	78;"	d
 MD_DISK_FAULTY	./libmdadm/md_p.h	77;"	d
 MD_DISK_REMOVED	./libmdadm/md_p.h	80;"	d
@@ -5318,18 +5357,6 @@ MiniUnzip	../minizip/miniunz.cpp	/^bool SYSUTILS_SPACE::MiniUnzip(const std::str
 MiniUnzip	../minizip/minizipUtility.h	/^DLL_PUBLIC bool MiniUnzip(const std::string& packName, const std::string& destination);$/;"	p	namespace:SYSUTILS_SPACE	signature:(const std::string& packName, const std::string& destination)
 MiniZip	../minizip/minizip.cpp	/^DLL_PUBLIC bool SYSUTILS_SPACE::MiniZip(const std::vector<std::string>& directories, const std::string& packName)$/;"	f	class:SYSUTILS_SPACE	signature:(const std::vector<std::string>& directories, const std::string& packName)
 MiniZip	../minizip/minizipUtility.h	/^DLL_PUBLIC bool MiniZip(const std::vector<std::string>& directories, const std::string& packName);$/;"	p	namespace:SYSUTILS_SPACE	signature:(const std::vector<std::string>& directories, const std::string& packName)
-MiscDiskInfo	./RAIDManager.h	/^	MiscDiskInfo()$/;"	f	struct:MiscDiskInfo	access:public	signature:()
-MiscDiskInfo	./RAIDManager.h	/^	MiscDiskInfo(const string& link, eDiskType type)$/;"	f	struct:MiscDiskInfo	access:public	signature:(const string& link, eDiskType type)
-MiscDiskInfo	./RAIDManager.h	/^struct MiscDiskInfo {$/;"	s
-MiscDiskInfo::Dump	./RAIDManager.h	/^	void Dump()$/;"	f	struct:MiscDiskInfo	access:public	signature:()
-MiscDiskInfo::MiscDiskInfo	./RAIDManager.h	/^	MiscDiskInfo()$/;"	f	struct:MiscDiskInfo	access:public	signature:()
-MiscDiskInfo::MiscDiskInfo	./RAIDManager.h	/^	MiscDiskInfo(const string& link, eDiskType type)$/;"	f	struct:MiscDiskInfo	access:public	signature:(const string& link, eDiskType type)
-MiscDiskInfo::m_diskType	./RAIDManager.h	/^	eDiskType m_diskType;$/;"	m	struct:MiscDiskInfo	access:public
-MiscDiskInfo::m_strMDDev	./RAIDManager.h	/^	string m_strMDDev;$/;"	m	struct:MiscDiskInfo	access:public
-MiscDiskInfo::m_strSymLink	./RAIDManager.h	/^	string m_strSymLink;$/;"	m	struct:MiscDiskInfo	access:public
-MiscDiskInfo::operator =	./RAIDManager.h	/^	MiscDiskInfo& operator=(const MiscDiskInfo& rhs)$/;"	f	struct:MiscDiskInfo	access:public	signature:(const MiscDiskInfo& rhs)
-MiscDiskInfo::operator ==	./RAIDManager.h	/^	bool operator==(const MiscDiskInfo& rhs)$/;"	f	struct:MiscDiskInfo	access:public	signature:(const MiscDiskInfo& rhs)
-MiscDiskInfo::~MiscDiskInfo	./RAIDManager.h	/^	~MiscDiskInfo()$/;"	f	struct:MiscDiskInfo	access:public	signature:()
 ModeMask	./libmdadm/mdadm.h	1439;"	d
 ModeShift	./libmdadm/mdadm.h	1440;"	d
 Modes	./libmdadm/mdadm.h	1431;"	d
@@ -5348,7 +5375,9 @@ ModifyObserverParam	../../titanutils/EventAction/EventModel.h	/^    void ModifyO
 ModifyRolePrivilegeInSessionTable	../../titanutils/MsClient/LoginCtrl/SessionKeyCtrlMgr.cpp	/^bool CSessionKeyControlMgr::ModifyRolePrivilegeInSessionTable(uint64_t roleID)$/;"	f	class:CSessionKeyControlMgr	signature:(uint64_t roleID)
 ModifyRolePrivilegeInSessionTable	../../titanutils/MsClient/LoginCtrl/SessionKeyCtrlMgr.h	/^    bool ModifyRolePrivilegeInSessionTable(uint64_t roleID);$/;"	p	class:CSessionKeyControlMgr	access:private	signature:(uint64_t roleID)
 Monitor	./libmdadm/mdadm.h	/^extern int Monitor(struct mddev_dev *devlist,$/;"	p	signature:(struct mddev_dev *devlist, char *mailaddr, char *alert_cmd, struct context *c, int daemonise, int oneshot, int dosyslog, char *pidfile, int increments, int share)
+Mount	./FilesystemManager.cpp	/^bool FilesystemManager::Mount()$/;"	f	class:FilesystemManager	signature:()
 Mount	./FilesystemManager.cpp	/^bool FilesystemManager::Mount(const string& strMountPoint)$/;"	f	class:FilesystemManager	signature:(const string& strMountPoint)
+Mount	./FilesystemManager.h	/^	bool Mount();$/;"	p	class:FilesystemManager	access:public	signature:()
 Mount	./FilesystemManager.h	/^	bool Mount(const string& strMountPoint);$/;"	p	class:FilesystemManager	access:public	signature:(const string& strMountPoint)
 Mount	./RAIDManager.cpp	/^bool RAIDManager::Mount(const string& mddev)$/;"	f	class:RAIDManager	signature:(const string& mddev)
 Mount	./RAIDManager.h	/^	bool Mount(const string& mddev);$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev)
@@ -6448,6 +6477,10 @@ QueryEventIDToStringTable	../../titanutils/log/EventLogQuery.cpp	/^DLL_PUBLIC bo
 QueryEventIDToStringTable	../../titanutils/log/EventLogQuery.h	/^    bool QueryEventIDToStringTable(std::map<int, std::string>& out_result);$/;"	p	class:EventLogQuery	access:public	signature:(std::map<int, std::string>& out_result)
 QueryIDToStringTable	../../titanutils/log/EventLogQuery.cpp	/^bool EventLogQuery::QueryIDToStringTable(const std::string& table, std::map<int, std::string>& out_result)$/;"	f	class:EventLogQuery	signature:(const std::string& table, std::map<int, std::string>& out_result)
 QueryIDToStringTable	../../titanutils/log/EventLogQuery.h	/^    bool QueryIDToStringTable(const std::string& table, std::map<int, std::string>& out_result);$/;"	p	class:EventLogQuery	access:private	signature:(const std::string& table, std::map<int, std::string>& out_result)
+QueryMDDetail	./RAIDManager.cpp	/^bool RAIDManager::QueryMDDetail(const string& mddev,$/;"	f	class:RAIDManager	signature:(const string& mddev, array_detail &ad)
+QueryMDDetail	./RAIDManager.h	/^	bool QueryMDDetail(const string& mddev, array_detail &ad);$/;"	p	class:RAIDManager	access:private	signature:(const string& mddev, array_detail &ad)
+QueryMDSuperBlockInDisk	./RAIDManager.cpp	/^int RAIDManager::QueryMDSuperBlockInDisk(const string& dev, examine_result &result)$/;"	f	class:RAIDManager	signature:(const string& dev, examine_result &result)
+QueryMDSuperBlockInDisk	./RAIDManager.h	/^	int QueryMDSuperBlockInDisk(const string& dev, examine_result &result);$/;"	p	class:RAIDManager	access:private	signature:(const string& dev, examine_result &result)
 QueryRedundantPowerStatus	../../titanutils/EventAction/SystemEventCtrl.cpp	/^unsigned int CSystemEventCtrl::QueryRedundantPowerStatus()$/;"	f	class:CSystemEventCtrl	signature:()
 QueryRedundantPowerStatus	../../titanutils/EventAction/SystemEventCtrl.h	/^    static unsigned int QueryRedundantPowerStatus();$/;"	p	class:CSystemEventCtrl	access:public	signature:()
 QueryWANInf	../../titanutils/serverConfig/NetworkSettingConfig.cpp	/^bool CNetworkSettingManager::QueryWANInf(const char *filePath, std::string &sName)$/;"	f	class:CNetworkSettingManager	signature:(const char *filePath, std::string &sName)
@@ -6459,42 +6492,39 @@ RAIDDiskInfo	./RAIDManager.h	/^	RAIDDiskInfo()$/;"	f	struct:RAIDDiskInfo	access:
 RAIDDiskInfo	./RAIDManager.h	/^struct RAIDDiskInfo {$/;"	s
 RAIDDiskInfo::Dump	./RAIDManager.h	/^	void Dump()$/;"	f	struct:RAIDDiskInfo	access:public	signature:()
 RAIDDiskInfo::RAIDDiskInfo	./RAIDManager.h	/^	RAIDDiskInfo()$/;"	f	struct:RAIDDiskInfo	access:public	signature:()
-RAIDDiskInfo::SetHDDVendorInfomation	./RAIDManager.h	/^	void SetHDDVendorInfomation() {$/;"	f	struct:RAIDDiskInfo	access:public	signature:()
 RAIDDiskInfo::m_RaidUUID	./RAIDManager.h	/^	int32_t		m_RaidUUID[4];			\/* Get after Examine(). *\/$/;"	m	struct:RAIDDiskInfo	access:public
 RAIDDiskInfo::m_bHasMDSB	./RAIDManager.h	/^	bool		m_bHasMDSB;$/;"	m	struct:RAIDDiskInfo	access:public
+RAIDDiskInfo::m_diskProfile	./RAIDManager.h	/^	DiskProfile m_diskProfile;$/;"	m	struct:RAIDDiskInfo	access:public
 RAIDDiskInfo::m_iMajor	./RAIDManager.h	/^	int32_t		m_iMajor;				\/* For confirming whether disk is valid or not. *\/$/;"	m	struct:RAIDDiskInfo	access:public
 RAIDDiskInfo::m_iMinor	./RAIDManager.h	/^	int32_t		m_iMinor;				\/* For confirming whether disk is valid or not. *\/$/;"	m	struct:RAIDDiskInfo	access:public
 RAIDDiskInfo::m_iRaidDiskNum	./RAIDManager.h	/^	int32_t		m_iRaidDiskNum;$/;"	m	struct:RAIDDiskInfo	access:public
 RAIDDiskInfo::m_iState	./RAIDManager.h	/^	int32_t		m_iState;$/;"	m	struct:RAIDDiskInfo	access:public
-RAIDDiskInfo::m_llCapacity	./RAIDManager.h	/^	int64_t		m_llCapacity;$/;"	m	struct:RAIDDiskInfo	access:public
-RAIDDiskInfo::m_miscInfo	./RAIDManager.h	/^	MiscDiskInfo m_miscInfo;$/;"	m	struct:RAIDDiskInfo	access:public
-RAIDDiskInfo::m_strDevName	./RAIDManager.h	/^	string		m_strDevName;			\/* Device node *\/$/;"	m	struct:RAIDDiskInfo	access:public
-RAIDDiskInfo::m_strFirmwareVersion	./RAIDManager.h	/^	string		m_strFirmwareVersion;$/;"	m	struct:RAIDDiskInfo	access:public
-RAIDDiskInfo::m_strModel	./RAIDManager.h	/^	string		m_strModel;$/;"	m	struct:RAIDDiskInfo	access:public
-RAIDDiskInfo::m_strSerialNum	./RAIDManager.h	/^	string		m_strSerialNum;$/;"	m	struct:RAIDDiskInfo	access:public
+RAIDDiskInfo::m_strDevPath	./RAIDManager.h	/^	string		m_strDevPath;			\/* Device node *\/$/;"	m	struct:RAIDDiskInfo	access:public
 RAIDDiskInfo::m_strState	./RAIDManager.h	/^	string		m_strState;$/;"	m	struct:RAIDDiskInfo	access:public
-RAIDDiskInfo::m_strVendor	./RAIDManager.h	/^	string		m_strVendor;$/;"	m	struct:RAIDDiskInfo	access:public
 RAIDDiskInfo::operator =	./RAIDManager.h	/^	RAIDDiskInfo& operator=(const RAIDDiskInfo& rhs)$/;"	f	struct:RAIDDiskInfo	access:public	signature:(const RAIDDiskInfo& rhs)
 RAIDDiskInfo::operator =	./RAIDManager.h	/^	RAIDDiskInfo& operator=(const struct array_disk_info& rhs)$/;"	f	struct:RAIDDiskInfo	access:public	signature:(const struct array_disk_info& rhs)
+RAIDDiskInfo::operator ==	./RAIDManager.h	/^	bool operator==(const DiskProfile& profile) const$/;"	f	struct:RAIDDiskInfo	access:public	signature:(const DiskProfile& profile) const
 RAIDDiskInfo::operator ==	./RAIDManager.h	/^	bool operator==(const RAIDDiskInfo& rhs) const$/;"	f	struct:RAIDDiskInfo	access:public	signature:(const RAIDDiskInfo& rhs) const
 RAIDDiskInfo::operator ==	./RAIDManager.h	/^	bool operator==(const string& rhs) const$/;"	f	struct:RAIDDiskInfo	access:public	signature:(const string& rhs) const
 RAIDDiskInfo::~RAIDDiskInfo	./RAIDManager.h	/^	~RAIDDiskInfo() {}$/;"	f	struct:RAIDDiskInfo	access:public	signature:()
 RAIDInfo	./RAIDManager.h	/^	RAIDInfo()$/;"	f	struct:RAIDInfo	access:public	signature:()
 RAIDInfo	./RAIDManager.h	/^struct RAIDInfo {$/;"	s
 RAIDInfo::Dump	./RAIDManager.h	/^	void Dump()$/;"	f	struct:RAIDInfo	access:public	signature:()
-RAIDInfo::InitializeFSManager	./RAIDManager.h	/^	bool InitializeFSManager() {$/;"	f	struct:RAIDInfo	access:public	signature:()
 RAIDInfo::IsRAIDStatusChanged	./RAIDManager.h	/^	bool IsRAIDStatusChanged(const RAIDInfo& previous) {$/;"	f	struct:RAIDInfo	access:public	signature:(const RAIDInfo& previous)
 RAIDInfo::RAIDInfo	./RAIDManager.h	/^	RAIDInfo()$/;"	f	struct:RAIDInfo	access:public	signature:()
 RAIDInfo::m_CreationTime	./RAIDManager.h	/^	time_t			m_CreationTime;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_UUID	./RAIDManager.h	/^	uint32_t		m_UUID[4];$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_UpdateTime	./RAIDManager.h	/^	time_t			m_UpdateTime;$/;"	m	struct:RAIDInfo	access:public
+RAIDInfo::m_bFormat	./RAIDManager.h	/^	bool			m_bFormat;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_bInactive	./RAIDManager.h	/^	bool			m_bInactive;$/;"	m	struct:RAIDInfo	access:public
+RAIDInfo::m_bMount	./RAIDManager.h	/^	bool			m_bMount;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_bRebuilding	./RAIDManager.h	/^	bool			m_bRebuilding;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_bSuperBlockPersistent	./RAIDManager.h	/^	bool			m_bSuperBlockPersistent;$/;"	m	struct:RAIDInfo	access:public
-RAIDInfo::m_fsMgr	./RAIDManager.h	/^	smart_ptr<FilesystemManager> m_fsMgr;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_iActiveDiskNum	./RAIDManager.h	/^	int32_t			m_iActiveDiskNum;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_iChunkSize	./RAIDManager.h	/^	int32_t			m_iChunkSize;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_iFailedDiskNum	./RAIDManager.h	/^	int32_t			m_iFailedDiskNum;$/;"	m	struct:RAIDInfo	access:public
+RAIDInfo::m_iFormatProgress	./RAIDManager.h	/^	int32_t			m_iFormatProgress;$/;"	m	struct:RAIDInfo	access:public
+RAIDInfo::m_iFormatingState	./RAIDManager.h	/^	int32_t			m_iFormatingState;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_iMDNum	./RAIDManager.h	/^	int32_t			m_iMDNum;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_iRAIDDiskNum	./RAIDManager.h	/^	int32_t			m_iRAIDDiskNum;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_iRAIDLevel	./RAIDManager.h	/^	int32_t			m_iRAIDLevel;$/;"	m	struct:RAIDInfo	access:public
@@ -6503,10 +6533,12 @@ RAIDInfo::m_iSpareDiskNum	./RAIDManager.h	/^	int32_t			m_iSpareDiskNum;$/;"	m	st
 RAIDInfo::m_iState	./RAIDManager.h	/^	int32_t			m_iState;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_iTotalDiskNum	./RAIDManager.h	/^	int32_t			m_iTotalDiskNum;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_iWorkingDiskNum	./RAIDManager.h	/^	int32_t			m_iWorkingDiskNum;$/;"	m	struct:RAIDInfo	access:public
-RAIDInfo::m_strDevNodeName	./RAIDManager.h	/^	string			m_strDevNodeName;$/;"	m	struct:RAIDInfo	access:public
+RAIDInfo::m_strDevPath	./RAIDManager.h	/^	string			m_strDevPath;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_strLayout	./RAIDManager.h	/^	string			m_strLayout;$/;"	m	struct:RAIDInfo	access:public
+RAIDInfo::m_strMountPoint	./RAIDManager.h	/^	string			m_strMountPoint;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_strRebuildingOperation	./RAIDManager.h	/^	string			m_strRebuildingOperation;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_strState	./RAIDManager.h	/^	string			m_strState;$/;"	m	struct:RAIDInfo	access:public
+RAIDInfo::m_strSysName	./RAIDManager.h	/^	string			m_strSysName;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_ullTotalCapacity	./RAIDManager.h	/^	int64_t			m_ullTotalCapacity;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_ullUsedSize	./RAIDManager.h	/^	int64_t			m_ullUsedSize;$/;"	m	struct:RAIDInfo	access:public
 RAIDInfo::m_vDiskList	./RAIDManager.h	/^	vector<RAIDDiskInfo>	m_vDiskList;$/;"	m	struct:RAIDInfo	access:public
@@ -6515,33 +6547,22 @@ RAIDInfo::operator =	./RAIDManager.h	/^	RAIDInfo& operator=(const struct array_d
 RAIDInfo::operator ==	./RAIDManager.h	/^	bool operator==(const RAIDInfo& rhs) const$/;"	f	struct:RAIDInfo	access:public	signature:(const RAIDInfo& rhs) const
 RAIDInfo::operator ==	./RAIDManager.h	/^	bool operator==(const string& rhs) const$/;"	f	struct:RAIDInfo	access:public	signature:(const string& rhs) const
 RAIDInfo::~RAIDInfo	./RAIDManager.h	/^	~RAIDInfo() {$/;"	f	struct:RAIDInfo	access:public	signature:()
+RAIDMANAGER_MONITOR_INTERVAL	./RAIDManager.cpp	12;"	d	file:
 RAIDManager	./RAIDManager.cpp	/^RAIDManager::RAIDManager()$/;"	f	class:RAIDManager	signature:()
 RAIDManager	./RAIDManager.h	/^	RAIDManager();$/;"	p	class:RAIDManager	access:public	signature:()
-RAIDManager	./RAIDManager.h	/^class RAIDManager {$/;"	c
+RAIDManager	./RAIDManager.h	/^class RAIDManager : public AprThreadWorker {$/;"	c	inherits:AprThreadWorker
 RAIDManager::AddDisk	./RAIDManager.cpp	/^bool RAIDManager::AddDisk(const string& dev)$/;"	f	class:RAIDManager	signature:(const string& dev)
 RAIDManager::AddDisk	./RAIDManager.h	/^	bool AddDisk(const string& dev);$/;"	p	class:RAIDManager	access:public	signature:(const string& dev)
-RAIDManager::AddDiskSymLink	./RAIDManager.cpp	/^bool RAIDManager::AddDiskSymLink(const string& symlink, eDiskType type)$/;"	f	class:RAIDManager	signature:(const string& symlink, eDiskType type)
-RAIDManager::AddDiskSymLink	./RAIDManager.h	/^	bool AddDiskSymLink(const string& symlink, eDiskType type);$/;"	p	class:RAIDManager	access:public	signature:(const string& symlink, eDiskType type)
 RAIDManager::AddMDDisks	./RAIDManager.cpp	/^bool RAIDManager::AddMDDisks(const string& mddev, vector<string>& vDevList)$/;"	f	class:RAIDManager	signature:(const string& mddev, vector<string>& vDevList)
 RAIDManager::AddMDDisks	./RAIDManager.h	/^	bool AddMDDisks(const string& mddev, vector<string>& vDevList);$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev, vector<string>& vDevList)
-RAIDManager::AssembleRAID	./RAIDManager.cpp	/^bool RAIDManager::AssembleRAID(const int uuid[4], string& strMDName)$/;"	f	class:RAIDManager	signature:(const int uuid[4], string& strMDName)
-RAIDManager::AssembleRAID	./RAIDManager.cpp	/^bool RAIDManager::AssembleRAID(vector<string>& vDevList, string& strMDName)$/;"	f	class:RAIDManager	signature:(vector<string>& vDevList, string& strMDName)
-RAIDManager::AssembleRAID	./RAIDManager.cpp	/^int RAIDManager::AssembleRAID(const int& mdnum, string& mddev, const int uuid[4])$/;"	f	class:RAIDManager	signature:(const int& mdnum, string& mddev, const int uuid[4])
-RAIDManager::AssembleRAID	./RAIDManager.cpp	/^int RAIDManager::AssembleRAID(const int& mdnum, string& mddev, vector<string>& vDevList)$/;"	f	class:RAIDManager	signature:(const int& mdnum, string& mddev, vector<string>& vDevList)
+RAIDManager::AssembleRAID	./RAIDManager.cpp	/^bool RAIDManager::AssembleRAID(const int uuid[4], string& mddev)$/;"	f	class:RAIDManager	signature:(const int uuid[4], string& mddev)
 RAIDManager::AssembleRAID	./RAIDManager.cpp	/^int RAIDManager::AssembleRAID(const string& mddev, const int uuid[4])$/;"	f	class:RAIDManager	signature:(const string& mddev, const int uuid[4])
-RAIDManager::AssembleRAID	./RAIDManager.cpp	/^int RAIDManager::AssembleRAID(const string& mddev, vector<string>& vDevList)$/;"	f	class:RAIDManager	signature:(const string& mddev, vector<string>& vDevList)
-RAIDManager::AssembleRAID	./RAIDManager.h	/^	bool AssembleRAID(const int uuid[4], string& strMDName);$/;"	p	class:RAIDManager	access:public	signature:(const int uuid[4], string& strMDName)
-RAIDManager::AssembleRAID	./RAIDManager.h	/^	bool AssembleRAID(vector<string>& vDevList, string& strMDName);$/;"	p	class:RAIDManager	access:public	signature:(vector<string>& vDevList, string& strMDName)
-RAIDManager::AssembleRAID	./RAIDManager.h	/^	int AssembleRAID(const int& mdnum, string& mddev, const int uuid[4]);$/;"	p	class:RAIDManager	access:private	signature:(const int& mdnum, string& mddev, const int uuid[4])
-RAIDManager::AssembleRAID	./RAIDManager.h	/^	int AssembleRAID(const int& mdnum, string& mddev, vector<string>& vDevList);$/;"	p	class:RAIDManager	access:private	signature:(const int& mdnum, string& mddev, vector<string>& vDevList)
+RAIDManager::AssembleRAID	./RAIDManager.h	/^	bool AssembleRAID(const int uuid[4], string &mddev);$/;"	p	class:RAIDManager	access:private	signature:(const int uuid[4], string &mddev)
 RAIDManager::AssembleRAID	./RAIDManager.h	/^	int AssembleRAID(const string& mddev, const int uuid[4]);$/;"	p	class:RAIDManager	access:private	signature:(const string& mddev, const int uuid[4])
-RAIDManager::AssembleRAID	./RAIDManager.h	/^	int AssembleRAID(const string& mddev, vector<string>& vDevList);$/;"	p	class:RAIDManager	access:private	signature:(const string& mddev, vector<string>& vDevList)
 RAIDManager::CheckFileSystem	./RAIDManager.h	/^	bool CheckFileSystem();$/;"	p	class:RAIDManager	access:public	signature:()
-RAIDManager::CreateRAID	./RAIDManager.cpp	/^bool RAIDManager::CreateRAID(vector<string>& vDevList, int level, string& strMDName)$/;"	f	class:RAIDManager	signature:(vector<string>& vDevList, int level, string& strMDName)
-RAIDManager::CreateRAID	./RAIDManager.cpp	/^int RAIDManager::CreateRAID(const int& mdnum, string& mddev, vector<string>& vDevList, int level)$/;"	f	class:RAIDManager	signature:(const int& mdnum, string& mddev, vector<string>& vDevList, int level)
+RAIDManager::CreateRAID	./RAIDManager.cpp	/^bool RAIDManager::CreateRAID(vector<string>& vDevList, int level)$/;"	f	class:RAIDManager	signature:(vector<string>& vDevList, int level)
 RAIDManager::CreateRAID	./RAIDManager.cpp	/^int RAIDManager::CreateRAID(const string& mddev, vector<string>& vDevList, int level)$/;"	f	class:RAIDManager	signature:(const string& mddev, vector<string>& vDevList, int level)
-RAIDManager::CreateRAID	./RAIDManager.h	/^	bool CreateRAID(vector<string>& vDevList, int level, string& strMDName);$/;"	p	class:RAIDManager	access:public	signature:(vector<string>& vDevList, int level, string& strMDName)
-RAIDManager::CreateRAID	./RAIDManager.h	/^	int CreateRAID(const int& mdnum, string& mddev, vector<string>& vDevList, int level);$/;"	p	class:RAIDManager	access:private	signature:(const int& mdnum, string& mddev, vector<string>& vDevList, int level)
+RAIDManager::CreateRAID	./RAIDManager.h	/^	bool CreateRAID(vector<string>& vDevList, int level);$/;"	p	class:RAIDManager	access:public	signature:(vector<string>& vDevList, int level)
 RAIDManager::CreateRAID	./RAIDManager.h	/^	int CreateRAID(const string& mddev, vector<string>& vDevList, int level);$/;"	p	class:RAIDManager	access:private	signature:(const string& mddev, vector<string>& vDevList, int level)
 RAIDManager::DeleteRAID	./RAIDManager.cpp	/^bool RAIDManager::DeleteRAID(const string& mddev)$/;"	f	class:RAIDManager	signature:(const string& mddev)
 RAIDManager::DeleteRAID	./RAIDManager.h	/^	bool DeleteRAID(const string& mddev);$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev)
@@ -6556,33 +6577,28 @@ RAIDManager::FreeMDNum	./RAIDManager.cpp	/^void RAIDManager::FreeMDNum(int n)$/;
 RAIDManager::FreeMDNum	./RAIDManager.h	/^	void FreeMDNum(int n);$/;"	p	class:RAIDManager	access:private	signature:(int n)
 RAIDManager::FreeVolumeNum	./RAIDManager.cpp	/^void RAIDManager::FreeVolumeNum(int n)$/;"	f	class:RAIDManager	signature:(int n)
 RAIDManager::FreeVolumeNum	./RAIDManager.h	/^	void FreeVolumeNum(int n);$/;"	p	class:RAIDManager	access:private	signature:(int n)
-RAIDManager::GenerateMDDevName	./RAIDManager.cpp	/^string RAIDManager::GenerateMDDevName(int num)$/;"	f	class:RAIDManager	signature:(int num)
-RAIDManager::GenerateMDDevName	./RAIDManager.h	/^	string GenerateMDDevName(int num);$/;"	p	class:RAIDManager	access:private	signature:(int num)
-RAIDManager::GenerateVolumeName	./RAIDManager.cpp	/^int RAIDManager::GenerateVolumeName(string& name)$/;"	f	class:RAIDManager	signature:(string& name)
-RAIDManager::GenerateVolumeName	./RAIDManager.h	/^	int GenerateVolumeName(string& name);$/;"	p	class:RAIDManager	access:private	signature:(string& name)
-RAIDManager::GetDeviceNodeBySymLink	./RAIDManager.cpp	/^string RAIDManager::GetDeviceNodeBySymLink(const string& symlink)$/;"	f	class:RAIDManager	signature:(const string& symlink)
+RAIDManager::GenerateMDSysName	./RAIDManager.cpp	/^string RAIDManager::GenerateMDSysName(int num)$/;"	f	class:RAIDManager	signature:(int num)
+RAIDManager::GenerateMDSysName	./RAIDManager.h	/^	string GenerateMDSysName(int num);$/;"	p	class:RAIDManager	access:private	signature:(int num)
+RAIDManager::GenerateRAIDInfo	./RAIDManager.cpp	/^bool RAIDManager::GenerateRAIDInfo(const MDProfile &profile, RAIDInfo& info)$/;"	f	class:RAIDManager	signature:(const MDProfile &profile, RAIDInfo& info)
+RAIDManager::GenerateRAIDInfo	./RAIDManager.h	/^	bool GenerateRAIDInfo(const MDProfile &profile, RAIDInfo& info);$/;"	p	class:RAIDManager	access:private	signature:(const MDProfile &profile, RAIDInfo& info)
 RAIDManager::GetDeviceNodeBySymLink	./RAIDManager.h	/^	static string GetDeviceNodeBySymLink(const string& symlink);$/;"	p	class:RAIDManager	access:public	signature:(const string& symlink)
-RAIDManager::GetDisksInfo	./RAIDManager.cpp	/^bool RAIDManager::GetDisksInfo(const string& dev, RAIDDiskInfo &info)$/;"	f	class:RAIDManager	signature:(const string& dev, RAIDDiskInfo &info)
-RAIDManager::GetDisksInfo	./RAIDManager.cpp	/^void RAIDManager::GetDisksInfo(vector<RAIDDiskInfo> &list)$/;"	f	class:RAIDManager	signature:(vector<RAIDDiskInfo> &list)
-RAIDManager::GetDisksInfo	./RAIDManager.h	/^	bool GetDisksInfo(const string& dev, RAIDDiskInfo &info);$/;"	p	class:RAIDManager	access:public	signature:(const string& dev, RAIDDiskInfo &info)
-RAIDManager::GetDisksInfo	./RAIDManager.h	/^	void GetDisksInfo(vector<RAIDDiskInfo> &list);$/;"	p	class:RAIDManager	access:public	signature:(vector<RAIDDiskInfo> &list)
-RAIDManager::GetDisksInfoBySymLink	./RAIDManager.h	/^	bool GetDisksInfoBySymLink(const string& link, RAIDDiskInfo &info);$/;"	p	class:RAIDManager	access:public	signature:(const string& link, RAIDDiskInfo &info)
-RAIDManager::GetDisksInfoBySymLink	./RAIDManager.h	/^	bool GetDisksInfoBySymLink(vector<RAIDDiskInfo> &list);$/;"	p	class:RAIDManager	access:public	signature:(vector<RAIDDiskInfo> &list)
 RAIDManager::GetFileSystemStatus	./RAIDManager.h	/^	bool GetFileSystemStatus();$/;"	p	class:RAIDManager	access:public	signature:()
 RAIDManager::GetFormatProgress	./RAIDManager.cpp	/^bool RAIDManager::GetFormatProgress(const string& mddev,$/;"	f	class:RAIDManager	signature:(const string& mddev, int& stat, int& progress)
 RAIDManager::GetFormatProgress	./RAIDManager.h	/^	bool GetFormatProgress(const string& mddev,$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev, int& stat, int& progress)
 RAIDManager::GetFormerVolumeNum	./RAIDManager.cpp	/^int RAIDManager::GetFormerVolumeNum(int n)$/;"	f	class:RAIDManager	signature:(int n)
 RAIDManager::GetFormerVolumeNum	./RAIDManager.h	/^	int GetFormerVolumeNum(int n);$/;"	p	class:RAIDManager	access:private	signature:(int n)
+RAIDManager::GetFreeDisksInfo	./RAIDManager.cpp	/^void RAIDManager::GetFreeDisksInfo(vector<RAIDDiskInfo> &list)$/;"	f	class:RAIDManager	signature:(vector<RAIDDiskInfo> &list)
+RAIDManager::GetFreeDisksInfo	./RAIDManager.h	/^	void GetFreeDisksInfo(vector<RAIDDiskInfo> &list);$/;"	p	class:RAIDManager	access:public	signature:(vector<RAIDDiskInfo> &list)
 RAIDManager::GetFreeMDNum	./RAIDManager.cpp	/^int RAIDManager::GetFreeMDNum()$/;"	f	class:RAIDManager	signature:()
 RAIDManager::GetFreeMDNum	./RAIDManager.h	/^	int GetFreeMDNum();$/;"	p	class:RAIDManager	access:private	signature:()
 RAIDManager::GetFreeVolumeNum	./RAIDManager.cpp	/^int RAIDManager::GetFreeVolumeNum()$/;"	f	class:RAIDManager	signature:()
 RAIDManager::GetFreeVolumeNum	./RAIDManager.h	/^	int GetFreeVolumeNum();$/;"	p	class:RAIDManager	access:private	signature:()
-RAIDManager::GetRAIDDetail	./RAIDManager.cpp	/^bool RAIDManager::GetRAIDDetail(const string& mddev,$/;"	f	class:RAIDManager	signature:(const string& mddev, array_detail &ad)
-RAIDManager::GetRAIDDetail	./RAIDManager.h	/^	bool GetRAIDDetail(const string& mddev, array_detail &ad);$/;"	p	class:RAIDManager	access:private	signature:(const string& mddev, array_detail &ad)
 RAIDManager::GetRAIDInfo	./RAIDManager.cpp	/^bool RAIDManager::GetRAIDInfo(const string& mddev, RAIDInfo& info)$/;"	f	class:RAIDManager	signature:(const string& mddev, RAIDInfo& info)
 RAIDManager::GetRAIDInfo	./RAIDManager.cpp	/^void RAIDManager::GetRAIDInfo(vector<RAIDInfo>& list)$/;"	f	class:RAIDManager	signature:(vector<RAIDInfo>& list)
 RAIDManager::GetRAIDInfo	./RAIDManager.h	/^	bool GetRAIDInfo(const string& mddev, RAIDInfo& info);$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev, RAIDInfo& info)
 RAIDManager::GetRAIDInfo	./RAIDManager.h	/^	void GetRAIDInfo(vector<RAIDInfo>& list);$/;"	p	class:RAIDManager	access:public	signature:(vector<RAIDInfo>& list)
+RAIDManager::Initialize	./RAIDManager.cpp	/^bool RAIDManager::Initialize()$/;"	f	class:RAIDManager	signature:()
+RAIDManager::Initialize	./RAIDManager.h	/^	bool Initialize();$/;"	p	class:RAIDManager	access:private	signature:()
 RAIDManager::InitializeContext	./RAIDManager.cpp	/^void RAIDManager::InitializeContext(struct context& c, int force, int runstop, int verbose)$/;"	f	class:RAIDManager	signature:(struct context& c, int force, int runstop, int verbose)
 RAIDManager::InitializeContext	./RAIDManager.h	/^	void InitializeContext(struct context& c, int force = 1, int runstop = 1, int verbose = 0);$/;"	p	class:RAIDManager	access:private	signature:(struct context& c, int force = 1, int runstop = 1, int verbose = 0)
 RAIDManager::InitializeContext	./RAIDManager.h	/^	void InitializeContext(struct context& c, int force = 1, int runstop = 1, int verbose = 1);$/;"	p	class:RAIDManager	access:private	signature:(struct context& c, int force = 1, int runstop = 1, int verbose = 1)
@@ -6594,22 +6610,14 @@ RAIDManager::InitializeMDDevIdent	./RAIDManager.cpp	/^void RAIDManager::Initiali
 RAIDManager::InitializeMDDevIdent	./RAIDManager.h	/^	void InitializeMDDevIdent(struct mddev_ident& ident, int uuid_set, const int uuid[4], int bitmap_fd = -1, char* bitmap_file = NULL);$/;"	p	class:RAIDManager	access:private	signature:(struct mddev_ident& ident, int uuid_set, const int uuid[4], int bitmap_fd = -1, char* bitmap_file = NULL)
 RAIDManager::InitializeShape	./RAIDManager.cpp	/^void RAIDManager::InitializeShape(struct shape& s, int raiddisks, int level, int chunk, int bitmap_chunk, char* bitmap_file)$/;"	f	class:RAIDManager	signature:(struct shape& s, int raiddisks, int level, int chunk, int bitmap_chunk, char* bitmap_file)
 RAIDManager::InitializeShape	./RAIDManager.h	/^	void InitializeShape(struct shape& s, int raiddisks, int level, int chunk = 512, int bitmap_chunk = UnSet, char* bitmap_file = NULL);$/;"	p	class:RAIDManager	access:private	signature:(struct shape& s, int raiddisks, int level, int chunk = 512, int bitmap_chunk = UnSet, char* bitmap_file = NULL)
-RAIDManager::IsDiskExistInRAIDDiskList	./RAIDManager.cpp	/^bool RAIDManager::IsDiskExistInRAIDDiskList(const string& dev)$/;"	f	class:RAIDManager	signature:(const string& dev)
-RAIDManager::IsDiskExistInRAIDDiskList	./RAIDManager.cpp	/^bool RAIDManager::IsDiskExistInRAIDDiskList(vector<string>& vDevList)$/;"	f	class:RAIDManager	signature:(vector<string>& vDevList)
 RAIDManager::IsDiskExistInRAIDDiskList	./RAIDManager.h	/^	bool IsDiskExistInRAIDDiskList(const string& dev);$/;"	p	class:RAIDManager	access:private	signature:(const string& dev)
 RAIDManager::IsDiskExistInRAIDDiskList	./RAIDManager.h	/^	bool IsDiskExistInRAIDDiskList(vector<string>& vDevList);$/;"	p	class:RAIDManager	access:private	signature:(vector<string>& vDevList)
-RAIDManager::IsDiskHaveMDSuperBlock	./RAIDManager.cpp	/^bool RAIDManager::IsDiskHaveMDSuperBlock(const string& dev, examine_result &result, int &err)$/;"	f	class:RAIDManager	signature:(const string& dev, examine_result &result, int &err)
-RAIDManager::IsDiskHaveMDSuperBlock	./RAIDManager.h	/^	bool IsDiskHaveMDSuperBlock(const string& dev, examine_result &result, int &err);$/;"	p	class:RAIDManager	access:private	signature:(const string& dev, examine_result &result, int &err)
 RAIDManager::IsFormated	./RAIDManager.cpp	/^bool RAIDManager::IsFormated(const string& mddev)$/;"	f	class:RAIDManager	signature:(const string& mddev)
 RAIDManager::IsFormated	./RAIDManager.h	/^	bool IsFormated(const string& mddev);$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev)
-RAIDManager::IsMDDevInRAIDInfoList	./RAIDManager.cpp	/^vector<RAIDInfo>::iterator RAIDManager::IsMDDevInRAIDInfoList(const string &mddev)$/;"	f	class:RAIDManager	signature:(const string &mddev)
-RAIDManager::IsMDDevInRAIDInfoList	./RAIDManager.cpp	/^vector<RAIDInfo>::iterator RAIDManager::IsMDDevInRAIDInfoList(const string &mddev, RAIDInfo& info)$/;"	f	class:RAIDManager	signature:(const string &mddev, RAIDInfo& info)
 RAIDManager::IsMDDevInRAIDInfoList	./RAIDManager.h	/^	vector<RAIDInfo>::iterator IsMDDevInRAIDInfoList(const string &mddev);$/;"	p	class:RAIDManager	access:private	signature:(const string &mddev)
 RAIDManager::IsMDDevInRAIDInfoList	./RAIDManager.h	/^	vector<RAIDInfo>::iterator IsMDDevInRAIDInfoList(const string &mddev, RAIDInfo& info);$/;"	p	class:RAIDManager	access:private	signature:(const string &mddev, RAIDInfo& info)
 RAIDManager::IsMounted	./RAIDManager.cpp	/^bool RAIDManager::IsMounted(const string& mddev, int &num)$/;"	f	class:RAIDManager	signature:(const string& mddev, int &num)
 RAIDManager::IsMounted	./RAIDManager.h	/^	bool IsMounted(const string& mddev, int &num);$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev, int &num)
-RAIDManager::IsRAIDAbnormal	./RAIDManager.cpp	/^bool RAIDManager::IsRAIDAbnormal(const RAIDInfo &info)$/;"	f	class:RAIDManager	signature:(const RAIDInfo &info)
-RAIDManager::IsRAIDAbnormal	./RAIDManager.h	/^	bool IsRAIDAbnormal(const RAIDInfo &info);$/;"	p	class:RAIDManager	access:private	signature:(const RAIDInfo &info)
 RAIDManager::ManageRAIDSubdevs	./RAIDManager.cpp	/^bool RAIDManager::ManageRAIDSubdevs(const string& mddev, vector<string>& vDevList, int operation)$/;"	f	class:RAIDManager	signature:(const string& mddev, vector<string>& vDevList, int operation)
 RAIDManager::ManageRAIDSubdevs	./RAIDManager.h	/^	bool ManageRAIDSubdevs(const string& mddev, vector<string>& vDevList, int operation);$/;"	p	class:RAIDManager	access:private	signature:(const string& mddev, vector<string>& vDevList, int operation)
 RAIDManager::MarkFaultyMDDisks	./RAIDManager.cpp	/^bool RAIDManager::MarkFaultyMDDisks(const string& mddev, vector<string>& vDevList)$/;"	f	class:RAIDManager	signature:(const string& mddev, vector<string>& vDevList)
@@ -6618,46 +6626,43 @@ RAIDManager::Mount	./RAIDManager.cpp	/^bool RAIDManager::Mount(const string& mdd
 RAIDManager::Mount	./RAIDManager.h	/^	bool Mount(const string& mddev);$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev)
 RAIDManager::OpenMDDev	./RAIDManager.cpp	/^int RAIDManager::OpenMDDev(const string& mddev)$/;"	f	class:RAIDManager	signature:(const string& mddev)
 RAIDManager::OpenMDDev	./RAIDManager.h	/^	int OpenMDDev(const string& mddev);$/;"	p	class:RAIDManager	access:private	signature:(const string& mddev)
+RAIDManager::QueryMDDetail	./RAIDManager.cpp	/^bool RAIDManager::QueryMDDetail(const string& mddev,$/;"	f	class:RAIDManager	signature:(const string& mddev, array_detail &ad)
+RAIDManager::QueryMDDetail	./RAIDManager.h	/^	bool QueryMDDetail(const string& mddev, array_detail &ad);$/;"	p	class:RAIDManager	access:private	signature:(const string& mddev, array_detail &ad)
+RAIDManager::QueryMDSuperBlockInDisk	./RAIDManager.cpp	/^int RAIDManager::QueryMDSuperBlockInDisk(const string& dev, examine_result &result)$/;"	f	class:RAIDManager	signature:(const string& dev, examine_result &result)
+RAIDManager::QueryMDSuperBlockInDisk	./RAIDManager.h	/^	int QueryMDSuperBlockInDisk(const string& dev, examine_result &result);$/;"	p	class:RAIDManager	access:private	signature:(const string& dev, examine_result &result)
 RAIDManager::RAIDManager	./RAIDManager.cpp	/^RAIDManager::RAIDManager()$/;"	f	class:RAIDManager	signature:()
 RAIDManager::RAIDManager	./RAIDManager.h	/^	RAIDManager();$/;"	p	class:RAIDManager	access:public	signature:()
 RAIDManager::ReaddMDDisks	./RAIDManager.cpp	/^bool RAIDManager::ReaddMDDisks(const string& mddev, vector<string>& vDevList)$/;"	f	class:RAIDManager	signature:(const string& mddev, vector<string>& vDevList)
 RAIDManager::ReaddMDDisks	./RAIDManager.h	/^	bool ReaddMDDisks(const string& mddev, vector<string>& vDevList);$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev, vector<string>& vDevList)
 RAIDManager::RemoveDisk	./RAIDManager.cpp	/^bool RAIDManager::RemoveDisk(const string& dev)$/;"	f	class:RAIDManager	signature:(const string& dev)
 RAIDManager::RemoveDisk	./RAIDManager.h	/^	bool RemoveDisk(const string& dev);$/;"	p	class:RAIDManager	access:public	signature:(const string& dev)
-RAIDManager::RemoveDiskSymLink	./RAIDManager.cpp	/^bool RAIDManager::RemoveDiskSymLink(const string& symlink)$/;"	f	class:RAIDManager	signature:(const string& symlink)
-RAIDManager::RemoveDiskSymLink	./RAIDManager.h	/^	bool RemoveDiskSymLink(const string& symlink);$/;"	p	class:RAIDManager	access:public	signature:(const string& symlink)
 RAIDManager::RemoveMDDisks	./RAIDManager.cpp	/^bool RAIDManager::RemoveMDDisks(const string& mddev, vector<string>& vDevList)$/;"	f	class:RAIDManager	signature:(const string& mddev, vector<string>& vDevList)
 RAIDManager::RemoveMDDisks	./RAIDManager.h	/^	bool RemoveMDDisks(const string& mddev, vector<string>& vDevList);$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev, vector<string>& vDevList)
 RAIDManager::ReplaceMDDisk	./RAIDManager.cpp	/^bool RAIDManager::ReplaceMDDisk(const string& mddev, const string& replace, const string& with)$/;"	f	class:RAIDManager	signature:(const string& mddev, const string& replace, const string& with)
 RAIDManager::ReplaceMDDisk	./RAIDManager.h	/^	bool ReplaceMDDisk(const string& mddev, const string& replace, const string& with);$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev, const string& replace, const string& with)
-RAIDManager::SearchDiskBelong2RAID	./RAIDManager.cpp	/^vector<RAIDInfo>::iterator RAIDManager::SearchDiskBelong2RAID(RAIDDiskInfo& info)$/;"	f	class:RAIDManager	signature:(RAIDDiskInfo& info)
 RAIDManager::SearchDiskBelong2RAID	./RAIDManager.h	/^	vector<RAIDInfo>::iterator SearchDiskBelong2RAID(RAIDDiskInfo& devInfo);$/;"	p	class:RAIDManager	access:private	signature:(RAIDDiskInfo& devInfo)
 RAIDManager::SetMDNum	./RAIDManager.cpp	/^void RAIDManager::SetMDNum(int n)$/;"	f	class:RAIDManager	signature:(int n)
 RAIDManager::SetMDNum	./RAIDManager.h	/^	void SetMDNum(int n);$/;"	p	class:RAIDManager	access:private	signature:(int n)
 RAIDManager::SetVolumeNum	./RAIDManager.cpp	/^void RAIDManager::SetVolumeNum(int n)$/;"	f	class:RAIDManager	signature:(int n)
 RAIDManager::SetVolumeNum	./RAIDManager.h	/^	void SetVolumeNum(int n);$/;"	p	class:RAIDManager	access:private	signature:(int n)
 RAIDManager::StopRAID	./RAIDManager.cpp	/^bool RAIDManager::StopRAID(const string& mddev)$/;"	f	class:RAIDManager	signature:(const string& mddev)
-RAIDManager::StopRAID	./RAIDManager.h	/^	bool StopRAID(const string& mddev);$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev)
+RAIDManager::StopRAID	./RAIDManager.h	/^	bool StopRAID(const string& mddev);$/;"	p	class:RAIDManager	access:private	signature:(const string& mddev)
+RAIDManager::ThreadProc	./RAIDManager.cpp	/^void RAIDManager::ThreadProc()$/;"	f	class:RAIDManager	signature:()
+RAIDManager::ThreadProc	./RAIDManager.h	/^	void ThreadProc();$/;"	p	class:RAIDManager	access:protected	signature:()
 RAIDManager::Unmount	./RAIDManager.cpp	/^bool RAIDManager::Unmount(const string& mddev)$/;"	f	class:RAIDManager	signature:(const string& mddev)
 RAIDManager::Unmount	./RAIDManager.h	/^	bool Unmount(const string& mddev);$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev)
-RAIDManager::UpdateRAIDDiskList	./RAIDManager.cpp	/^void RAIDManager::UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList, const string& mddev)$/;"	f	class:RAIDManager	signature:(vector<RAIDDiskInfo>& vRAIDDiskInfoList, const string& mddev)
 RAIDManager::UpdateRAIDDiskList	./RAIDManager.h	/^	void UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList, const string& mddev);$/;"	p	class:RAIDManager	access:private	signature:(vector<RAIDDiskInfo>& vRAIDDiskInfoList, const string& mddev)
-RAIDManager::UpdateRAIDInfo	./RAIDManager.cpp	/^bool RAIDManager::UpdateRAIDInfo()$/;"	f	class:RAIDManager	signature:()
-RAIDManager::UpdateRAIDInfo	./RAIDManager.cpp	/^bool RAIDManager::UpdateRAIDInfo(const int uuid[4])$/;"	f	class:RAIDManager	signature:(const int uuid[4])
-RAIDManager::UpdateRAIDInfo	./RAIDManager.cpp	/^bool RAIDManager::UpdateRAIDInfo(const string& mddev, int mdnum)$/;"	f	class:RAIDManager	signature:(const string& mddev, int mdnum)
-RAIDManager::UpdateRAIDInfo	./RAIDManager.h	/^	bool UpdateRAIDInfo(); \/\/ May need for periodically update.$/;"	p	class:RAIDManager	access:public	signature:()
-RAIDManager::UpdateRAIDInfo	./RAIDManager.h	/^	bool UpdateRAIDInfo(const int uuid[4]);$/;"	p	class:RAIDManager	access:public	signature:(const int uuid[4])
-RAIDManager::UpdateRAIDInfo	./RAIDManager.h	/^	bool UpdateRAIDInfo(const string& mddev, int mdnum = -1);$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev, int mdnum = -1)
+RAIDManager::eTC_STOP	./RAIDManager.h	/^		eTC_STOP,$/;"	e	enum:RAIDManager::__anon52
 RAIDManager::m_bUsedMD	./RAIDManager.h	/^	bool m_bUsedMD[128];$/;"	m	class:RAIDManager	access:private
 RAIDManager::m_bUsedVolume	./RAIDManager.h	/^	bool m_bUsedVolume[128];$/;"	m	class:RAIDManager	access:private
-RAIDManager::m_csRAIDDiskList	./RAIDManager.h	/^	CriticalSection m_csRAIDDiskList;$/;"	m	class:RAIDManager	access:private
-RAIDManager::m_csRAIDInfoList	./RAIDManager.h	/^	CriticalSection m_csRAIDInfoList;$/;"	m	class:RAIDManager	access:private
-RAIDManager::m_csSymLinkTable	./RAIDManager.h	/^	CriticalSection m_csSymLinkTable;$/;"	m	class:RAIDManager	access:private
+RAIDManager::m_csDiskProfiles	./RAIDManager.h	/^	CriticalSection m_csDiskProfiles;$/;"	m	class:RAIDManager	access:private
+RAIDManager::m_csMDProfiles	./RAIDManager.h	/^	CriticalSection m_csMDProfiles;$/;"	m	class:RAIDManager	access:private
+RAIDManager::m_csNotifyChange	./RAIDManager.h	/^	CriticalSection m_csNotifyChange;$/;"	m	class:RAIDManager	access:private
 RAIDManager::m_csUsedMD	./RAIDManager.h	/^	CriticalSection m_csUsedMD;$/;"	m	class:RAIDManager	access:private
 RAIDManager::m_csUsedVolume	./RAIDManager.h	/^	CriticalSection m_csUsedVolume;$/;"	m	class:RAIDManager	access:private
-RAIDManager::m_mapSymLinkTable	./RAIDManager.h	/^	map<string, MiscDiskInfo> m_mapSymLinkTable; \/* string: real device node*\/$/;"	m	class:RAIDManager	access:private
-RAIDManager::m_vRAIDDiskList	./RAIDManager.h	/^	vector<RAIDDiskInfo> m_vRAIDDiskList;$/;"	m	class:RAIDManager	access:private
-RAIDManager::m_vRAIDInfoList	./RAIDManager.h	/^	vector<RAIDInfo> m_vRAIDInfoList;$/;"	m	class:RAIDManager	access:private
+RAIDManager::m_mapDiskProfiles	./RAIDManager.h	/^	map<string, DiskProfile> m_mapDiskProfiles; \/* \/dev\/sdX, profile *\/$/;"	m	class:RAIDManager	access:private
+RAIDManager::m_mapMDProfiles	./RAIDManager.h	/^	map<string, MDProfile> m_mapMDProfiles; \/* \/dev\/mdX, profile *\/$/;"	m	class:RAIDManager	access:private
+RAIDManager::m_pNotifyChange	./RAIDManager.h	/^	AprCond *m_pNotifyChange;$/;"	m	class:RAIDManager	access:private
 RAIDManager::~RAIDManager	./RAIDManager.cpp	/^RAIDManager::~RAIDManager()$/;"	f	class:RAIDManager	signature:()
 RAIDManager::~RAIDManager	./RAIDManager.h	/^	~RAIDManager();$/;"	p	class:RAIDManager	access:public	signature:()
 RAID_AUTORUN	./libmdadm/md_u.h	25;"	d
@@ -6738,6 +6743,8 @@ ReadCreateResponse	../../titanutils/MsClient/ProtocolOperation/MsClientDataSessi
 ReadCreateResponse	../../titanutils/MsClient/ProtocolOperation/MsClientEventSessionParser.cpp	/^bool MsClientEventSessionParser::ReadCreateResponse(AprTcpSocket *pSocket, EventBuffer &event_buffer, HttpParser &parser)$/;"	f	class:MsClientEventSessionParser	signature:(AprTcpSocket *pSocket, EventBuffer &event_buffer, HttpParser &parser)
 ReadCreateResponse	../../titanutils/MsClient/ProtocolOperation/MsClientEventSessionParser.h	/^    static bool ReadCreateResponse(SYSUTILS_SPACE::AprTcpSocket *pSocket, SYSUTILS_SPACE::EventBuffer &event_buffer, SYSUTILS_SPACE::HttpParser &parser);$/;"	p	class:MsClientEventSessionParser	access:public	signature:(SYSUTILS_SPACE::AprTcpSocket *pSocket, SYSUTILS_SPACE::EventBuffer &event_buffer, SYSUTILS_SPACE::HttpParser &parser)
 ReadFixable	./libmdadm/mdadm.h	1430;"	d
+ReadMDStat	./RAIDManager.h	/^	void ReadMDStat()$/;"	f	struct:DiskProfile	access:public	signature:()
+ReadMDStat	./RAIDManager.h	/^	void ReadMDStat()$/;"	f	struct:MDProfile	access:public	signature:()
 ReadNTPNuServerConfig	../../titanutils/serverConfig/NTPConfig.cpp	/^bool CNTPConfig::ReadNTPNuServerConfig(bool &enable)$/;"	f	class:CNTPConfig	signature:(bool &enable)
 ReadNTPNuServerConfig	../../titanutils/serverConfig/NTPConfig.h	/^    static bool ReadNTPNuServerConfig(bool &enable);$/;"	p	class:CNTPConfig	access:private	signature:(bool &enable)
 ReadNTPTimeServer	../../titanutils/serverConfig/NTPConfig.cpp	/^bool CNTPConfig::ReadNTPTimeServer(string &serverAddr)$/;"	f	class:CNTPConfig	signature:(string &serverAddr)
@@ -6873,8 +6880,6 @@ RemoveChild	../scew/xml_element.h	/^    void RemoveChild(const std::string &name
 RemoveChild	../scew/xml_element.h	/^    void RemoveChild(const uint32_t index);$/;"	p	class:SYSUTILS_SPACE::XMLElement	access:public	signature:(const uint32_t index)
 RemoveDisk	./RAIDManager.cpp	/^bool RAIDManager::RemoveDisk(const string& dev)$/;"	f	class:RAIDManager	signature:(const string& dev)
 RemoveDisk	./RAIDManager.h	/^	bool RemoveDisk(const string& dev);$/;"	p	class:RAIDManager	access:public	signature:(const string& dev)
-RemoveDiskSymLink	./RAIDManager.cpp	/^bool RAIDManager::RemoveDiskSymLink(const string& symlink)$/;"	f	class:RAIDManager	signature:(const string& symlink)
-RemoveDiskSymLink	./RAIDManager.h	/^	bool RemoveDiskSymLink(const string& symlink);$/;"	p	class:RAIDManager	access:public	signature:(const string& symlink)
 RemoveFile	../../titanutils/log/EventLogRecycler2.cpp	/^    void RemoveFile(_in_ const std::string& filename);$/;"	p	class:CDbFileHolder	file:	access:public	signature:(_in_ const std::string& filename)
 RemoveFile	../../titanutils/log/EventLogRecycler2.cpp	/^void CDbFileHolder::RemoveFile(_in_ const std::string& filename)$/;"	f	class:CDbFileHolder	signature:(_in_ const std::string& filename)
 RemoveFile	../common/file.cpp	/^DLL_PUBLIC bool SYSUTILS_SPACE::RemoveFile(const std::string &pathname)$/;"	f	class:SYSUTILS_SPACE	signature:(const std::string &pathname)
@@ -9113,7 +9118,6 @@ ScheduleSharePtr	../../titanutils/schedule/ScheduleProfile.h	/^	ScheduleSharePtr
 ScheduleSharePtr	../../titanutils/schedule/ScheduleProfile.h	/^	ScheduleSharePtr(const ScheduleSharePtr<T> &self_) :$/;"	f	class:Schedule::ScheduleSharePtr	access:public	signature:(const ScheduleSharePtr<T> &self_)
 ScheduleSharePtr	../../titanutils/schedule/ScheduleProfile.h	/^	ScheduleSharePtr(void) :$/;"	f	class:Schedule::ScheduleSharePtr	access:public	signature:(void)
 ScheduleSharePtr	../../titanutils/schedule/ScheduleProfile.h	/^template<class T> class ScheduleSharePtr {$/;"	c	namespace:Schedule
-SearchDiskBelong2RAID	./RAIDManager.cpp	/^vector<RAIDInfo>::iterator RAIDManager::SearchDiskBelong2RAID(RAIDDiskInfo& info)$/;"	f	class:RAIDManager	signature:(RAIDDiskInfo& info)
 SearchDiskBelong2RAID	./RAIDManager.h	/^	vector<RAIDInfo>::iterator SearchDiskBelong2RAID(RAIDDiskInfo& devInfo);$/;"	p	class:RAIDManager	access:private	signature:(RAIDDiskInfo& devInfo)
 Semaphore	../common/semaphore.cpp	/^DLL_PUBLIC Semaphore::Semaphore(int32_t value\/*=0*\/)$/;"	f	class:Semaphore	signature:(int32_t value )
 Semaphore	../common/semaphore.h	/^    Semaphore(const Semaphore &rhs);$/;"	p	class:SYSUTILS_SPACE::Semaphore	access:private	signature:(const Semaphore &rhs)
@@ -9542,9 +9546,9 @@ SetDay	../common/time.h	/^    void SetDay(const int32_t day, const int32_t hour=
 SetDayInfo	../../titanutils/serverConfig/MsUserDataItem.cpp	/^bool SetDayInfo(XMLElement& element, const std::vector<std::string>& day, const char* elementName)$/;"	f	signature:(XMLElement& element, const std::vector<std::string>& day, const char* elementName)
 SetDeviceNode	./FilesystemManager.cpp	/^bool FilesystemManager::SetDeviceNode(const string &dev)$/;"	f	class:FilesystemManager	signature:(const string &dev)
 SetDeviceNode	./FilesystemManager.h	/^	bool SetDeviceNode(const string &dev);$/;"	p	class:FilesystemManager	access:public	signature:(const string &dev)
+SetDiskVendorInfomation	./RAIDManager.h	/^	void SetDiskVendorInfomation()$/;"	f	struct:DiskProfile	access:public	signature:()
 SetFormatInfo	./FilesystemManager.cpp	/^void FilesystemManager::SetFormatInfo(bool format, int progress, int stat)$/;"	f	class:FilesystemManager	signature:(bool format, int progress, int stat)
 SetFormatInfo	./FilesystemManager.h	/^	void SetFormatInfo(bool format, int progress,$/;"	p	class:FilesystemManager	access:public	signature:(bool format, int progress, int stat)
-SetHDDVendorInfomation	./RAIDManager.h	/^	void SetHDDVendorInfomation() {$/;"	f	struct:RAIDDiskInfo	access:public	signature:()
 SetHNAConfig	../../titanutils/serverConfig/HNAConfig.cpp	/^bool CHNAConfigManager::SetHNAConfig(const char* sfilePath, const CHNAConfig *pServerConfigData)$/;"	f	class:CHNAConfigManager	signature:(const char* sfilePath, const CHNAConfig *pServerConfigData)
 SetHNAConfig	../../titanutils/serverConfig/HNAConfig.h	/^	static bool SetHNAConfig(const char* sfilePath, const CHNAConfig *pServerConfigData);$/;"	p	class:CHNAConfigManager	access:public	signature:(const char* sfilePath, const CHNAConfig *pServerConfigData)
 SetHour	../common/time.cpp	/^DLL_PUBLIC void UTCTimeSpan::SetHour(const int32_t hour, const int32_t minute\/*=0*\/, const int32_t second\/*=0*\/)$/;"	f	class:UTCTimeSpan	signature:(const int32_t hour, const int32_t minute , const int32_t second )
@@ -9622,6 +9626,8 @@ SetTimer	../thread_object/single_timer.cpp	/^void SingleTimer::TimerThread::SetT
 SetTimer	../thread_object/single_timer.h	/^        void SetTimer(uint32_t start_ms, uint32_t interval_ms);$/;"	p	class:SYSUTILS_SPACE::SingleTimer::TimerThread	access:public	signature:(uint32_t start_ms, uint32_t interval_ms)
 SetTmTime	../common/time.cpp	/^DLL_PUBLIC UTCTime &UTCTime::SetTmTime($/;"	f	class:UTCTime	signature:( const int tm_year, const int tm_mon, const int tm_mday, const int tm_hour , const int tm_min , const int tm_sec , const int tm_milli_sec , const int tm_micro_sec , const int tm_nano_sec )
 SetTmTime	../common/time.h	/^    UTCTime &SetTmTime($/;"	p	class:SYSUTILS_SPACE::UTCTime	access:public	signature:( const int tm_year, const int tm_mon, const int tm_mday, const int tm_hour=0, const int tm_min=0, const int tm_sec=0, const int tm_milli_sec=0, const int tm_micro_sec=0, const int tm_nano_sec=0)
+SetUDEVInformation	./RAIDManager.h	/^	void SetUDEVInformation()$/;"	f	struct:DiskProfile	access:public	signature:()
+SetUDEVInformation	./RAIDManager.h	/^	void SetUDEVInformation()$/;"	f	struct:MDProfile	access:public	signature:()
 SetValue	../scew/xml_attribute.cpp	/^DLL_PUBLIC bool XMLAttribute::SetValue(const std::string &value)$/;"	f	class:XMLAttribute	signature:(const std::string &value)
 SetValue	../scew/xml_attribute.h	/^    bool SetValue(const std::string &value);$/;"	p	class:SYSUTILS_SPACE::XMLAttribute	access:public	signature:(const std::string &value)
 SetVolumeNum	./FilesystemManager.cpp	/^void FilesystemManager::SetVolumeNum(const int &num)$/;"	f	class:FilesystemManager	signature:(const int &num)
@@ -9747,7 +9753,7 @@ StopLoop	../libevent/event_loop.h	/^    bool StopLoop();$/;"	p	class:SYSUTILS_SP
 StopMonitor	../thread_object/directory_monitor.cpp	/^bool DirectoryMonitor::Thread::StopMonitor()$/;"	f	class:DirectoryMonitor::Thread	signature:()
 StopMonitor	../thread_object/directory_monitor.h	/^        bool StopMonitor();$/;"	p	class:SYSUTILS_SPACE::DirectoryMonitor::Thread	access:private	signature:()
 StopRAID	./RAIDManager.cpp	/^bool RAIDManager::StopRAID(const string& mddev)$/;"	f	class:RAIDManager	signature:(const string& mddev)
-StopRAID	./RAIDManager.h	/^	bool StopRAID(const string& mddev);$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev)
+StopRAID	./RAIDManager.h	/^	bool StopRAID(const string& mddev);$/;"	p	class:RAIDManager	access:private	signature:(const string& mddev)
 StopResponse	../../titanutils/server/AprTcpResponderPool.cpp	/^bool AprTcpResponderPool::StopResponse()$/;"	f	class:AprTcpResponderPool	signature:()
 StopResponse	../../titanutils/server/AprTcpResponderPool.h	/^    bool StopResponse();$/;"	p	class:AprTcpResponderPool	access:public	signature:()
 StopServer	../../titanutils/server/AprTcpServer.cpp	/^bool AprTcpServer::StopServer()$/;"	f	class:AprTcpServer	signature:()
@@ -10171,6 +10177,8 @@ ThreadProc	../thread_object/single_timer.cpp	/^void SingleTimer::TimerThread::Th
 ThreadProc	../thread_object/single_timer.h	/^        virtual void ThreadProc();$/;"	p	class:SYSUTILS_SPACE::SingleTimer::TimerThread	access:protected	signature:()
 ThreadProc	./FilesystemManager.cpp	/^void FilesystemManager::ThreadProc()$/;"	f	class:FilesystemManager	signature:()
 ThreadProc	./FilesystemManager.h	/^	void ThreadProc();$/;"	p	class:FilesystemManager	access:protected	signature:()
+ThreadProc	./RAIDManager.cpp	/^void RAIDManager::ThreadProc()$/;"	f	class:RAIDManager	signature:()
+ThreadProc	./RAIDManager.h	/^	void ThreadProc();$/;"	p	class:RAIDManager	access:protected	signature:()
 TimerCallback	../../titanutils/log/DataBaseManager.cpp	/^void DataBaseManager::TimerCallback()$/;"	f	class:DataBaseManager	signature:()
 TimerCallback	../../titanutils/log/DataBaseManager.h	/^    void TimerCallback();$/;"	p	class:DataBaseManager	access:private	signature:()
 TimerCallback	../../titanutils/log/EventLog.cpp	/^void EventLog::TimerCallback()$/;"	f	class:EventLog	signature:()
@@ -10426,14 +10434,7 @@ UpdateActiveTable	../../titanutils/schedule/ScheduleProfile.cpp	/^bool Profile::
 UpdateActiveTable	../../titanutils/schedule/ScheduleProfile.h	/^        bool UpdateActiveTable(const SYSUTILS_SPACE::UTCTime &date_time);$/;"	p	class:Schedule::Profile	access:protected	signature:(const SYSUTILS_SPACE::UTCTime &date_time)
 UpdateProfileSource	../../titanutils/schedule/ScheduleProfileManager.cpp	/^void ScheduleProfileManager::UpdateProfileSource(ScheduleItemShareBase& item)$/;"	f	class:Schedule::ScheduleProfileManager	signature:(ScheduleItemShareBase& item)
 UpdateProfileSource	../../titanutils/schedule/ScheduleProfileManager.h	/^	void UpdateProfileSource(ScheduleItemShareBase& item);$/;"	p	class:Schedule::ScheduleProfileManager	access:public	signature:(ScheduleItemShareBase& item)
-UpdateRAIDDiskList	./RAIDManager.cpp	/^void RAIDManager::UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList, const string& mddev)$/;"	f	class:RAIDManager	signature:(vector<RAIDDiskInfo>& vRAIDDiskInfoList, const string& mddev)
 UpdateRAIDDiskList	./RAIDManager.h	/^	void UpdateRAIDDiskList(vector<RAIDDiskInfo>& vRAIDDiskInfoList, const string& mddev);$/;"	p	class:RAIDManager	access:private	signature:(vector<RAIDDiskInfo>& vRAIDDiskInfoList, const string& mddev)
-UpdateRAIDInfo	./RAIDManager.cpp	/^bool RAIDManager::UpdateRAIDInfo()$/;"	f	class:RAIDManager	signature:()
-UpdateRAIDInfo	./RAIDManager.cpp	/^bool RAIDManager::UpdateRAIDInfo(const int uuid[4])$/;"	f	class:RAIDManager	signature:(const int uuid[4])
-UpdateRAIDInfo	./RAIDManager.cpp	/^bool RAIDManager::UpdateRAIDInfo(const string& mddev, int mdnum)$/;"	f	class:RAIDManager	signature:(const string& mddev, int mdnum)
-UpdateRAIDInfo	./RAIDManager.h	/^	bool UpdateRAIDInfo(); \/\/ May need for periodically update.$/;"	p	class:RAIDManager	access:public	signature:()
-UpdateRAIDInfo	./RAIDManager.h	/^	bool UpdateRAIDInfo(const int uuid[4]);$/;"	p	class:RAIDManager	access:public	signature:(const int uuid[4])
-UpdateRAIDInfo	./RAIDManager.h	/^	bool UpdateRAIDInfo(const string& mddev, int mdnum = -1);$/;"	p	class:RAIDManager	access:public	signature:(const string& mddev, int mdnum = -1)
 UpdateScheduleItem	../../titanutils/schedule/ScheduleBricks.cpp	/^bool ScheduleItemSet::UpdateScheduleItem(ScheduleItemShareBase &item) {$/;"	f	class:Schedule::ScheduleItemSet	signature:(ScheduleItemShareBase &item)
 UpdateScheduleItem	../../titanutils/schedule/ScheduleProfile.h	/^        bool UpdateScheduleItem(ScheduleItemShareBase &item);$/;"	p	class:Schedule::ScheduleItemSet	access:public	signature:(ScheduleItemShareBase &item)
 UpdateScheduleItemSet	../../titanutils/schedule/ScheduleProfile.cpp	/^bool ProfileSource::UpdateScheduleItemSet(ScheduleItemShareBase &item) {$/;"	f	class:Schedule::ProfileSource	signature:(ScheduleItemShareBase &item)
@@ -11336,6 +11337,8 @@ array_detail::bIsRebuilding	./libmdadm/mdadm_other.h	/^	int bIsRebuilding;$/;"	m
 array_detail::bIsSuperBlockPersistent	./libmdadm/mdadm_other.h	/^	int bIsSuperBlockPersistent;$/;"	m	struct:array_detail	access:public
 array_detail::bReshapeActive	./libmdadm/mdadm_other.h	/^	int bReshapeActive;$/;"	m	struct:array_detail	access:public
 array_detail::iDeltaDisks	./libmdadm/mdadm_other.h	/^	int iDeltaDisks;$/;"	m	struct:array_detail	access:public
+array_detail::iEnough	./libmdadm/mdadm_other.h	/^	int iEnough; \/* 0: Raid disk is not enough. *\/$/;"	m	struct:array_detail	access:public
+array_detail::iLayout	./libmdadm/mdadm_other.h	/^	int iLayout;$/;"	m	struct:array_detail	access:public
 array_detail::iNewChunkSize	./libmdadm/mdadm_other.h	/^	int iNewChunkSize; \/* Byte *\/$/;"	m	struct:array_detail	access:public
 array_detail::iRaidNewLevel	./libmdadm/mdadm_other.h	/^	int iRaidNewLevel;$/;"	m	struct:array_detail	access:public
 array_detail::iRebuildProgress	./libmdadm/mdadm_other.h	/^	int iRebuildProgress; \/* -1 if no resync *\/$/;"	m	struct:array_detail	access:public
@@ -12056,6 +12059,7 @@ eTC_STOP	../../titanutils/MsClient/UpgradeThread/UpgradeThread.h	/^        eTC_S
 eTC_STOP	../../titanutils/server/AprTcpServer.h	/^        eTC_STOP,$/;"	e	enum:AprTcpServer::__anon17
 eTC_STOP	../thread_object/directory_monitor.h	/^            eTC_STOP$/;"	e	enum:SYSUTILS_SPACE::DirectoryMonitor::Thread::__anon31
 eTC_STOP	../thread_object/single_timer.h	/^            eTC_STOP$/;"	e	enum:SYSUTILS_SPACE::SingleTimer::TimerThread::__anon29
+eTC_STOP	./RAIDManager.h	/^		eTC_STOP,$/;"	e	enum:RAIDManager::__anon52
 eTaskTypeCompressedFile	../../titanutils/MsClient/ProtocolDefine/MsClientDataSessionDefine.h	/^            eTaskTypeCompressedFile,$/;"	e	enum:MsClientDataSession::RemoteControlRequest::TaskType
 eTaskTypeLibrary	../../titanutils/MsClient/ProtocolDefine/MsClientDataSessionDefine.h	/^            eTaskTypeLibrary = 0xEEDD,$/;"	e	enum:MsClientDataSession::RemoteControlRequest::TaskType
 eUNKNOWN	../thread_object/directory_monitor.h	/^            eUNKNOWN,$/;"	e	enum:SYSUTILS_SPACE::DirectoryMonitor::Item::__anon30
@@ -12960,8 +12964,10 @@ iAttribute	../../titanutils/serverConfig/MSConfigFile.h	/^	uint32_t iAttribute;$
 iDeltaDisks	./libmdadm/mdadm_other.h	/^	int iDeltaDisks;$/;"	m	struct:array_detail	access:public
 iDeviceType	../../titanutils/log/EventLogItem.h	/^    int32_t iDeviceType;$/;"	m	struct:EventLogItem	access:public
 iDiskNumber	./libmdadm/mdadm_other.h	/^	int iDiskNumber;$/;"	m	struct:query_result	access:public
+iEnough	./libmdadm/mdadm_other.h	/^	int iEnough; \/* 0: Raid disk is not enough. *\/$/;"	m	struct:array_detail	access:public
 iEventID	../../titanutils/log/EventLogItem.h	/^    int32_t iEventID;$/;"	m	struct:EventLogItem	access:public
 iIsInSchedule	../../titanutils/log/EventLogItem.h	/^    int32_t iIsInSchedule;$/;"	m	struct:EventLogItem	access:public
+iLayout	./libmdadm/mdadm_other.h	/^	int iLayout;$/;"	m	struct:array_detail	access:public
 iLogLevel	../../titanutils/log/EventLogItem.h	/^    LOG_LEVEL iLogLevel;$/;"	m	struct:EventLogItem	access:public
 iMDRaidDiskNum	./libmdadm/mdadm_other.h	/^	int iMDRaidDiskNum;	\/\/ Available for MD, Disk$/;"	m	struct:query_result	access:public
 iMDRaidLevel	./libmdadm/mdadm_other.h	/^	int iMDRaidLevel;	\/\/ Available for MD, Disk$/;"	m	struct:query_result	access:public
@@ -13293,10 +13299,13 @@ m_bEnableBlack	../../titanutils/server/AprIPFilter.h	/^    bool m_bEnableBlack;$
 m_bEnableWhite	../../titanutils/server/AprIPFilter.h	/^    bool m_bEnableWhite;$/;"	m	class:AprIPFilter	access:private
 m_bFisish	../../titanutils/server/SocketHandler.h	/^    bool m_bFisish;$/;"	m	class:SocketHandler	access:private
 m_bFormat	./FilesystemManager.h	/^	bool m_bFormat;$/;"	m	class:FilesystemManager	access:private
+m_bFormat	./RAIDManager.h	/^	bool			m_bFormat;$/;"	m	struct:RAIDInfo	access:public
 m_bHasMDSB	./RAIDManager.h	/^	bool		m_bHasMDSB;$/;"	m	struct:RAIDDiskInfo	access:public
 m_bInactive	./RAIDManager.h	/^	bool			m_bInactive;$/;"	m	struct:RAIDInfo	access:public
+m_bInitialized	./FilesystemManager.h	/^	bool m_bInitialized;$/;"	m	class:FilesystemManager	access:private
 m_bIsRemove	../../titanutils/serverConfig/NetworkServiceConfig.h	/^    bool m_bIsRemove;$/;"	m	class:CServiceConfigDataBase	access:public
 m_bMount	./FilesystemManager.h	/^	bool m_bMount;$/;"	m	class:FilesystemManager	access:private
+m_bMount	./RAIDManager.h	/^	bool			m_bMount;$/;"	m	struct:RAIDInfo	access:public
 m_bRebuilding	./RAIDManager.h	/^	bool			m_bRebuilding;$/;"	m	struct:RAIDInfo	access:public
 m_bSuperBlockPersistent	./RAIDManager.h	/^	bool			m_bSuperBlockPersistent;$/;"	m	struct:RAIDInfo	access:public
 m_bUsedMD	./RAIDManager.h	/^	bool m_bUsedMD[128];$/;"	m	class:RAIDManager	access:private
@@ -13368,14 +13377,15 @@ m_cs	./test_utils.h	/^	CriticalSection *m_cs;$/;"	m	class:CriticalSectionLock	ac
 m_csBlack	../../titanutils/server/AprIPFilter.h	/^    SYSUTILS_SPACE::CriticalSection m_csBlack;$/;"	m	class:AprIPFilter	access:private
 m_csCallWorker	../apr/apr_thread_worker.h	/^    CriticalSection m_csCallWorker;$/;"	m	class:SYSUTILS_SPACE::AprThreadWorker	access:private
 m_csCapacity	../../titanutils/server/AprTcpSocketPool.h	/^    SYSUTILS_SPACE::CriticalSection m_csCapacity;$/;"	m	class:AprTcpSocketPool	access:private
+m_csDiskProfiles	./RAIDManager.h	/^	CriticalSection m_csDiskProfiles;$/;"	m	class:RAIDManager	access:private
 m_csEventLog	../../titanutils/log/EventLog.h	/^    SYSUTILS_SPACE::CriticalSection m_csEventLog;$/;"	m	class:EventLog	access:private
 m_csFormat	./FilesystemManager.h	/^	CriticalSection m_csFormat;$/;"	m	class:FilesystemManager	access:private
+m_csInitialized	./FilesystemManager.h	/^	CriticalSection m_csInitialized;$/;"	m	class:FilesystemManager	access:private
+m_csMDProfiles	./RAIDManager.h	/^	CriticalSection m_csMDProfiles;$/;"	m	class:RAIDManager	access:private
 m_csMount	./FilesystemManager.h	/^	CriticalSection m_csMount;$/;"	m	class:FilesystemManager	access:private
+m_csNotifyChange	./RAIDManager.h	/^	CriticalSection m_csNotifyChange;$/;"	m	class:RAIDManager	access:private
 m_csPushSocket	../../titanutils/server/AprTcpSocketPool.h	/^    SYSUTILS_SPACE::CriticalSection m_csPushSocket; \/**< Avoid pushing more than one socket at the same time in order to guarantee the the maximum capacity. *\/$/;"	m	class:AprTcpSocketPool	access:private
 m_csQueue	../../titanutils/server/AprTcpSocketPool.h	/^    SYSUTILS_SPACE::CriticalSection m_csQueue;$/;"	m	class:AprTcpSocketPool	access:private
-m_csRAIDDiskList	./RAIDManager.h	/^	CriticalSection m_csRAIDDiskList;$/;"	m	class:RAIDManager	access:private
-m_csRAIDInfoList	./RAIDManager.h	/^	CriticalSection m_csRAIDInfoList;$/;"	m	class:RAIDManager	access:private
-m_csSymLinkTable	./RAIDManager.h	/^	CriticalSection m_csSymLinkTable;$/;"	m	class:RAIDManager	access:private
 m_csUsedMD	./RAIDManager.h	/^	CriticalSection m_csUsedMD;$/;"	m	class:RAIDManager	access:private
 m_csUsedVolume	./RAIDManager.h	/^	CriticalSection m_csUsedVolume;$/;"	m	class:RAIDManager	access:private
 m_csWhite	../../titanutils/server/AprIPFilter.h	/^    SYSUTILS_SPACE::CriticalSection m_csWhite;$/;"	m	class:AprIPFilter	access:private
@@ -13402,7 +13412,8 @@ m_db	../../titanutils/log/EventLogQuery.h	/^    SYSUTILS_SPACE::smart_ptr<DataBa
 m_dbmap	../../titanutils/log/EventLogRecycler2.h	/^    std::map<uint64_t, CDbFileHolder> m_dbmap; \/\/map of <server_id, db_file_holder>$/;"	m	class:EventLogRecycler2	access:private
 m_dir	../common/directory_traverse.h	/^        DIR *m_dir;$/;"	m	class:SYSUTILS_SPACE::DirectoryTraverse::Directory	access:private
 m_directories	../common/directory_traverse.h	/^    std::list<Directory> m_directories;$/;"	m	class:SYSUTILS_SPACE::DirectoryTraverse	access:private
-m_diskType	./RAIDManager.h	/^	eDiskType m_diskType;$/;"	m	struct:MiscDiskInfo	access:public
+m_diskProfile	./RAIDManager.h	/^	DiskProfile m_diskProfile;$/;"	m	struct:RAIDDiskInfo	access:public
+m_diskType	./RAIDManager.h	/^	eDiskType m_diskType;$/;"	m	struct:DiskProfile	access:public
 m_eErrCode	../curl/FtpClient.h	/^    uint32_t m_eErrCode;$/;"	m	class:SYSUTILS_SPACE::CFtpClient	access:private
 m_element	../scew/xml_element.h	/^    scew_element *m_element;$/;"	m	class:SYSUTILS_SPACE::XMLElement	access:private
 m_end	../../titanutils/server/AprIPFilter.h	/^    AprIPAddress m_end;$/;"	m	class:AprIPRange	access:private
@@ -13426,7 +13437,7 @@ m_filesize	../../titanutils/log/EventLogRecycler.h	/^    std::map<std::string, u
 m_filters	../common/observer.h	/^    std::list<Filter> m_filters;$/;"	m	class:SYSUTILS_SPACE::Subject	access:private
 m_filters	../thread_object/async_observer.h	/^    std::list<Filter> m_filters;$/;"	m	class:SYSUTILS_SPACE::AsyncSubject	access:private
 m_firmwarePath	../../titanutils/MsClient/UpgradeThread/UpgradeThread.h	/^    std::string m_firmwarePath;$/;"	m	class:UpgradeThread	access:private
-m_fsMgr	./RAIDManager.h	/^	smart_ptr<FilesystemManager> m_fsMgr;$/;"	m	struct:RAIDInfo	access:public
+m_fsMgr	./RAIDManager.h	/^	smart_ptr<FilesystemManager> m_fsMgr;$/;"	m	struct:MDProfile	access:public
 m_garbage	../../titanutils/log/DataBaseManager.h	/^    std::map< std::string, SYSUTILS_SPACE::smart_ptr<DataBaseItem> > m_garbage;$/;"	m	class:DataBaseManager	access:private
 m_handle	../common/directory_traverse.h	/^        HANDLE m_handle;$/;"	m	class:SYSUTILS_SPACE::DirectoryTraverse::Directory	access:private
 m_handle	../thread_object/directory_monitor.h	/^        HANDLE m_handle;$/;"	m	class:SYSUTILS_SPACE::DirectoryMonitor::Thread	access:private
@@ -13440,12 +13451,17 @@ m_hasProfileID	../../titanutils/serverConfig/NetworkServiceConfig.h	/^    bool m
 m_hasProfileName	../../titanutils/serverConfig/NetworkServiceConfig.h	/^    bool m_hasProfileName;$/;"	m	class:CPluginPlatformConfigData	access:public
 m_header_fields	../http/http_parser.h	/^        std::map<std::string, std::string, CaseInsensitiveCompare> m_header_fields;$/;"	m	class:SYSUTILS_SPACE::HttpParser::Data	access:private
 m_iActiveDiskNum	./RAIDManager.h	/^	int32_t			m_iActiveDiskNum;$/;"	m	struct:RAIDInfo	access:public
+m_iBay	./RAIDManager.h	/^	int m_iBay;$/;"	m	struct:DiskProfile	access:public
 m_iChunkSize	./RAIDManager.h	/^	int32_t			m_iChunkSize;$/;"	m	struct:RAIDInfo	access:public
+m_iDevCount	./RAIDManager.h	/^	int m_iDevCount;$/;"	m	struct:MDProfile	access:public
 m_iFailedDiskNum	./RAIDManager.h	/^	int32_t			m_iFailedDiskNum;$/;"	m	struct:RAIDInfo	access:public
 m_iFormatProgress	./FilesystemManager.h	/^	int m_iFormatProgress;$/;"	m	class:FilesystemManager	access:private
+m_iFormatProgress	./RAIDManager.h	/^	int32_t			m_iFormatProgress;$/;"	m	struct:RAIDInfo	access:public
 m_iFormatingState	./FilesystemManager.h	/^	int m_iFormatingState;$/;"	m	class:FilesystemManager	access:private
+m_iFormatingState	./RAIDManager.h	/^	int32_t			m_iFormatingState;$/;"	m	struct:RAIDInfo	access:public
 m_iIndex	../../titanutils/serverConfig/NetworkSettingConfig.h	/^	int m_iIndex;$/;"	m	class:CEtherealInfo	access:public
 m_iLock	./test_utils.h	/^	int m_iLock;$/;"	m	class:CriticalSection	access:private
+m_iMDNum	./RAIDManager.h	/^	int m_iMDNum;$/;"	m	struct:MDProfile	access:public
 m_iMDNum	./RAIDManager.h	/^	int32_t			m_iMDNum;$/;"	m	struct:RAIDInfo	access:public
 m_iMajor	./RAIDManager.h	/^	int32_t		m_iMajor;				\/* For confirming whether disk is valid or not. *\/$/;"	m	struct:RAIDDiskInfo	access:public
 m_iMinor	./RAIDManager.h	/^	int32_t		m_iMinor;				\/* For confirming whether disk is valid or not. *\/$/;"	m	struct:RAIDDiskInfo	access:public
@@ -13454,6 +13470,7 @@ m_iPeriod	../../titanutils/serverConfig/HNAConfig.h	/^	uint32_t m_iPeriod;$/;"	m
 m_iRAIDDiskNum	./RAIDManager.h	/^	int32_t			m_iRAIDDiskNum;$/;"	m	struct:RAIDInfo	access:public
 m_iRAIDLevel	./RAIDManager.h	/^	int32_t			m_iRAIDLevel;$/;"	m	struct:RAIDInfo	access:public
 m_iRaidDiskNum	./RAIDManager.h	/^	int32_t		m_iRaidDiskNum;$/;"	m	struct:RAIDDiskInfo	access:public
+m_iRaidDisks	./RAIDManager.h	/^	int m_iRaidDisks; $/;"	m	struct:MDProfile	access:public
 m_iRebuildingProgress	./RAIDManager.h	/^	int32_t			m_iRebuildingProgress;$/;"	m	struct:RAIDInfo	access:public
 m_iSpareDiskNum	./RAIDManager.h	/^	int32_t			m_iSpareDiskNum;$/;"	m	struct:RAIDInfo	access:public
 m_iState	./RAIDManager.h	/^	int32_t			m_iState;$/;"	m	struct:RAIDInfo	access:public
@@ -13475,19 +13492,19 @@ m_last_recv_time	../../titanutils/MsClient/Handler/MsClientEventSessionHandler.h
 m_last_send_time	../../titanutils/MsClient/Handler/MsClientDataSessionHandler.h	/^    int64_t m_last_send_time;$/;"	m	class:MsClientDataSessionHandler	access:private
 m_last_send_time	../../titanutils/MsClient/Handler/MsClientEventSessionHandler.h	/^    int64_t m_last_send_time;$/;"	m	class:MsClientEventSessionHandler	access:private
 m_list	../thread_object/unittest/task_queue_test.cpp	/^    std::list<uint32_t> &m_list;$/;"	m	class:TaskListPushBack	file:	access:private
-m_llCapacity	./RAIDManager.h	/^	int64_t		m_llCapacity;$/;"	m	struct:RAIDDiskInfo	access:public
+m_llCapacity	./RAIDManager.h	/^	int64_t	m_llCapacity;$/;"	m	struct:DiskProfile	access:public
 m_log_root_path	../../titanutils/log/EventLogRecycler2.h	/^    std::string     m_log_root_path;$/;"	m	class:EventLogRecycler2	access:private
 m_manager	../../titanutils/server/SessionHandler.h	/^    SessionManager *m_manager;$/;"	m	class:SessionHandler	access:private
 m_manager	../../titanutils/server/unittest/session_handler_test.cpp	/^    SessionManager *m_manager;$/;"	m	class:SessionResponder	file:	access:private
 m_manager	../../titanutils/server/unittest/session_handler_test.cpp	/^    SessionManager *m_manager;$/;"	m	class:SessionResponderGenerator	file:	access:private
-m_mapSymLinkTable	./RAIDManager.h	/^	map<string, MiscDiskInfo> m_mapSymLinkTable; \/* string: real device node*\/$/;"	m	class:RAIDManager	access:private
+m_mapDiskProfiles	./RAIDManager.h	/^	map<string, DiskProfile> m_mapDiskProfiles; \/* \/dev\/sdX, profile *\/$/;"	m	class:RAIDManager	access:private
+m_mapMDProfiles	./RAIDManager.h	/^	map<string, MDProfile> m_mapMDProfiles; \/* \/dev\/mdX, profile *\/$/;"	m	class:RAIDManager	access:private
 m_map_tasks	../thread_object/task_pool.h	/^    std::map< uint32_t, smart_ptr<TaskObject> > m_map_tasks;$/;"	m	class:SYSUTILS_SPACE::TaskPool	access:private
 m_map_tasks	../thread_object/task_queue.h	/^    std::map< uint32_t, smart_ptr<TaskObject> > m_map_tasks;$/;"	m	class:SYSUTILS_SPACE::TaskQueue	access:private
 m_map_wd	../thread_object/directory_monitor.h	/^        std::map<int, std::string> m_map_wd;$/;"	m	class:SYSUTILS_SPACE::DirectoryMonitor::Thread	access:private
 m_max_size	../../titanutils/log/EventLogRecycler.h	/^    uint64_t m_max_size;$/;"	m	class:EventLogRecycler	access:private
 m_max_size	../../titanutils/log/EventLogRecycler2.h	/^    uint64_t        m_max_size;$/;"	m	class:EventLogRecycler2	access:private
 m_maxfree	../apr/apr_pool.h	/^    apr_uint32_t m_maxfree;$/;"	m	class:SYSUTILS_SPACE::AprPool	access:private
-m_miscInfo	./RAIDManager.h	/^	MiscDiskInfo m_miscInfo;$/;"	m	struct:RAIDDiskInfo	access:public
 m_mkfsHandle	./FilesystemManager.h	/^	mke2fs_handle m_mkfsHandle;$/;"	m	class:FilesystemManager	access:private
 m_module	../common/read_write_lock.cpp	/^    HMODULE m_module;$/;"	m	class:__anon39::DllLoader	file:	access:private
 m_module	../common/semaphore.cpp	/^    HMODULE m_module;$/;"	m	class:__anon38::DllLoader	file:	access:private
@@ -13512,6 +13529,7 @@ m_p	../scew/xml_utility.cpp	/^    T *m_p;$/;"	m	class:__anon28::AutoArrayPointer
 m_pAprTcpServer	../../titanutils/server/SocketHandler.h	/^    AprTcpServer *m_pAprTcpServer;$/;"	m	class:SocketHandler	access:private
 m_pMsClient	../../titanutils/MsClient/Handler/MsClientDataSessionHandler.h	/^    MsClient *m_pMsClient;$/;"	m	class:MsClientDataSessionHandler	access:private
 m_pMsClient	../../titanutils/MsClient/Handler/MsClientEventSessionHandler.h	/^    MsClient *m_pMsClient;$/;"	m	class:MsClientEventSessionHandler	access:private
+m_pNotifyChange	./RAIDManager.h	/^	AprCond *m_pNotifyChange;$/;"	m	class:RAIDManager	access:private
 m_pPool	../../titanutils/server/AprTcpResponderPool.h	/^    AprTcpSocketPool *m_pPool;$/;"	m	class:AprTcpResponderPool	access:private
 m_pPool	../../titanutils/server/AprTcpSocketPoolResponder.h	/^    AprTcpSocketPool *m_pPool;$/;"	m	class:AprTcpSocketPoolResponder	access:private
 m_pSocket	../../titanutils/server/SocketHandler.h	/^    SYSUTILS_SPACE::AprTcpSocket* m_pSocket;$/;"	m	class:SocketHandler	access:private
@@ -13612,22 +13630,28 @@ m_start_ms	../thread_object/single_timer.h	/^        uint32_t m_start_ms;$/;"	m	
 m_state	../http/http_parser.h	/^    State m_state;$/;"	m	class:SYSUTILS_SPACE::HttpParser	access:private
 m_stmt	../sqlite/sqlite_stmt.h	/^    sqlite3_stmt *m_stmt;$/;"	m	class:SYSUTILS_SPACE::SQLiteStmt	access:private
 m_strConfigRootPath	../../titanutils/schedule/ScheduleProfileManager.h	/^	std::string m_strConfigRootPath;$/;"	m	class:Schedule::ScheduleProfileManager	access:private
-m_strDevName	./RAIDManager.h	/^	string		m_strDevName;			\/* Device node *\/$/;"	m	struct:RAIDDiskInfo	access:public
 m_strDevNode	./FilesystemManager.h	/^	string m_strDevNode;$/;"	m	class:FilesystemManager	access:private
-m_strDevNodeName	./RAIDManager.h	/^	string			m_strDevNodeName;$/;"	m	struct:RAIDInfo	access:public
+m_strDevPath	./RAIDManager.h	/^	string			m_strDevPath;$/;"	m	struct:RAIDInfo	access:public
+m_strDevPath	./RAIDManager.h	/^	string		m_strDevPath;			\/* Device node *\/$/;"	m	struct:RAIDDiskInfo	access:public
+m_strDevPath	./RAIDManager.h	/^	string m_strDevPath;$/;"	m	struct:DiskProfile	access:public
+m_strDevPath	./RAIDManager.h	/^	string m_strDevPath;$/;"	m	struct:MDProfile	access:public
 m_strFSType	./FilesystemManager.h	/^	string m_strFSType;$/;"	m	class:FilesystemManager	access:private
-m_strFirmwareVersion	./RAIDManager.h	/^	string		m_strFirmwareVersion;$/;"	m	struct:RAIDDiskInfo	access:public
+m_strFWVer	./RAIDManager.h	/^	string m_strFWVer;$/;"	m	struct:DiskProfile	access:public
 m_strLayout	./RAIDManager.h	/^	string			m_strLayout;$/;"	m	struct:RAIDInfo	access:public
-m_strMDDev	./RAIDManager.h	/^	string m_strMDDev;$/;"	m	struct:MiscDiskInfo	access:public
-m_strModel	./RAIDManager.h	/^	string		m_strModel;$/;"	m	struct:RAIDDiskInfo	access:public
+m_strMDDev	./RAIDManager.h	/^	string m_strMDDev;$/;"	m	struct:DiskProfile	access:public
+m_strModel	./RAIDManager.h	/^	string m_strModel;$/;"	m	struct:DiskProfile	access:public
 m_strMountPoint	./FilesystemManager.h	/^	string m_strMountPoint;$/;"	m	class:FilesystemManager	access:private
+m_strMountPoint	./RAIDManager.h	/^	string			m_strMountPoint;$/;"	m	struct:RAIDInfo	access:public
 m_strRebuildingOperation	./RAIDManager.h	/^	string			m_strRebuildingOperation;$/;"	m	struct:RAIDInfo	access:public
-m_strSerialNum	./RAIDManager.h	/^	string		m_strSerialNum;$/;"	m	struct:RAIDDiskInfo	access:public
+m_strSerialNum	./RAIDManager.h	/^	string m_strSerialNum;$/;"	m	struct:DiskProfile	access:public
 m_strState	./RAIDManager.h	/^	string			m_strState;$/;"	m	struct:RAIDInfo	access:public
 m_strState	./RAIDManager.h	/^	string		m_strState;$/;"	m	struct:RAIDDiskInfo	access:public
-m_strSymLink	./RAIDManager.h	/^	string m_strSymLink;$/;"	m	struct:MiscDiskInfo	access:public
+m_strSymLink	./RAIDManager.h	/^	string m_strSymLink;$/;"	m	struct:DiskProfile	access:public
+m_strSysName	./RAIDManager.h	/^	string			m_strSysName;$/;"	m	struct:RAIDInfo	access:public
+m_strSysName	./RAIDManager.h	/^	string m_strSysName;$/;"	m	struct:DiskProfile	access:public
+m_strSysName	./RAIDManager.h	/^	string m_strSysName;$/;"	m	struct:MDProfile	access:public
 m_strUUID	./FilesystemManager.h	/^	string m_strUUID;$/;"	m	class:FilesystemManager	access:private
-m_strVendor	./RAIDManager.h	/^	string		m_strVendor;$/;"	m	struct:RAIDDiskInfo	access:public
+m_strVendor	./RAIDManager.h	/^	string m_strVendor;$/;"	m	struct:DiskProfile	access:public
 m_subject	../thread_object/async_observer.h	/^        AsyncSubject *m_subject;$/;"	m	class:SYSUTILS_SPACE::AsyncSubject::SubjectThread	access:private
 m_tEventDiskAbnormal	../../titanutils/EventAction/SystemEventCtrl.h	/^    TEventDiskAbnormal m_tEventDiskAbnormal;$/;"	m	class:CSystemEventCtrl	access:private
 m_target_server_id	../../titanutils/log/EventLogRecycler2.h	/^    uint64_t        m_target_server_id;$/;"	m	class:EventLogRecycler2	access:private
@@ -13674,9 +13698,8 @@ m_vBaseSessionTable	../../titanutils/MsClient/LoginCtrl/SessionKeyCtrlMgr.h	/^	s
 m_vDiskList	./RAIDManager.h	/^	vector<RAIDDiskInfo>	m_vDiskList;$/;"	m	struct:RAIDInfo	access:public
 m_vGroupData	../../titanutils/MsClient/LoginCtrl/SyncMSConfig/MSConfigGroup.h	/^	std::vector<stGroupData> m_vGroupData;$/;"	m	class:CMSConfigGroup	access:private
 m_vMapDevItem	../../titanutils/serverConfig/AssociateDeviceItem.h	/^    std::vector<TMapDevItem> m_vMapDevItem;$/;"	m	class:CMapDevList	access:private
+m_vMembers	./RAIDManager.h	/^	vector<string> m_vMembers;$/;"	m	struct:MDProfile	access:public
 m_vPrivilegeSessionTable	../../titanutils/MsClient/LoginCtrl/SessionKeyCtrlMgr.h	/^	std::map<uint64_t, stPrivilegeSessionTableItem> m_vPrivilegeSessionTable;	\/\/including role ID and its default privilege$/;"	m	class:CSessionKeyControlMgr	access:private
-m_vRAIDDiskList	./RAIDManager.h	/^	vector<RAIDDiskInfo> m_vRAIDDiskList;$/;"	m	class:RAIDManager	access:private
-m_vRAIDInfoList	./RAIDManager.h	/^	vector<RAIDInfo> m_vRAIDInfoList;$/;"	m	class:RAIDManager	access:private
 m_vResponders	../../titanutils/server/AprTcpResponderPool.h	/^    std::vector<AprTcpSocketPoolResponder *> m_vResponders;$/;"	m	class:AprTcpResponderPool	access:private
 m_vRoleData	../../titanutils/MsClient/LoginCtrl/SyncMSConfig/MSConfigRole.h	/^	std::vector<stRoleData> m_vRoleData;$/;"	m	class:CMSConfigRole	access:private
 m_vUpgradeThread	../../titanutils/MsClient/Handler/MsClientDataSessionHandler.h	/^    std::vector<UpgradeThread *> m_vUpgradeThread;$/;"	m	class:MsClientDataSessionHandler	access:private
@@ -14432,7 +14455,8 @@ operator =	../thread_object/task_queue.h	/^    TaskQueue &operator=(const TaskQu
 operator =	../thread_object/unittest/task_pool_test.cpp	/^    BlockingTask &operator=(const BlockingTask &rhs);$/;"	p	class:BlockingTask	file:	access:private	signature:(const BlockingTask &rhs)
 operator =	../thread_object/unittest/task_pool_test.cpp	/^    BlockingThread &operator=(const BlockingThread &rhs);$/;"	p	class:BlockingThread	file:	access:private	signature:(const BlockingThread &rhs)
 operator =	../thread_object/unittest/task_pool_test.cpp	/^    NonBlockingTask &operator=(const NonBlockingTask &rhs);$/;"	p	class:NonBlockingTask	file:	access:private	signature:(const NonBlockingTask &rhs)
-operator =	./RAIDManager.h	/^	MiscDiskInfo& operator=(const MiscDiskInfo& rhs)$/;"	f	struct:MiscDiskInfo	access:public	signature:(const MiscDiskInfo& rhs)
+operator =	./RAIDManager.h	/^	DiskProfile& operator=(const DiskProfile& rhs)$/;"	f	struct:DiskProfile	access:public	signature:(const DiskProfile& rhs)
+operator =	./RAIDManager.h	/^	MDProfile& operator=(MDProfile& rhs)$/;"	f	struct:MDProfile	access:public	signature:(MDProfile& rhs)
 operator =	./RAIDManager.h	/^	RAIDDiskInfo& operator=(const RAIDDiskInfo& rhs)$/;"	f	struct:RAIDDiskInfo	access:public	signature:(const RAIDDiskInfo& rhs)
 operator =	./RAIDManager.h	/^	RAIDDiskInfo& operator=(const struct array_disk_info& rhs)$/;"	f	struct:RAIDDiskInfo	access:public	signature:(const struct array_disk_info& rhs)
 operator =	./RAIDManager.h	/^	RAIDInfo& operator=(const RAIDInfo& rhs)$/;"	f	struct:RAIDInfo	access:public	signature:(const RAIDInfo& rhs)
@@ -14460,7 +14484,9 @@ operator ==	../scew/xml_element.h	/^    bool operator==(const XMLElement &rhs);$
 operator ==	../scew/xml_tree.cpp	/^DLL_PUBLIC bool XMLTree::operator==(const XMLTree &rhs)$/;"	f	class:XMLTree	signature:(const XMLTree &rhs)
 operator ==	../scew/xml_tree.h	/^    bool operator==(const XMLTree &rhs);$/;"	p	class:SYSUTILS_SPACE::XMLTree	access:public	signature:(const XMLTree &rhs)
 operator ==	../scew/xml_utility.cpp	/^    bool operator==(const T *p) { return m_p == p; };$/;"	f	class:__anon28::AutoArrayPointer	access:public	signature:(const T *p)
-operator ==	./RAIDManager.h	/^	bool operator==(const MiscDiskInfo& rhs)$/;"	f	struct:MiscDiskInfo	access:public	signature:(const MiscDiskInfo& rhs)
+operator ==	./RAIDManager.h	/^	bool operator==(MDProfile& rhs)$/;"	f	struct:MDProfile	access:public	signature:(MDProfile& rhs)
+operator ==	./RAIDManager.h	/^	bool operator==(const DiskProfile& profile) const$/;"	f	struct:RAIDDiskInfo	access:public	signature:(const DiskProfile& profile) const
+operator ==	./RAIDManager.h	/^	bool operator==(const DiskProfile& rhs)$/;"	f	struct:DiskProfile	access:public	signature:(const DiskProfile& rhs)
 operator ==	./RAIDManager.h	/^	bool operator==(const RAIDDiskInfo& rhs) const$/;"	f	struct:RAIDDiskInfo	access:public	signature:(const RAIDDiskInfo& rhs) const
 operator ==	./RAIDManager.h	/^	bool operator==(const RAIDInfo& rhs) const$/;"	f	struct:RAIDInfo	access:public	signature:(const RAIDInfo& rhs) const
 operator ==	./RAIDManager.h	/^	bool operator==(const string& rhs) const$/;"	f	struct:RAIDDiskInfo	access:public	signature:(const string& rhs) const
@@ -16630,6 +16656,7 @@ zwrite_file	../minizip/ioapi.h	/^    write_file_func     zwrite_file;$/;"	m	stru
 ~DirectoryMonitor	../thread_object/directory_monitor.h	/^    ~DirectoryMonitor();$/;"	p	class:SYSUTILS_SPACE::DirectoryMonitor	access:public	signature:()
 ~DirectoryTraverse	../common/directory_traverse.cpp	/^DLL_PUBLIC DirectoryTraverse::~DirectoryTraverse()$/;"	f	class:DirectoryTraverse	signature:()
 ~DirectoryTraverse	../common/directory_traverse.h	/^    ~DirectoryTraverse();$/;"	p	class:SYSUTILS_SPACE::DirectoryTraverse	access:public	signature:()
+~DiskProfile	./RAIDManager.h	/^	~DiskProfile()$/;"	f	struct:DiskProfile	access:public	signature:()
 ~DllLoader	../common/read_write_lock.cpp	/^    ~DllLoader() { if (m_module != NULL) FreeLibrary(m_module); };$/;"	f	class:__anon39::DllLoader	access:public	signature:()
 ~DllLoader	../common/semaphore.cpp	/^    ~DllLoader() { if (m_module != NULL) FreeLibrary(m_module); };$/;"	f	class:__anon38::DllLoader	access:public	signature:()
 ~EmailActionParameter	../../titanutils/EventAction/ActionParameter.cpp	/^EmailActionParameter::~EmailActionParameter()$/;"	f	class:EmailActionParameter	signature:()
@@ -16687,7 +16714,7 @@ zwrite_file	../minizip/ioapi.h	/^    write_file_func     zwrite_file;$/;"	m	stru
 ~HttpParser	../http/http_parser.h	/^    ~HttpParser();$/;"	p	class:SYSUTILS_SPACE::HttpParser	access:public	signature:()
 ~Item	../thread_object/directory_monitor.cpp	/^DLL_PUBLIC DirectoryMonitor::Item::~Item()$/;"	f	class:DirectoryMonitor::Item	signature:()
 ~Item	../thread_object/directory_monitor.h	/^        ~Item();$/;"	p	struct:SYSUTILS_SPACE::DirectoryMonitor::Item	access:public	signature:()
-~MiscDiskInfo	./RAIDManager.h	/^	~MiscDiskInfo()$/;"	f	struct:MiscDiskInfo	access:public	signature:()
+~MDProfile	./RAIDManager.h	/^	~MDProfile()$/;"	f	struct:MDProfile	access:public	signature:()
 ~MsClient	../../titanutils/MsClient/MsClient.cpp	/^MsClient::~MsClient()$/;"	f	class:MsClient	signature:()
 ~MsClient	../../titanutils/MsClient/MsClient.h	/^    virtual ~MsClient();$/;"	p	class:MsClient	access:public	signature:()
 ~MsClientCommand	../../titanutils/MsClient/ProtocolDefine/MsClientCommandDefine.h	/^    ~MsClientCommand();$/;"	p	class:MsClientCommand	access:private	signature:()

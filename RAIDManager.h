@@ -60,7 +60,7 @@ struct SGReadCapacity10 {
 struct DiskProfile {
 	string m_strSysName;
 	string m_strDevPath;
-	string m_strSymlink;
+	string m_strSymLink;
 	string m_strMDDev;
 	string m_strVendor;
 	string m_strModel;
@@ -70,16 +70,20 @@ struct DiskProfile {
 	eDiskType m_diskType;
 	int m_iBay;
 
-#if 0
 	DiskProfile()
-	: m_strDevPath("")
+	: m_strSysName("")
+	, m_strDevPath("")
 	, m_strSymLink("")
 	, m_strMDDev("")
+	, m_strVendor("")
+	, m_strModel("")
+	, m_strFWVer("")
+	, m_strSerialNum("")
+	, m_llCapacity(0ull)
 	, m_diskType(DISK_TYPE_UNKNOWN)
 	, m_iBay(-1)
 	{
 	}
-#endif
 
 	DiskProfile(string dev)
 	: m_strSysName(dev)
@@ -90,12 +94,12 @@ struct DiskProfile {
 	, m_strModel("")
 	, m_strFWVer("")
 	, m_strSerialNum("")
-	, m_llCapacity("")
+	, m_llCapacity(0ull)
 	, m_diskType(DISK_TYPE_UNKNOWN)
 	, m_iBay(-1)
 	{
 		SetUDEVInformation();
-		SetHDDVendorInfomation();
+		SetDiskVendorInfomation();
 		ReadMDStat();
 	}
 
@@ -148,31 +152,29 @@ struct DiskProfile {
 			m_strDevPath = udev_device_get_devnode(dev);
 			m_strSymLink = udev_device_get_property_value(dev, "ID_SYMLINK");
 
-			if (m_strSymLink.empty()) {
-				continue;
-			}
-
-			if (m_strSymLink.find("/dev/nuuo_sata") != string::npos) {
-				m_DiskType = DISK_TYPE_SATA;
-				ret = sscanf(m_strSymLink.c_str(), "/dev/nuuo_sata%d", &m_iBay);
-				if (ret < 1 || ret == EOF || num > 127 || num < 0) {
-					m_iBay = -1;
+			if (!m_strSymLink.empty()) {
+				if (m_strSymLink.find("/dev/nuuo_sata") != string::npos) {
+					m_diskType = DISK_TYPE_SATA;
+					ret = sscanf(m_strSymLink.c_str(), "/dev/nuuo_sata%d", &m_iBay);
+					if (ret < 1 || ret == EOF || m_iBay > 127 || m_iBay < 0) {
+						m_iBay = -1;
+					}
+				} else if (m_strSymLink.find("/dev/nuuo_esata") != string::npos) {
+					m_diskType = DISK_TYPE_ESATA;
+					ret = sscanf(m_strSymLink.c_str(), "/dev/nuuo_sata%d", &m_iBay);
+					if (ret < 1 || ret == EOF || m_iBay > 127 || m_iBay < 0) {
+						m_iBay = -1;
+					}
+				} else if (m_strSymLink.find("/dev/nuuo_iscsi") != string::npos) {
+					m_diskType = DISK_TYPE_ISCSI;
+				} else {
+					printf("Unknown SYMLINK\n");
 				}
-			} else if (m_strSymLink.find("/dev/nuuo_esata") != string::npos) {
-				m_DiskType = DISK_TYPE_ESATA;
-				ret = sscanf(m_strSymLink.c_str(), "/dev/nuuo_sata%d", &m_iBay);
-				if (ret < 1 || ret == EOF || num > 127 || num < 0) {
-					m_iBay = -1;
-				}
-			} else if (m_strSymLink.find("/dev/nuuo_iscsi") != string::npos) {
-				m_DiskType = DISK_TYPE_ISCSI;
-			} else {
-				printf("Unknown SYMLINK\n");
 			}
 		} else {
 			printf("can't found block device %s.\n", m_strSysName.c_str());
 		}
-		
+	
 		udev_device_unref(dev);
 		udev_unref(udev);
 		return;
@@ -233,9 +235,9 @@ struct DiskProfile {
 
 	void ReadMDStat()
 	{
-		struct mdstat_ent *ms = md_read(0, 0);
+		struct mdstat_ent *ms = mdstat_read(0, 0);
 		struct mdstat_ent *e = ms;
-		e = mdstat_by_component(m_strSysName.c_str());
+		e = mdstat_by_component((char*)m_strSysName.c_str());
 		if (e)
 			m_strMDDev = e->dev;
 		else
@@ -356,8 +358,20 @@ struct MDProfile {
 	int m_iDevCount;
 	int m_iMDNum;
 
+	MDProfile()
+	: m_fsMgr(NULL)
+	, m_strSysName("")
+	, m_strDevPath("")
+	, m_iRaidDisks(0)
+	, m_iDevCount(0)
+	, m_iMDNum(-1)
+	{
+		m_vMembers.clear();
+	}
+
 	MDProfile(string dev)
-	: m_strSysName(dev)
+	: m_fsMgr(NULL)
+	, m_strSysName(dev)
 	, m_strDevPath("")
 	, m_iRaidDisks(0)
 	, m_iDevCount(0)
@@ -416,14 +430,12 @@ struct MDProfile {
 
 			m_strDevPath = udev_device_get_devnode(dev);
 
-			if (m_strDevPath.empty()) {
-				continue;
-			}
-
-			ret = sscanf(m_strDevPath.c_str(), "/dev/md%d", &m_iMDNum);
+			if (!m_strDevPath.empty()) {
+				ret = sscanf(m_strDevPath.c_str(), "/dev/md%d", &m_iMDNum);
 				if (ret < 1 || ret == EOF || m_iMDNum > 127 || m_iMDNum < 0) {
 					m_iMDNum = -1;
 				}
+			}
 		}
 
 		udev_device_unref(dev);
@@ -433,12 +445,12 @@ struct MDProfile {
 
 	void ReadMDStat()
 	{
-		struct mdstat_ent *ms = md_read(0, 0);
+		struct mdstat_ent *ms = mdstat_read(0, 0);
 		struct mdstat_ent *e = ms;
 		m_vMembers.clear();
 		for (; e; e = e->next) {
 			if (m_strSysName == e->dev) {
-				struct dev_member *dev = e->members;
+				mdstat_ent::dev_member *dev = e->members;
 				for (; dev; dev = dev->next) {
 					m_vMembers.push_back(dev->name);
 				}
@@ -458,7 +470,7 @@ struct MDProfile {
 #else
 			m_fsMgr = shared_ptr<FilesystemManager>(new FilesystemManager(m_strDevPath));
 #endif
-			if (!m_fsMgr->IsInitialied()) {
+			if (!m_fsMgr->IsInitialized()) {
 				WriteHWLog(LOG_LOCAL0, LOG_ERR, "RAIDInfo",
 					   "Iniitialize FilesystemManager failed.");
 				return false;
@@ -511,7 +523,7 @@ struct RAIDInfo {
 	
 	RAIDInfo()
 	: m_strSysName("")
-	: m_strDevPath("")
+	, m_strDevPath("")
 	, m_strState("")
 	, m_strLayout("")
 	, m_strRebuildingOperation("")
@@ -676,6 +688,11 @@ struct RAIDInfo {
 
 class RAIDManager : public AprThreadWorker {
 private:
+	enum {
+		eTC_STOP,
+	};
+
+private:
 	map<string, MDProfile> m_mapMDProfiles; /* /dev/mdX, profile */
 	map<string, DiskProfile> m_mapDiskProfiles; /* /dev/sdX, profile */
 	bool m_bUsedMD[128];
@@ -690,6 +707,8 @@ private:
 
 private:
 	vector<RAIDInfo>::iterator SearchDiskBelong2RAID(RAIDDiskInfo& devInfo);
+
+	bool Initialize();
 
 	void InitializeShape(struct shape& s, int raiddisks, int level, int chunk = 512, int bitmap_chunk = UnSet, char* bitmap_file = NULL);
 #ifdef DEBUG

@@ -26,10 +26,10 @@ FilesystemManager::FilesystemManager(const string& dev)
 , m_iFormatProgress(0)
 , m_bFormat(false)
 , m_bMount(false)
-, m_bInitilzed(false)
+, m_bInitialized(false)
 {
-	CriticalSectionLock cs(m_csInitialized);
-	m_bInitilized = Initialize();
+	CriticalSectionLock cs(&m_csInitialized);
+	m_bInitialized = Initialize();
 }
 
 FilesystemManager::FilesystemManager()
@@ -42,22 +42,22 @@ FilesystemManager::FilesystemManager()
 , m_iFormatProgress(0)
 , m_bFormat(false)
 , m_bMount(false)
-, m_bInitilzed(false)
+, m_bInitialized(false)
 {
 }
 
 FilesystemManager::~FilesystemManager()
 {
-	CriticalSectionLock cs(m_csInitialized);
-	m_bInitilized = false;
+	CriticalSectionLock cs(&m_csInitialized);
+	m_bInitialized = false;
 }
 
 bool FilesystemManager::SetDeviceNode(const string &dev)
 {
 	m_strDevNode = dev;
-	CriticalSectionLock cs(m_csInitialized);
-	m_bInitilzed = Initialize();
-	return m_bInitilzed;
+	CriticalSectionLock cs(&m_csInitialized);
+	m_bInitialized = Initialize();
+	return m_bInitialized;
 }
 
 bool FilesystemManager::Initialize()
@@ -85,10 +85,10 @@ bool FilesystemManager::Initialize()
 	return true;
 }
 
-void FilesystemManager::IsInitialized()
+bool FilesystemManager::IsInitialized()
 {
-	CriticalSectionLock cs(m_csInitialized);
-	return m_bInitilized;
+	CriticalSectionLock cs(&m_csInitialized);
+	return m_bInitialized;
 }
 
 void FilesystemManager::SetMountPoint(const string &mountpoint)

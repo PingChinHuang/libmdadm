@@ -66,7 +66,6 @@ static void HandleADDDISK (char* content, RAIDManager& raid_mgr)
 	tokenize(content, disks);
 	for (size_t i = 0; i < disks.size(); i++) {
 		raid_mgr.AddDisk(disks[i]);
-		raid_mgr.AddDiskSymLink(disks[i], DISK_TYPE_SATA);
 	}
 }
 
@@ -88,7 +87,7 @@ static void HandleCREATERAID (const char* content, RAIDManager& raid_mgr)
 	sscanf(content, "%d,%1023s", &lv, disks);
 	tokenize(disks, vdisks);
 	printf("lv = %d\n", lv);
-	raid_mgr.CreateRAID(vdisks, lv, strMDName);
+	raid_mgr.CreateRAID(vdisks, lv);
 	raid_mgr.Format(strMDName);
 }
 
@@ -131,10 +130,10 @@ static void HandleSTOPRAID (const char* content, RAIDManager& raid_mgr)
 			//	continue;
 			//}
 
-			raid_mgr.StopRAID(list[i].m_strDevNodeName);
+			//raid_mgr.StopRAID(list[i].m_strDevNodeName);
 		}
 	} else {
-		raid_mgr.StopRAID(content);
+		//raid_mgr.StopRAID(content);
 	}
 }
 
@@ -144,7 +143,7 @@ static void HandleDELETERAID (const char* content, RAIDManager& raid_mgr)
 		vector<RAIDInfo> list;
 		raid_mgr.GetRAIDInfo(list);
 		for (size_t i = 0; i < list.size(); i ++)
-			raid_mgr.DeleteRAID(list[i].m_strDevNodeName);
+			raid_mgr.DeleteRAID(list[i].m_strDevPath);
 	} else {
 		raid_mgr.DeleteRAID(content);
 	}
@@ -181,7 +180,7 @@ static void HandleASSEMBLERAID (const char* content, RAIDManager& raid_mgr)
 		vector<string> vdisks;
 		string strMDName;
 		tokenize(info, vdisks);
-		raid_mgr.AssembleRAID(vdisks, strMDName);
+		//raid_mgr.AssembleRAID(vdisks, strMDName);
 	} else if (strncmp("uuid", type, strlen("uuid")) == 0) {
 
 	}
@@ -189,8 +188,6 @@ static void HandleASSEMBLERAID (const char* content, RAIDManager& raid_mgr)
 
 static void HandleDONOTHING (const char* content, RAIDManager& raid_mgr)
 {
-	raid_mgr.UpdateRAIDInfo();
-
 	vector<RAIDInfo> list;
 	raid_mgr.GetRAIDInfo(list);
 	for (size_t i = 0; i < list.size(); i++) {

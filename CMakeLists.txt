@@ -5,6 +5,7 @@ OPTION(NUUO "Enable to use NUUO utility libraries" ON)
 
 IF (${NUUO})
 INCLUDE_DIRECTORIES(${SysUtilsPath})
+INCLUDE_DIRECTORIES(${TitanUtilsPath})
 ADD_DEFINITIONS(-DNUUO)
 ELSE (${NUUO})
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -std=c++11)

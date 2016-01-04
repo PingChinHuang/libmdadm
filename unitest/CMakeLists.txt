@@ -29,6 +29,7 @@ TARGET_LINK_LIBRARIES(
 	com_err
 	e2p
 	uuid
+	udev
 )
 
 ADD_DEPENDENCIES(
