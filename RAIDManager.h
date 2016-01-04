@@ -477,6 +477,7 @@ struct MDProfile {
 struct RAIDInfo {
 	vector<RAIDDiskInfo>	m_vDiskList;
 	string			m_strSysName;
+	string			m_strDevPath;
 	string			m_strState;
 	string			m_strLayout;
 	string			m_strRebuildingOperation;
@@ -506,7 +507,8 @@ struct RAIDInfo {
 	bool			m_bRebuilding;
 	
 	RAIDInfo()
-	: m_strDevNodeName("")
+	: m_strSysName("")
+	: m_strDevPath("")
 	, m_strState("")
 	, m_strLayout("")
 	, m_strRebuildingOperation("")
@@ -557,7 +559,7 @@ struct RAIDInfo {
 		m_strState = rhs.strArrayState;
 		m_strLayout = rhs.strRaidLayout;
 		m_strRebuildingOperation = rhs.strRebuildOperation;
-		m_strDevNodeName = rhs.strArrayDevName;
+		m_strDevPath = rhs.strArrayDevName;
 		memcpy(m_UUID, rhs.uuid, sizeof(m_UUID));
 		m_ullTotalCapacity = rhs.ullArraySize;
 		m_ullUsedSize = rhs.ullUsedSize;
@@ -589,11 +591,13 @@ struct RAIDInfo {
 		for (size_t i = 0; i < rhs.m_vDiskList.size(); i++) {
 			m_vDiskList.push_back(rhs.m_vDiskList[i]);
 		}
-		
+	
+		m_strSysName = rhs.m_strSysName;	
 		m_strState = rhs.m_strState;
 		m_strLayout = rhs.m_strLayout;
 		m_strRebuildingOperation = rhs.m_strRebuildingOperation;
-		m_strDevNodeName = rhs.m_strDevNodeName;
+		m_strDevPath = rhs.m_strDevPath;
+		m_strMountPoint = rhs.m_strMountPoint;
 		memcpy(m_UUID, rhs.m_UUID, sizeof(m_UUID));
 		m_ullTotalCapacity = rhs.m_ullTotalCapacity;
 		m_ullUsedSize = rhs.m_ullUsedSize;
@@ -648,7 +652,7 @@ struct RAIDInfo {
 			"\tCreatetion Time: %.24s\n\tUpdate Time: %.24s\n"
 			"\tRebuilding: %s (%d%%)\n\tMounted: %s\n\tFormated: %s\n"
 			"\tFormating Progress: %d\n\n",
-			m_strDevNodeName.c_str(), m_strState.c_str(),
+			m_strDevPath.c_str(), m_strState.c_str(),
 			m_iRAIDLevel, m_iChunkSize,
 			m_ullTotalCapacity, m_ullUsedSize,
 			m_iTotalDiskNum, m_iRAIDDiskNum, m_iActiveDiskNum,
@@ -696,13 +700,10 @@ private:
 	void FreeDevList(struct mddev_dev* devlist);
 	int OpenMDDev(const string& mddev);
 
-	int CreateRAID(const int& mdnum, string& mddev, vector<string>& vDevList, int level);
 	int CreateRAID(const string& mddev, vector<string>& vDevList, int level);
 
-	int AssembleRAID(const int& mdnum, string& mddev, const int uuid[4]);
+	bool AssembleRAID(const int uuid[4], string &mddev);
 	int AssembleRAID(const string& mddev, const int uuid[4]);
-	int AssembleRAID(const int& mdnum, string& mddev, vector<string>& vDevList);
-	int AssembleRAID(const string& mddev, vector<string>& vDevList);
 
 	int GetFreeMDNum();
 	void FreeMDNum(int n);
@@ -719,14 +720,13 @@ private:
 	vector<RAIDInfo>::iterator IsMDDevInRAIDInfoList(const string &mddev, RAIDInfo& info);
 	bool IsDiskExistInRAIDDiskList(const string& dev);
 	bool IsDiskExistInRAIDDiskList(vector<string>& vDevList);
-	string GenerateMDDevName(int num);
-	int GenerateVolumeName(string& name);
+	string GenerateMDSysName(int num);
 
-	bool IsDiskHaveMDSuperBlock(const string& dev, examine_result &result, int &err);
+	bool StopRAID(const string& mddev);
 
-	bool GetRAIDDetail(const string& mddev, array_detail &ad);
-	bool IsRAIDAbnormal(const RAIDInfo &info);
-
+	int QueryMDSuperBlockInDisk(const string& dev, examine_result &result);
+	bool QueryMDDetail(const string& mddev, array_detail &ad);
+	bool GenerateRAIDInfo(const MDProfile &profile, RAIDInfo& info);
 protected:
 	void ThreadProc();
 
@@ -739,9 +739,6 @@ public:
 
 	bool CreateRAID(vector<string>& vDevList, int level);
 
-	bool AssembleRAID(const int uuid[4]);
-	bool AssembleRAID(vector<string>& vDevList);
-
 	bool RemoveMDDisks(const string& mddev, vector<string>& vDevList);
 	bool MarkFaultyMDDisks(const string& mddev, vector<string>& vDevList);
 	bool AddMDDisks(const string& mddev, vector<string>& vDevList);
@@ -749,7 +746,6 @@ public:
 	bool ReplaceMDDisk(const string& mddev, const string& replace, const string& with);
 
 	bool DeleteRAID(const string& mddev);
-	bool StopRAID(const string& mddev);
 
 	bool GetRAIDInfo(const string& mddev, RAIDInfo& info);
 	void GetRAIDInfo(vector<RAIDInfo>& list);

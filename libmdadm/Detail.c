@@ -800,6 +800,11 @@ int Detail_ToArrayDetail(const char *dev, struct context *c, struct array_detail
 	int inactive;
 	int disk_counter = 0;
 
+	if (ad == NULL) {
+		pr_err("ad is a null pointer.\n");
+		return DETAIL_NULL_POINTER;
+	}
+
 	if (fd < 0) {
 		pr_err("cannot open %s: %s\n",
 			dev, strerror(errno));
@@ -1047,8 +1052,8 @@ int Detail_ToArrayDetail(const char *dev, struct context *c, struct array_detail
 
 		if (avail_disks == array.raid_disks)
 			st = "";
-		else if (!enough(array.level, array.raid_disks,
-				 array.layout, 1, avail))
+		else if (!(ad->iEnough = enough(array.level, array.raid_disks,
+				 array.layout, 1, avail)))
 			st = ",FAILED";
 		else
 			st = ",DEGRADED";
@@ -1071,6 +1076,7 @@ int Detail_ToArrayDetail(const char *dev, struct context *c, struct array_detail
 		ret = snprintf(ad->strRaidLayout, 31, "%s", str?str:"-unknown-");
 		if (ret > 0)
 			ad->strRaidLayout[ret] = '\0';
+		ad->iLayout = array.layout;
 	}
 	if (array.level == 6) {
 		int ret = 0;

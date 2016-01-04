@@ -38,6 +38,8 @@ struct array_detail {
 	int bInactive;
 	int bIsRebuilding;
 	int iRebuildProgress; /* -1 if no resync */
+	int iEnough; /* 0: Raid disk is not enough. */
+	int iLayout;
 
 	char strContainer[32];
 	char strMember[32];

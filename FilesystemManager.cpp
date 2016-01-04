@@ -576,7 +576,6 @@ string FilesystemManager::GetMountPoint()
 
 string FilesystemManager::GetMountPoint(const int& num)
 {
-	m_iVolumeNum = num;
-	m_strMountPoint = string_format("/mnt/VOLUME%d", m_iVolumeNum + 1);
+	SetVolumeNum(num);
 	return m_strMountPoint;
 }
