@@ -471,7 +471,10 @@ struct MDProfile {
 		}
 
 		return true;
-	}	
+	}
+
+	void Dump() {
+	}
 };
 
 struct RAIDInfo {
@@ -727,6 +730,7 @@ private:
 	int QueryMDSuperBlockInDisk(const string& dev, examine_result &result);
 	bool QueryMDDetail(const string& mddev, array_detail &ad);
 	bool GenerateRAIDInfo(const MDProfile &profile, RAIDInfo& info);
+
 protected:
 	void ThreadProc();
 
@@ -749,8 +753,7 @@ public:
 
 	bool GetRAIDInfo(const string& mddev, RAIDInfo& info);
 	void GetRAIDInfo(vector<RAIDInfo>& list);
-	void GetDisksInfo(vector<RAIDDiskInfo> &list);
-	bool GetDisksInfo(const string& dev, RAIDDiskInfo &info);
+	void GetFreeDisksInfo(vector<RAIDDiskInfo> &list);
 
 	bool CheckFileSystem();
 	bool DoFileSystemRecovery();

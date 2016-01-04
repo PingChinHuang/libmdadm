@@ -890,43 +890,20 @@ void RAIDManager::GetRAIDInfo(vector<RAIDInfo>& list)
 	}
 }
 
-void RAIDManager::GetDisksInfo(vector<RAIDDiskInfo> &list)
+void RAIDManager::GetFreeDisksInfo(vector<RAIDDiskInfo> &list)
 {
 	list.clear();
 
 	CriticalSectionLock cs(&m_csDiskProfiles);
-	vector<RAIDDiskInfo>::iterator it = m_vRAIDDiskList.begin();
-	while(it != m_vRAIDDiskList.end()) {
-		RAIDDiskInfo info = *it;
-		CriticalSectionLock csSymLinkTable(&m_csSymLinkTable);
-		info.m_miscInfo = m_mapSymLinkTable[it->m_strDevName];
-		info.Dump();
-		list.push_back(info);
-		it++;
-	}
-}
-
-bool RAIDManager::GetDisksInfo(const string& dev, RAIDDiskInfo &info)
-{
-	if (dev.empty()) {
-		return false;
-	}
-
-	string strDevNode = GetDeviceNodeBySymLink(dev);
-
-	CriticalSectionLock csRAIDDiskList(&m_csRAIDDiskList);
-	vector<RAIDDiskInfo>::iterator it = m_vRAIDDiskList.begin();
-	while(it != m_vRAIDDiskList.end()) {
-		if (*it == strDevNode) {
-			info = *it;
-			CriticalSectionLock csSymLinkTable(&m_csSymLinkTable);
-			info.m_miscInfo = m_mapSymLinkTable[strDevNode]; 
-			return true;
+	map<string, DiskProfile>::iterator it = m_mapMDProfiles.begin();
+	while(it != m_mapMDProfiles.end()) {
+		if (!it->m_strMDDev.empty()) {
+			RAIDDiskInfo info;
+			info.m_strDevPath = it->m_strDevPath;
+			info.m_diskProfile = *it;
 		}
 		it++;
 	}
-
-	return false;
 }
 
 bool RAIDManager::Format(const string& mddev)
@@ -937,26 +914,28 @@ bool RAIDManager::Format(const string& mddev)
 		return false;
 	}
 
-	RAIDInfo info;
-	if (IsMDDevInRAIDInfoList(mddev, info) == m_vRAIDInfoList.end()) {
-		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+	CriticalSectionLock cs_md(&m_csMDProfiles);
+	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
+	if (it == m_mapMDProfiles.end()) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "%s doesn't exist.\n", mddev.c_str());
 		return false;
 	}
 
-	if (info.m_fsMgr.get() == NULL) {
+	if (it->m_fsMgr.get() == NULL) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "FilesystemManager is not initialized for %s\n",
 			   mddev.c_str());
 		return false;
 	}
 
-	int num = GetFreeVolumeNum();
-	if (num < 0) return false;
+	if (it->m_fsMgr->GetVolumeNum() < 0) {
+		int num = GetFreeVolumeNum();
+		it->m_fsMgr->SetVolumeNum(num);
+	}
 
-	info.m_fsMgr->SetVolumeNum(num);
 #ifdef NUUO
-	info.m_fsMgr->CreateThread();
+	it->m_fsMgr->CreateThread();
 #endif
 
 	return true;
@@ -970,52 +949,43 @@ bool RAIDManager::Mount(const string& mddev)
 		return false;
 	}
 
-	RAIDInfo info;
-	if (IsMDDevInRAIDInfoList(mddev, info) == m_vRAIDInfoList.end()) {
-		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+	CriticalSectionLock cs_md(&m_csMDProfiles);
+	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
+	if (it == m_mapMDProfiles.end()) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "%s doesn't exist.\n", mddev.c_str());
 		return false;
 	}
 
-	if (info.m_fsMgr.get() == NULL) {
+	if (it->m_fsMgr.get() == NULL) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "FilesystemManager is not initialized for %s\n",
 			   mddev.c_str());
 		return false;
 	}
 
-	if (!info.m_fsMgr->IsFormated()) {
+	if (!it->m_fsMgr->IsFormated()) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "%s is not formated.\n",
 			   mddev.c_str());
 		return false;
 	}
 
-	int num = -1;
 	if (!info.m_fsMgr->IsMounted(num)) {
-		string strMountPoint;
-		if (num < 0) {
-			num = GetFreeVolumeNum();
-		} else {
-			num = GetFormerVolumeNum(num);
-		}
+		if (it->m_fsMgr->GetVolumeNum() < 0) {
+			int num = GetFreeVolumeNum();
+			if (num < 0) return false;
 
-		if (num < 0) {
-			WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-				   "Exceed maximal volume limitation.\n");
-			return false;
-		}
-		info.m_fsMgr->SetVolumeNum(num);
-		info.m_fsMgr->IsMounted(strMountPoint); // Get mount point name
-		if (!info.m_fsMgr->Mount(strMountPoint)) {
-			FreeVolumeNum(num);
-			return false;
+			string strMountPoint = it->m_fsMgr->GetMountPoint(num);
+			if (!it->m_fsMgr->Mount(strMountPoint)) {
+				return false;
+			}
 		}
 	}
 
 	// In case of some necessary files and folders do not exist.
-	info.m_fsMgr->GenerateUUIDFile();
-	info.m_fsMgr->CreateDefaultFolders();
+	it->m_fsMgr->GenerateUUIDFile();
+	it->m_fsMgr->CreateDefaultFolders();
 
 	return true;
 }
@@ -1028,14 +998,15 @@ bool RAIDManager::Unmount(const string& mddev)
 		return false;
 	}
 
-	RAIDInfo info;
-	if (IsMDDevInRAIDInfoList(mddev, info) == m_vRAIDInfoList.end()) {
-		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+	CriticalSectionLock cs_md(&m_csMDProfiles);
+	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
+	if (it == m_mapMDProfiles.end()) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "%s doesn't exist.\n", mddev.c_str());
 		return false;
 	}
 
-	if (info.m_fsMgr.get() == NULL) {
+	if (it->m_fsMgr.get() == NULL) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "FilesystemManager is not initialized for %s\n",
 			   mddev.c_str());
@@ -1043,13 +1014,8 @@ bool RAIDManager::Unmount(const string& mddev)
 	}
 
 	int num = -1;
-	if (info.m_fsMgr->IsMounted(num)) {
-		if (info.m_fsMgr->Unmount()) {
-			FreeVolumeNum(num);
-			return true;
-		} else {
-			// FIXME: Should I free volume num...
-			FreeVolumeNum(num);
+	if (it->m_fsMgr->IsMounted(num)) {
+		if (!it->m_fsMgr->Unmount()) {
 			return false;
 		}
 	}
@@ -1066,21 +1032,22 @@ bool RAIDManager::GetFormatProgress(const string& mddev,
 		return false;
 	}
 
-	RAIDInfo info;
-	if (IsMDDevInRAIDInfoList(mddev, info) == m_vRAIDInfoList.end()) {
-		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+	CriticalSectionLock cs_md(&m_csMDProfiles);
+	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
+	if (it == m_mapMDProfiles.end()) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "%s doesn't exist.\n", mddev.c_str());
 		return false;
 	}
 
-	if (info.m_fsMgr.get() == NULL) {
+	if (it->m_fsMgr.get() == NULL) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "FilesystemManager is not initialized for %s\n",
 			   mddev.c_str());
 		return false;
 	}
 
-	return info.m_fsMgr->IsFormating(progress, stat);
+	return it->m_fsMgr->IsFormating(progress, stat);
 }
 
 bool RAIDManager::IsMounted(const string& mddev, int &num)
@@ -1091,21 +1058,22 @@ bool RAIDManager::IsMounted(const string& mddev, int &num)
 		return false;
 	}
 
-	RAIDInfo info;
-	if (IsMDDevInRAIDInfoList(mddev, info) == m_vRAIDInfoList.end()) {
-		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+	CriticalSectionLock cs_md(&m_csMDProfiles);
+	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
+	if (it == m_mapMDProfiles.end()) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "%s doesn't exist.\n", mddev.c_str());
 		return false;
 	}
 
-	if (info.m_fsMgr.get() == NULL) {
+	if (it->m_fsMgr.get() == NULL) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "FilesystemManager is not initialized for %s\n",
 			   mddev.c_str());
 		return false;
 	}
 
-	return info.m_fsMgr->IsMounted(num);
+	return it->m_fsMgr->IsMounted(num);
 }
 
 bool RAIDManager::IsFormated(const string& mddev)
@@ -1115,22 +1083,23 @@ bool RAIDManager::IsFormated(const string& mddev)
 			   "[%d] Unknown MD device.\n", __LINE__);
 		return false;
 	}
-
-	RAIDInfo info;
-	if (IsMDDevInRAIDInfoList(mddev, info) == m_vRAIDInfoList.end()) {
-		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+.
+	CriticalSectionLock cs_md(&m_csMDProfiles);
+	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
+	if (it == m_mapMDProfiles.end()) {
+		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "%s doesn't exist.\n", mddev.c_str());
 		return false;
 	}
 
-	if (info.m_fsMgr.get() == NULL) {
+	if (it->m_fsMgr.get() == NULL) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "FilesystemManager is not initialized for %s\n",
 			   mddev.c_str());
 		return false;
 	}
 	
-	return info.m_fsMgr->IsFormated();
+	return it->m_fsMgr->IsFormated();
 }
 
 void RAIDManager::Dump()
@@ -1145,29 +1114,11 @@ void RAIDManager::Dump()
 		if (m_bUsedVolume[i])
 			printf("%d ", i + 1);
 	printf("\n");
-	for (size_t i = 0; i < m_vRAIDDiskList.size(); i++) {
-		m_vRAIDDiskList[i].Dump();
-	}
-}
 
-string RAIDManager::GetDeviceNodeBySymLink(const string& symlink)
-{
-	/* Return symlink directly if we cannot found corresponding device node. */
-	struct stat s;
-	if (lstat(symlink.c_str(), &s) >= 0) {
-		if (S_ISLNK(s.st_mode) == 1) {
-			char buf[128];
-			int len = 0;
-			if ((len = readlink(symlink.c_str(), buf, sizeof(buf) - 1)) >= 0) {
-				string strDevNode = "/dev/";
-				buf[len] = '\0';
-				strDevNode += buf;
-				return strDevNode;
-			}
-		}
+	map<string, MDProfile>::iterator it = m_mapMDProfiles.begin();
+	if (it != m_mapMDProfiles.end()) {
+		it->Dump();
 	}
-
-	return symlink;
 }
 
 void RAIDManager::ThreadProc()

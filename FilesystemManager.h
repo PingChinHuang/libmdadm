@@ -74,6 +74,10 @@ public:
 	bool SetDeviceNode(const string &dev);
 	void SetMountPoint(const string &mountpoint);
 	void SetVolumeNum(const int &num);
+	string GetVolumeNum(const int &num);
+	string GetMountPoint();
+	string GetMountPoint(const int &num);
+
 	bool Mount(const string& strMountPoint);
 	bool Mount();
 	bool Unmount();
