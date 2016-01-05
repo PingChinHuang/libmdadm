@@ -86,6 +86,7 @@ public:
 	bool IsFormating(int& progress, int& stat);
 	bool IsMounted(string& strMountPoint);
 	bool IsMounted(int& num);
+	bool IsMounted();
 	bool IsInitialized();
 	void SetFormatInfo(bool format, int progress,
 			   int stat);

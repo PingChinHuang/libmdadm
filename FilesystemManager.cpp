@@ -309,6 +309,12 @@ bool FilesystemManager::IsMounted(int& num)
 	return m_bMount;
 }
 
+bool FilesystemManager::IsMounted()
+{
+	CriticalSectionLock cs(&m_csMount);
+	return m_bMount; 
+}
+
 void FilesystemManager::SetFormatInfo(bool format, int progress, int stat)
 {
 	m_bFormat = format;

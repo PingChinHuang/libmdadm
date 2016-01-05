@@ -720,7 +720,7 @@ private:
 	struct mddev_dev* InitializeDevList(vector<string>& devNameList, int disposition = 0);
 	struct mddev_dev* InitializeDevList(const string& replace, const string& with);
 	void FreeDevList(struct mddev_dev* devlist);
-	int OpenMDDev(const string& mddev);
+	int OpenMDDev(const string& mddev_path);
 
 	int CreateRAID(const string& mddev, vector<string>& vDevList, int level);
 
@@ -731,7 +731,6 @@ private:
 	void FreeMDNum(int n);
 	void SetMDNum(int n);
 
-	int GetFormerVolumeNum(int n);
 	int GetFreeVolumeNum();
 	void FreeVolumeNum(int n);
 	void SetVolumeNum(int n);
@@ -746,8 +745,8 @@ private:
 
 	bool StopRAID(const string& mddev);
 
-	int QueryMDSuperBlockInDisk(const string& dev, examine_result &result);
-	bool QueryMDDetail(const string& mddev, array_detail &ad);
+	int QueryMDSuperBlockInDisk(const string& dev_path, examine_result &result);
+	bool QueryMDDetail(const string& mddev_path, array_detail &ad);
 	bool GenerateRAIDInfo(const MDProfile &profile, RAIDInfo& info);
 
 protected:
@@ -787,8 +786,6 @@ public:
 	bool IsFormated(const string& mddev);
 
 	void Dump();
-
-	static string GetDeviceNodeBySymLink(const string& symlink);
 }; 
 
 

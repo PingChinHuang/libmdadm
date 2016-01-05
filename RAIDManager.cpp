@@ -29,7 +29,7 @@ RAIDManager::RAIDManager()
 	} catch (bad_alloc&) {
 		m_pNotifyChange = NULL;
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "Allocate memory failed.");
+				   "Allocate memory failed.");
 	}
 }
 
@@ -101,7 +101,7 @@ bool RAIDManager::Initialize()
 				}
 			} else {
 				printf("[%s] FilesystemManager initialization retried failed.\n",
-						strSysName.c_str());
+					   strSysName.c_str());
 			}
 			break;
 		}
@@ -153,25 +153,6 @@ void RAIDManager::SetMDNum(int n)
 	m_bUsedMD[n] = true;
 }
 
-int RAIDManager::GetFormerVolumeNum(int n)
-{
-	CriticalSectionLock cs_md(&m_csUsedVolume);
-	/* Check requested Volume number */
-	if (m_bUsedVolume[n]) {
-		for (int i = 0; i < 128; i++) {
-			if (!m_bUsedMD[i]) {
-				m_bUsedMD[i] = true;
-				return i;
-			}
-		}
-
-		return -1;
-	} else {
-		m_bUsedVolume[n] = true;
-		return n;
-	}
-}
-
 int RAIDManager::GetFreeVolumeNum()
 {
 	CriticalSectionLock cs_md(&m_csUsedVolume);
@@ -205,14 +186,14 @@ void RAIDManager::SetVolumeNum(int n)
 	m_bUsedVolume[n] = true;
 }
 
-int RAIDManager::QueryMDSuperBlockInDisk(const string& dev, examine_result &result)
+int RAIDManager::QueryMDSuperBlockInDisk(const string& dev_path, examine_result &result)
 {
 	vector<string> vDevList;
 	struct mddev_dev* devlist = NULL;
 	struct context c;
 	int err = 0;
 
-	vDevList.push_back(dev);
+	vDevList.push_back(dev_path);
 	if (NULL == (devlist = InitializeDevList(vDevList))) {
 		err = EXAMINE_MEM_ALLOC_FAIL;
 		return err;
@@ -225,36 +206,29 @@ int RAIDManager::QueryMDSuperBlockInDisk(const string& dev, examine_result &resu
 	return err;
 }
 
+void RAIDManager::NotifyChange()
+{
+	CriticalSectionLock cs_NotifyChange(&m_csNotifyChange);
+	if (NULL == m_pNotifyChange)
+		m_pNotifyChange->set();
+}
+
 bool RAIDManager::AddDisk(const string& dev)
 {
-	/*0. dev is empty -> return false*/
 	if (dev.empty())
 		return false;
-
-	/*1. Check device node exists or not (SYSUTILS::CheckBlockDevice)
-		1.1 Yes -> 3 
-		1.2 No -> return false*/
-	if (!CheckBlockDevice(dev)) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "%s is not a block device.\n", dev.c_str());
-		return false;
-	}
 
 	m_csDiskProfiles.Lock();
 	DiskProfile profile(dev);
 	m_mapDiskProfiles[dev] = profile;
 	m_csDiskProfiles.Unlock();
-
-	CriticalSectionLock cs_NotifyChange(&m_csNotifyChange);
-	if (NULL == m_pNotifyChange)
-		m_pNotifyChange->set();
+	NotifyChange();
 
 	return true;
 }
 
 bool RAIDManager::RemoveDisk(const string& dev)
 {
-	/* 0. dev is empty -> return false */
 	if (dev.empty())
 		return false;
 
@@ -263,26 +237,23 @@ bool RAIDManager::RemoveDisk(const string& dev)
 	it = m_mapDiskProfiles.find(dev);
 	m_mapDiskProfiles.erase(it);
 	m_csDiskProfiles.Unlock();
-
-	CriticalSectionLock cs_NotifyChange(&m_csNotifyChange);
-	if (NULL == m_pNotifyChange)
-		m_pNotifyChange->set();
+	NotifyChange();
 
 	return true;
 }
 
-bool RAIDManager::QueryMDDetail(const string& mddev,
+bool RAIDManager::QueryMDDetail(const string& mddev_path,
 								array_detail &ad)
 {
 	struct context c;
 	int ret = SUCCESS;
 
 	InitializeContext(c);
-	ret = Detail_ToArrayDetail(mddev.c_str(), &c, &ad);
+	ret = Detail_ToArrayDetail(mddev_path.c_str(), &c, &ad);
 	if (ret != SUCCESS) {
 		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
 				"[%d] Detail Error Code %s: (%d)\n",
-				__LINE__, mddev.c_str(), ret);
+				__LINE__, mddev_path.c_str(), ret);
 		return false;
 	}
 
@@ -409,12 +380,12 @@ void RAIDManager::FreeDevList(struct mddev_dev* devlist)
 	devlist = NULL;
 }
 
-int RAIDManager::OpenMDDev(const string& mddev)
+int RAIDManager::OpenMDDev(const string& mddev_path)
 {
-	int fd = open_mddev((char*)mddev.c_str(), 1);
+	int fd = open_mddev((char*)mddev_path.c_str(), 1);
 	if (fd < 0) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "Fail to open MD device. %s\n", mddev.c_str());
+			   "Fail to open MD device. %s\n", mddev_path.c_str());
 	}
 
 	return fd;
@@ -453,10 +424,7 @@ bool RAIDManager::CreateRAID(vector<string>& vDevList, int level)
 				profile.m_fsMgr->CreateThread();
 
 			m_mapMDProfiles[GenerateMDSysName(freeMD)] = profile;
-
-			CriticalSectionLock cs_NotifyChange(&m_csNotifyChange);
-			if (m_pNotifyChange != NULL)
-				m_pNotifyChange->set();
+			NotifyChange();
 			return true;
 		} else if (ret == CREATE_MDDEV_INUSE) {
 			/* MD number is occupied, get another one. */
@@ -491,7 +459,8 @@ int RAIDManager::CreateRAID(const string& mddev, vector<string>& vDevList, int l
 	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);	
 	if (it != m_mapMDProfiles.end()) {
 		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
-	   		   "[%d] Create Error Code: (%d)\n", __LINE__, CREATE_MDDEV_INUSE);
+				   "[%d] Create Error Code: (%d)\n", __LINE__,
+				   CREATE_MDDEV_INUSE);
 
 		return CREATE_MDDEV_INUSE;
 	}
@@ -510,7 +479,8 @@ int RAIDManager::CreateRAID(const string& mddev, vector<string>& vDevList, int l
 					 NULL, NULL, vDevList.size(), devlist, &s, &c, INVALID_SECTORS);
 	if (ret != SUCCESS) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-		   	   "Fail to create volume %s: (%d)\n", mddev.c_str(), ret);
+				   "Fail to create volume %s: (%d)\n",
+				   mddev.c_str(), ret);
 		return ret;
 	}
 
@@ -572,41 +542,23 @@ bool RAIDManager::AssembleRAID(const int uuid[4], string& mddev)
 
 int RAIDManager::AssembleRAID(const string& mddev, const int uuid[4])
 {
-	/*
-		1. Check mddev
-			empty -> return false
-	*/
 	if (mddev.empty())
 		return ASSEMBLE_MDDEV_UNSET;
 
-	/*
-		2. Check uuid
-			NULL -> return false
-	*/
 	if (uuid == NULL)
 		return ASSEMBLE_INVALID_UUID;
 
-	/*
-		3. [CS] Check mddev exists in m_vRAIDInfoList or not
-			Yes -> return false
-	*/
 	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
 	if (it != m_mapMDProfiles.end()) {
 		WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
-					"[%d] Assemble Error Code: (%d)\n", __LINE__, ASSEMBLE_MDDEV_INUSE);
+				   "[%d] Assemble Error Code: (%d)\n",
+				   __LINE__, ASSEMBLE_MDDEV_INUSE);
 		return ASSEMBLE_MDDEV_INUSE;
 	}
 
-	/*
-		4. InitializeMDDevIdent(ident, 1, str_uuid)
-	*/
 	struct mddev_ident ident;
 	InitializeMDDevIdent(ident, 1, uuid);
 
-	/*
-		5. ret = Assemble(NULL, mddev.c_str(), &ident, NULL, &c);
-			4.1 ret != 0 -> Write HW Log -> return false
-	*/
 	struct context c;
 	InitializeContext(c);
 	int ret = Assemble(NULL, (char*)string_format("/dev/%s", mddev.c_str()).c_str(),
@@ -680,22 +632,13 @@ bool RAIDManager::ManageRAIDSubdevs(const string& mddev, vector<string>& vDevLis
 	close(fd);
 	FreeDevList(devlist);
 
-/*
-		11.
-		if (ret != 0)
-			return false;
-		else
-			return UpdateRAIDInfo(mddev)
-	*/
 	if (ret != 0) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 			   "Fail to manage volume %s: (%d)\n", mddev.c_str(), ret);
 		return false;
 	}
 
-	CriticalSectionLock cs_NotifyChange(&m_csNotifyChange);
-	if (m_pNotifyChange != NULL)
-		m_pNotifyChange->set();
+	NotifyChange();
 
 	return SUCCESS;
 }
@@ -754,12 +697,10 @@ bool RAIDManager::StopRAID(const string& mddev)
 		return false;
 	}
 
-	if (it->second.m_fsMgr.get()) {
-		it->second.m_fsMgr->Unmount();
-		FreeVolumeNum(it->second.m_fsMgr->GetVolumeNum());
-	}
+	it->second.m_fsMgr->Unmount();
+	FreeVolumeNum(it->second.m_fsMgr->GetVolumeNum());
 
-	int fd = OpenMDDev(mddev);
+	int fd = OpenMDDev(it->second.m_strDevPath.c_str());
 	if (fd < 0) 
 		return false;
 
@@ -836,8 +777,7 @@ bool RAIDManager::GenerateRAIDInfo(const MDProfile &profile, RAIDInfo& info)
 	info = ad;
 	info.m_strSysName = profile.m_strSysName;
 	if (profile.m_fsMgr.get()) {
-		int num = -1;
-		info.m_bMount = profile.m_fsMgr->IsMounted(num);
+		info.m_bMount = profile.m_fsMgr->IsMounted();
 		info.m_bFormat = profile.m_fsMgr->IsFormated();
 
 		if (!profile.m_fsMgr->IsFormating(info.m_iFormatingState, info.m_iFormatProgress)) {
@@ -871,7 +811,7 @@ bool RAIDManager::GetRAIDInfo(const string& mddev, RAIDInfo& info)
 	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
 	if (it == m_mapMDProfiles.end()) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "%s doesn't exist.\n", mddev.c_str());
+				   "%s doesn't exist.\n", mddev.c_str());
 		return false;
 	}
 
@@ -978,12 +918,12 @@ bool RAIDManager::Mount(const string& mddev)
 
 	int num = -1;
 	if (!it->second.m_fsMgr->IsMounted(num)) {
-		if (it->second.m_fsMgr->GetVolumeNum() < 0) {
-			int num = GetFreeVolumeNum();
+		if (num < 0) {
+			num = GetFreeVolumeNum();
 			if (num < 0) return false;
 
-			string strMountPoint = it->second.m_fsMgr->GetMountPoint(num);
-			if (!it->second.m_fsMgr->Mount(strMountPoint)) {
+			it->second.m_fsMgr->SetVolumeNum(num);
+			if (!it->second.m_fsMgr->Mount()) {
 				return false;
 			}
 		}
@@ -1019,8 +959,7 @@ bool RAIDManager::Unmount(const string& mddev)
 		return false;
 	}
 
-	int num = -1;
-	if (it->second.m_fsMgr->IsMounted(num)) {
+	if (it->second.m_fsMgr->IsMounted()) {
 		if (!it->second.m_fsMgr->Unmount()) {
 			return false;
 		}
@@ -1115,6 +1054,7 @@ void RAIDManager::Dump()
 		if (m_bUsedMD[i])
 			printf("%d ", i);
 	printf("\n");
+
 	printf("Used Volume Number: ");
 	for (int i = 0; i < 128; i ++)
 		if (m_bUsedVolume[i])
@@ -1255,38 +1195,41 @@ void RAIDManager::ThreadProc()
 
 			if (it_md->second.m_iDevCount == it_md->second.m_iRaidDisks) {
 				/* Check format and mount status and mount volume if it is necessary. */
-				int iVolumeNum = -1;
+				int num = -1;
 
 				if (it_md->second.m_fsMgr.get() == NULL)
 					goto md_check_done;
 
 				if (it_md->second.m_fsMgr->IsFormated()) {
-					if (!it_md->second.m_fsMgr->IsMounted(iVolumeNum)) {
-						if (iVolumeNum == -1) {
-							iVolumeNum = GetFreeVolumeNum();
-							if (iVolumeNum == -1) {
+					if (!it_md->second.m_fsMgr->IsMounted(num)) {
+						if (num == -1) {
+							num = GetFreeVolumeNum();
+							if (num == -1) {
 								goto md_check_done;
 							} else {
 								/* 
 								 * Volume number is assigned until 
 								 * MD device is stopped or deleted.
 								 */
-								it_md->second.m_fsMgr->SetVolumeNum(iVolumeNum);
+								it_md->second.m_fsMgr->SetVolumeNum(num);
 							}
 						}
 
-						it_md->second.m_fsMgr->Mount();
+						if (it_md->second.m_fsMgr->Mount()) {
+							it_md->second.m_fsMgr->GenerateUUIDFile();
+							it_md->second.m_fsMgr->CreateDefaultFolders();
+						}
 					}
 				} else {
-					iVolumeNum = it_md->second.m_fsMgr->GetVolumeNum();
-					if (iVolumeNum == -1) {
+					num = it_md->second.m_fsMgr->GetVolumeNum();
+					if (num == -1) {
 						/* 
 						 * We don't have to care about whether volume num is legal or not,
 						 * because this volume is not formated yet. We can get volume number
 						 * again when it is formated successfully and ready to be mounted.
 						 */
-						iVolumeNum = GetFreeVolumeNum();
-						it_md->second.m_fsMgr->SetVolumeNum(iVolumeNum);
+						num = GetFreeVolumeNum();
+						it_md->second.m_fsMgr->SetVolumeNum(num);
 					}
 				}
 
@@ -1311,15 +1254,19 @@ void RAIDManager::ThreadProc()
 				avail[i] = 0;
 
 				for (size_t j = 0; j < it_md->second.m_vMembers.size(); j++) {
-					 if (it_md->second.m_vMembers[j] == ad.arrayDisks[i].strDevName) {
-						  bFound = true;
-						  break;
-					 }
+					/* We can see this case when iSCSI disk diconnected. */
+					if (ad.arrayDisks[i].strDevName.empty())
+						break;
+
+					if (it_md->second.m_vMembers[j] == ad.arrayDisks[i].strDevName) {
+						bFound = true;
+						break;
+					}
 				}
 
 				/* Disk is already missing, but MD device does not know it. */
 				if (!bFound) {
-					 continue;
+					continue;
 				}
 
 				if (ad.arrayDisks[i].diskInfo.state & (1 << MD_DISK_SYNC)) {
@@ -1345,12 +1292,12 @@ void RAIDManager::ThreadProc()
 				 * which actions they want to do. Delete this RAID
 				 * or modify it to add new disks.
 				 */
-				int iVolumeNum;
+				int num;
 
 				if (it_md->second.m_fsMgr.get() == NULL)
 					goto md_check_done;
 
-				if (it_md->second.m_fsMgr->IsMounted(iVolumeNum)) {
+				if (it_md->second.m_fsMgr->IsMounted(num)) {
 					if (it_md->second.m_fsMgr->Unmount()) {
 						WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 								   "Unmount %s due to RAID doesn't have enough disks\n",
@@ -1371,7 +1318,7 @@ md_check_done:
 			if (it_disk->second.m_strMDDev.empty()) {
 				examine_result er;
 				int err = 0;
-				if ((err = QueryMDSuperBlockInDisk(it_disk->first, er)) == SUCCESS) {
+				if ((err = QueryMDSuperBlockInDisk(it_disk->second.m_strDevPath, er)) == SUCCESS) {
 					string mddev;
 					if (AssembleRAID(er.arrayUUID, mddev)) {
 						if (m_mapMDProfiles[mddev].m_fsMgr.get() == NULL) {
@@ -1382,24 +1329,30 @@ md_check_done:
 							}
 						}
 						
-						int iVolumeNum = -1;
+						int num = -1;
 						if (m_mapMDProfiles[mddev].m_fsMgr->IsFormated()) {
-							if (!m_mapMDProfiles[mddev].m_fsMgr->IsMounted(iVolumeNum)) {
-								if (iVolumeNum == -1) {
-									iVolumeNum = GetFreeVolumeNum();
-									if (iVolumeNum == -1) {
+							if (!m_mapMDProfiles[mddev].m_fsMgr->IsMounted(num)) {
+								if (num == -1) {
+									num = GetFreeVolumeNum();
+									if (num == -1) {
 										;
 									} else {
-										m_mapMDProfiles[mddev].m_fsMgr->SetVolumeNum(iVolumeNum);
-										m_mapMDProfiles[mddev].m_fsMgr->Mount();
+										m_mapMDProfiles[mddev].m_fsMgr->SetVolumeNum(num);
+										if (m_mapMDProfiles[mddev].m_fsMgr->Mount()) {
+											m_mapMDProfiles[mddev].m_fsMgr->GenerateUUIDFile();
+											m_mapMDProfiles[mddev].m_fsMgr->CreateDefaultFolders();
+										}
 									}
 								} else {
-									m_mapMDProfiles[mddev].m_fsMgr->Mount();
+									if (m_mapMDProfiles[mddev].m_fsMgr->Mount()) {
+										m_mapMDProfiles[mddev].m_fsMgr->GenerateUUIDFile();
+										m_mapMDProfiles[mddev].m_fsMgr->CreateDefaultFolders();
+									}
 								}
 							}
 						} else {
-							iVolumeNum = GetFreeVolumeNum();
-							m_mapMDProfiles[mddev].m_fsMgr->SetVolumeNum(iVolumeNum);
+							num = GetFreeVolumeNum();
+							m_mapMDProfiles[mddev].m_fsMgr->SetVolumeNum(num);
 						}
 
 						it_disk->second.ReadMDStat();
