@@ -15,6 +15,7 @@ extern "C" {
 #include "common/critical_section.h"
 #include "common/nusyslog.h"
 #include "common/smart_pointer.h"
+#include "common/semaphore.h"
 #include "apr/apr_thread_worker.h"
 using namespace SYSUTILS_SPACE;
 #else
@@ -153,19 +154,19 @@ struct DiskProfile {
 			m_strSymLink = udev_device_get_property_value(dev, "ID_SYMLINK");
 
 			if (!m_strSymLink.empty()) {
-				if (m_strSymLink.find("/dev/nuuo_sata") != string::npos) {
+				if (m_strSymLink.find("nuuo_sata") != string::npos) {
 					m_diskType = DISK_TYPE_SATA;
 					ret = sscanf(m_strSymLink.c_str(), "/dev/nuuo_sata%d", &m_iBay);
 					if (ret < 1 || ret == EOF || m_iBay > 127 || m_iBay < 0) {
 						m_iBay = -1;
 					}
-				} else if (m_strSymLink.find("/dev/nuuo_esata") != string::npos) {
+				} else if (m_strSymLink.find("nuuo_esata") != string::npos) {
 					m_diskType = DISK_TYPE_ESATA;
 					ret = sscanf(m_strSymLink.c_str(), "/dev/nuuo_sata%d", &m_iBay);
 					if (ret < 1 || ret == EOF || m_iBay > 127 || m_iBay < 0) {
 						m_iBay = -1;
 					}
-				} else if (m_strSymLink.find("/dev/nuuo_iscsi") != string::npos) {
+				} else if (m_strSymLink.find("nuuo_iscsi") != string::npos) {
 					m_diskType = DISK_TYPE_ISCSI;
 				} else {
 					printf("Unknown SYMLINK\n");
@@ -486,6 +487,13 @@ struct MDProfile {
 	}
 
 	void Dump() {
+		printf("MD Name: %s\n\tDev Node: %s, RAID Disks: (%d/%d)\n\t",
+				m_strSysName.c_str(), m_strDevPath.c_str(), m_iDevCount, m_iRaidDisks);
+		if (m_fsMgr.get()) {
+			printf("Status: Format(%s), Mount(%s on %s)",
+					m_fsMgr->IsFormated()?"Yes":"No",
+					m_fsMgr->IsMounted()?"Yes":"No", m_fsMgr->GetMountPoint().c_str());
+		}
 	}
 };
 
@@ -703,6 +711,7 @@ private:
 	CriticalSection m_csNotifyChange;
 	CriticalSection m_csUsedMD;
 	CriticalSection m_csUsedVolume;
+	Semaphore m_semAssemble;
 	AprCond *m_pNotifyChange;
 
 private:
@@ -748,6 +757,8 @@ private:
 	int QueryMDSuperBlockInDisk(const string& dev_path, examine_result &result);
 	bool QueryMDDetail(const string& mddev_path, array_detail &ad);
 	bool GenerateRAIDInfo(const MDProfile &profile, RAIDInfo& info);
+
+	void NotifyChange();
 
 protected:
 	void ThreadProc();

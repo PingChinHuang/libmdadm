@@ -22,10 +22,12 @@ RAIDManager::RAIDManager()
 	CriticalSectionLock cs_DiskProfiles(&m_csDiskProfiles);
 	Initialize();
 
+	m_semAssemble.Post();
+
 	CriticalSectionLock cs_NotifyChange(&m_csNotifyChange);
 	try {
 		m_pNotifyChange = new AprCond(false);
-		CreateThread();
+		//CreateThread();
 	} catch (bad_alloc&) {
 		m_pNotifyChange = NULL;
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
@@ -222,6 +224,7 @@ bool RAIDManager::AddDisk(const string& dev)
 	DiskProfile profile(dev);
 	m_mapDiskProfiles[dev] = profile;
 	m_csDiskProfiles.Unlock();
+	m_semAssemble.Post();
 	NotifyChange();
 
 	return true;
@@ -1253,11 +1256,13 @@ void RAIDManager::ThreadProc()
 				bool bFound = false;
 				avail[i] = 0;
 
-				for (size_t j = 0; j < it_md->second.m_vMembers.size(); j++) {
-					/* We can see this case when iSCSI disk diconnected. */
-					if (ad.arrayDisks[i].strDevName.empty())
-						break;
+				/* We can see this case when iSCSI disk diconnected. */
+				if (strlen(ad.arrayDisks[i].strDevName) == 0) {
+					printf("MD device has disks without any information.\n");
+					continue;
+				}
 
+				for (size_t j = 0; j < it_md->second.m_vMembers.size(); j++) {
 					if (it_md->second.m_vMembers[j] == ad.arrayDisks[i].strDevName) {
 						bFound = true;
 						break;
@@ -1310,61 +1315,64 @@ md_check_done:
 			it_md++;
 		}
 
-		it_disk = m_mapDiskProfiles.begin();
-		while (it_disk != m_mapDiskProfiles.end()) {
-			/* The disk doesn't belong to and MD device.
-			 * Maybe MD device is not assembled yet.*/
-			it_disk->second.ReadMDStat();
-			if (it_disk->second.m_strMDDev.empty()) {
-				examine_result er;
-				int err = 0;
-				if ((err = QueryMDSuperBlockInDisk(it_disk->second.m_strDevPath, er)) == SUCCESS) {
-					string mddev;
-					if (AssembleRAID(er.arrayUUID, mddev)) {
-						if (m_mapMDProfiles[mddev].m_fsMgr.get() == NULL) {
-							m_mapMDProfiles[mddev].InitializeFSManager();
+		if (m_semAssemble.Wait(0)) {
+			it_disk = m_mapDiskProfiles.begin();
+			while (it_disk != m_mapDiskProfiles.end()) {
+				/* The disk doesn't belong to and MD device.
+				 * Maybe MD device is not assembled yet.*/
+				it_disk->second.ReadMDStat();
+				if (it_disk->second.m_strMDDev.empty()) {
+					examine_result er;
+					int err = 0;
+					if ((err = QueryMDSuperBlockInDisk(it_disk->second.m_strDevPath, er)) == SUCCESS) {
+						// TODO: Check MD before ASSEMBLE
+						string mddev;
+						if (AssembleRAID(er.arrayUUID, mddev)) {
 							if (m_mapMDProfiles[mddev].m_fsMgr.get() == NULL) {
-								it_disk++;
-								continue;				
+								m_mapMDProfiles[mddev].InitializeFSManager();
+								if (m_mapMDProfiles[mddev].m_fsMgr.get() == NULL) {
+									it_disk++;
+									continue;				
+								}
 							}
-						}
 						
-						int num = -1;
-						if (m_mapMDProfiles[mddev].m_fsMgr->IsFormated()) {
-							if (!m_mapMDProfiles[mddev].m_fsMgr->IsMounted(num)) {
-								if (num == -1) {
-									num = GetFreeVolumeNum();
+							int num = -1;
+							if (m_mapMDProfiles[mddev].m_fsMgr->IsFormated()) {
+								if (!m_mapMDProfiles[mddev].m_fsMgr->IsMounted(num)) {
 									if (num == -1) {
-										;
+										num = GetFreeVolumeNum();
+										if (num == -1) {
+											;
+										} else {
+											m_mapMDProfiles[mddev].m_fsMgr->SetVolumeNum(num);
+											if (m_mapMDProfiles[mddev].m_fsMgr->Mount()) {
+												m_mapMDProfiles[mddev].m_fsMgr->GenerateUUIDFile();
+												m_mapMDProfiles[mddev].m_fsMgr->CreateDefaultFolders();
+											}
+										}
 									} else {
-										m_mapMDProfiles[mddev].m_fsMgr->SetVolumeNum(num);
 										if (m_mapMDProfiles[mddev].m_fsMgr->Mount()) {
 											m_mapMDProfiles[mddev].m_fsMgr->GenerateUUIDFile();
 											m_mapMDProfiles[mddev].m_fsMgr->CreateDefaultFolders();
 										}
 									}
-								} else {
-									if (m_mapMDProfiles[mddev].m_fsMgr->Mount()) {
-										m_mapMDProfiles[mddev].m_fsMgr->GenerateUUIDFile();
-										m_mapMDProfiles[mddev].m_fsMgr->CreateDefaultFolders();
-									}
 								}
+							} else {
+								num = GetFreeVolumeNum();
+								m_mapMDProfiles[mddev].m_fsMgr->SetVolumeNum(num);
 							}
-						} else {
-							num = GetFreeVolumeNum();
-							m_mapMDProfiles[mddev].m_fsMgr->SetVolumeNum(num);
-						}
 
-						it_disk->second.ReadMDStat();
-					}	
-				} else if (err != EXAMINE_NO_MD_SUPERBLOCK) {
-					WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
-							   "[%d] Fail to examine %s.\n", __LINE__,
-							   it_disk->first.c_str());
-				}	
+							it_disk->second.ReadMDStat();
+						}	
+					} else if (err != EXAMINE_NO_MD_SUPERBLOCK) {
+						WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
+								   "[%d] Fail to examine %s.\n", __LINE__,
+								   it_disk->first.c_str());
+					}
+				}
+
+				it_disk++;	
 			}
-
-			it_disk++;	
 		}
 
 		m_csMDProfiles.Unlock();
@@ -1377,3 +1385,4 @@ md_check_done:
 		}
 	}
 }
+
