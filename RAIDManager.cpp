@@ -5,11 +5,12 @@
 #include "common/string.h"
 #include "common/directory_traverse.h"
 #include "common/system.h"
+#include "common/time.h"
 #include "debugMsg/Debug.h"
 #endif
 
 #define LOG_LABEL "RAIDManager"
-#define RAIDMANAGER_MONITOR_INTERVAL 3000 /* ms */
+#define RAIDMANAGER_MONITOR_INTERVAL 10000 /* ms */
 
 RAIDManager::RAIDManager()
 {
@@ -82,7 +83,8 @@ bool RAIDManager::Initialize()
 		case 8: /* Disk */
 		{
 			DiskProfile profile(strSysName);
-			m_mapDiskProfiles[strSysName] = profile;
+			if (profile.m_strSymLink != "nuuo_satadom") 
+				m_mapDiskProfiles[strSysName] = profile;
 			break;
 		}
 		case 9: /* MD */
@@ -479,12 +481,19 @@ int RAIDManager::CreateRAID(const string& mddev, vector<string>& vDevList, int l
 	struct context c;
 	InitializeContext(c);
 
-	struct mddev_dev* devlist = InitializeDevList(vDevList);
+	vector<string> vDevPathList;
+	for (size_t i = 0; i < vDevList.size(); i++) {
+		printf("%s.\n", vDevList[i].c_str());
+		vDevPathList.push_back(GetDeviceNodeBySymLink("/dev/" + vDevList[i]));
+		printf("%s.\n", vDevPathList[i].c_str());
+	}
+
+	struct mddev_dev* devlist = InitializeDevList(vDevPathList);
 	if (devlist == NULL)
 		return false;
 
 	int ret = Create(NULL, (char*)string_format("/dev/%s", mddev.c_str()).c_str(),
-					 NULL, NULL, vDevList.size(), devlist, &s, &c, INVALID_SECTORS);
+					 NULL, NULL, vDevPathList.size(), devlist, &s, &c, INVALID_SECTORS);
 	if (ret != SUCCESS) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 				   "Fail to create volume %s: (%d)\n",
@@ -734,17 +743,28 @@ bool RAIDManager::StopRAID(const string& mddev)
 
 bool RAIDManager::DeleteRAID(const string& mddev)
 {
+	array_detail ad;
+	struct context c;
+	bool bQueryDetailOK = false; 
+	int ret = SUCCESS;
+	InitializeContext(c);
+
+	/* Get MD's UUID */
+	bQueryDetailOK = QueryMDDetail("/dev/" + mddev, ad);
+
 	CriticalSectionLock cs(&m_csDiskProfiles);
 	if (!StopRAID(mddev))
 		return false;
 
-	struct context c;
-	int ret = SUCCESS;
-
-	InitializeContext(c);
 	map<string, DiskProfile>::iterator it = m_mapDiskProfiles.begin();
 	while (it != m_mapDiskProfiles.end()) {
-		if (mddev == it->second.m_strMDDev) {
+		struct examine_result er;
+		ret = QueryMDSuperBlockInDisk(it->second.m_strDevPath, er); /*Get Array UUID in SB */
+
+		if (mddev == it->second.m_strMDDev ||
+			(ret == SUCCESS && bQueryDetailOK &&
+			 0 == memcmp(ad.uuid, er.arrayUUID, sizeof(ad.uuid))))
+		{
 			it->second.ReadMDStat(); // m_strMDDev should be updated to an empty string.
 			ret = Kill((char*)it->second.m_strDevPath.c_str(), NULL, c.force, c.verbose, 0); // Clear MD Super block.
 			if (ret != SUCCESS) {
@@ -754,8 +774,6 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 			}
 
 			/* force to clear superblock */
-			struct examine_result er;
-			int ret = SUCCESS;
 			if ((ret = QueryMDSuperBlockInDisk(it->second.m_strDevPath, er)) != EXAMINE_NO_MD_SUPERBLOCK) {
 				WriteHWLog(LOG_LOCAL0, LOG_WARNING, LOG_LABEL,
 						   "Force to clear superblock of %s. [%d]\n",
@@ -765,6 +783,9 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 										   it->second.m_strDevPath.c_str());
 				system(cmd.c_str());
 			}
+			WriteHWLog(LOG_LOCAL1, LOG_WARNING, LOG_LABEL,
+						"%s's superblock is cleared\n",
+				   it->first.c_str());
 		}
 
 		WriteHWLog(LOG_LOCAL1, LOG_WARNING, LOG_LABEL,
@@ -851,10 +872,11 @@ void RAIDManager::GetFreeDisksInfo(vector<RAIDDiskInfo> &list)
 	CriticalSectionLock cs(&m_csDiskProfiles);
 	map<string, DiskProfile>::iterator it = m_mapDiskProfiles.begin();
 	while(it != m_mapDiskProfiles.end()) {
-		if (!it->second.m_strMDDev.empty()) {
+		if (it->second.m_strMDDev.empty()) {
 			RAIDDiskInfo info;
 			info.m_strDevPath = it->second.m_strDevPath;
 			info.m_diskProfile = it->second;
+			list.push_back(info);
 		}
 		it++;
 	}
@@ -1202,14 +1224,18 @@ void RAIDManager::ThreadProc()
 			 */
 			it_md->second.m_iDevCount = it_md->second.m_vMembers.size(); /* Update actual member number */
 
+						printf("%s, %d, %d, %d\n", __func__, __LINE__,
+								it_md->second.m_iDevCount,
+								it_md->second.m_iRaidDisks);
 			if (it_md->second.m_iDevCount == it_md->second.m_iRaidDisks) {
+						printf("%s, %d\n", __func__, __LINE__);
 				/* Check format and mount status and mount volume if it is necessary. */
 				int num = -1;
 
 				if (it_md->second.m_fsMgr.get() == NULL) {
-					if(!it_md->InitializeFSManager()) { /* Re-initialize */
+					if(!it_md->second.InitializeFSManager()) { /* Re-initialize */
 						printf("%s has no valid filesystem manager.\n",
-								it_md->m_strSysName.c_str());
+								it_md->second.m_strSysName.c_str());
 						goto md_check_done;
 					}
 				}
@@ -1269,7 +1295,8 @@ void RAIDManager::ThreadProc()
 
 				/* We can see this case when iSCSI disk diconnected. */
 				if (strlen(ad.arrayDisks[i].strDevName) == 0) {
-					printf("MD device has disks without any information.\n");
+					printf("MD device %s has disks without any information.\n",
+							ad.strArrayDevName);
 					continue;
 				}
 
@@ -1386,10 +1413,17 @@ md_check_done:
 		m_csMDProfiles.Unlock();
 		m_csDiskProfiles.Unlock();
 
+		SYSTEMTIME time;
 		if (m_pNotifyChange == NULL) {
 			SleepMS(RAIDMANAGER_MONITOR_INTERVAL);
+			time = UTCTime::GetCurrentSystemTime();
+			printf("[%u:%u:%u.%u]Timeout for next round check.\n",
+					time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
 		} else {
 			m_pNotifyChange->timedwait(RAIDMANAGER_MONITOR_INTERVAL);
+			time = UTCTime::GetCurrentSystemTime();
+			printf("[%u:%u:%u.%u]Got notification or timeout for next round check.\n",
+					time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
 		}
 	}
 }
@@ -1398,4 +1432,23 @@ void RAIDManager::GetLastError(string &log)
 {
 	 CriticalSectionLock cs(&m_csLastError);
 	 log = m_strLastError;
+}
+
+string RAIDManager::GetDeviceNodeBySymLink(const string& symlink)
+{
+	struct stat s;
+	if (lstat(symlink.c_str(), &s) >= 0) {
+		if (S_ISLNK(s.st_mode) == 1) {
+			char buf[128];
+			int len = 0;
+			if ((len = readlink(symlink.c_str(), buf, sizeof(buf) - 1)) >= 0) {
+				string strDevNode = "/dev/";
+				buf[len] = '\0';
+				strDevNode += buf;
+				return strDevNode;
+			}
+		}
+	}
+
+	return symlink;
 }

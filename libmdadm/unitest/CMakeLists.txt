@@ -20,13 +20,13 @@ ADD_DEPENDENCIES(
 	mdadmobj
 )
 
-#ADD_EXECUTABLE(mdstat_read mdstat_read.c)
+ADD_EXECUTABLE(mdstat_read mdstat_read.c)
 
-#TARGET_LINK_LIBRARIES(mdstat_read
-#	${CMAKE_CURRENT_BINARY_DIR}/../libmdadmobj.so
-#)
+TARGET_LINK_LIBRARIES(mdstat_read
+	${CMAKE_CURRENT_BINARY_DIR}/../libmdadmobj.so
+)
 
-#ADD_DEPENDENCIES(
-#	mdstat_read
-#	mdadmobj
-#)
+ADD_DEPENDENCIES(
+	mdstat_read
+	mdadmobj
+)

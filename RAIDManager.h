@@ -102,6 +102,7 @@ struct DiskProfile {
 		SetUDEVInformation();
 		SetDiskVendorInfomation();
 		ReadMDStat();
+		Dump();
 	}
 
 	~DiskProfile()
@@ -763,6 +764,7 @@ private:
 	int QueryMDSuperBlockInDisk(const string& dev_path, examine_result &result);
 	bool QueryMDDetail(const string& mddev_path, array_detail &ad);
 	bool GenerateRAIDInfo(const MDProfile &profile, RAIDInfo& info);
+	string GetDeviceNodeBySymLink(const string& symlink);
 
 	void NotifyChange();
 
