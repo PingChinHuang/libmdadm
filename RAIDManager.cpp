@@ -1223,11 +1223,13 @@ void RAIDManager::ThreadProc()
 			 * Unmount, Stop MD Device, or .....
 			 */
 			it_md->second.m_iDevCount = it_md->second.m_vMembers.size(); /* Update actual member number */
+			
+			if (!QueryMDDetail(it_md->second.m_strDevPath, ad)) {
+				 ASSERT2(0, "Cannot query %s's detail information.", it_md->first.c_str());
+				 goto md_check_done;
+			}
 
-						printf("%s, %d, %d, %d\n", __func__, __LINE__,
-								it_md->second.m_iDevCount,
-								it_md->second.m_iRaidDisks);
-			if (it_md->second.m_iDevCount == it_md->second.m_iRaidDisks) {
+			if (it_md->second.m_iDevCount == ad->arrayInfo.raid_disks) {
 						printf("%s, %d\n", __func__, __LINE__);
 				/* Check format and mount status and mount volume if it is necessary. */
 				int num = -1;
@@ -1279,13 +1281,7 @@ void RAIDManager::ThreadProc()
 			/*
 			 * MD device has already lost some disks, we have to check
 			 * whehter the remaining is enough for MD device to work.
-			 */	
-			if (!QueryMDDetail(it_md->second.m_strDevPath, ad)) {
-				 ASSERT2(0, "Cannot query %s's detail information.", it_md->first.c_str());
-				 goto md_check_done;
-			}
-
-			/*
+			 *
 			 * We have to create this avail array according to the RAID disks' order,
 			 * because it will affect the result of RAID10.
 			 */
