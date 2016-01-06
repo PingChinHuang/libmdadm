@@ -18,8 +18,8 @@ RAIDManager::RAIDManager()
 	for (int i = 0; i < 128; i++)
 		m_bUsedVolume[i] = false;
 
-	CriticalSectionLock cs_MDProfiles(&m_csMDProfiles);
 	CriticalSectionLock cs_DiskProfiles(&m_csDiskProfiles);
+	CriticalSectionLock cs_MDProfiles(&m_csMDProfiles);
 	Initialize();
 
 	m_semAssemble.Post();
@@ -27,7 +27,7 @@ RAIDManager::RAIDManager()
 	CriticalSectionLock cs_NotifyChange(&m_csNotifyChange);
 	try {
 		m_pNotifyChange = new AprCond(false);
-		//CreateThread();
+		CreateThread();
 	} catch (bad_alloc&) {
 		m_pNotifyChange = NULL;
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
@@ -95,12 +95,17 @@ bool RAIDManager::Initialize()
 				m_mapMDProfiles[strSysName].InitializeFSManager();
 			
 			if (m_mapMDProfiles[strSysName].m_fsMgr.get()) {
-				if (m_mapMDProfiles[strSysName].m_fsMgr->IsInitialized()) {
-					SetVolumeNum(m_mapMDProfiles[strSysName].m_fsMgr->GetVolumeNum());
-				} else {
-					m_mapMDProfiles[strSysName].m_fsMgr->Initialize(); /* Retry */
-					SetVolumeNum(m_mapMDProfiles[strSysName].m_fsMgr->GetVolumeNum());
+				if (!m_mapMDProfiles[strSysName].m_fsMgr->IsInitialized()) {
+					if (!m_mapMDProfiles[strSysName].m_fsMgr->Initialize()) /* Retry */
+					   continue;
 				}
+
+				int num = m_mapMDProfiles[strSysName].m_fsMgr->GetVolumeNum();
+				if (num < 0) {
+					/* Pre-allocated a volume number to this MD. */
+					m_mapMDProfiles[strSysName].m_fsMgr->SetVolumeNum(GetFreeVolumeNum());
+				} else
+					SetVolumeNum(m_mapMDProfiles[strSysName].m_fsMgr->GetVolumeNum());
 			} else {
 				printf("[%s] FilesystemManager initialization retried failed.\n",
 					   strSysName.c_str());
@@ -790,7 +795,6 @@ bool RAIDManager::GenerateRAIDInfo(const MDProfile &profile, RAIDInfo& info)
 		info.m_strMountPoint = profile.m_fsMgr->GetMountPoint();
 	}
 
-	CriticalSectionLock cs_disk(&m_csDiskProfiles);
 	for (size_t i = 0; i < info.m_vDiskList.size(); i++) {
 		char csDiskSysName[8];
 		sscanf(info.m_vDiskList[i].m_strDevPath.c_str(),
@@ -810,6 +814,7 @@ bool RAIDManager::GetRAIDInfo(const string& mddev, RAIDInfo& info)
 	if (mddev.empty())
 		return false;
 
+	CriticalSectionLock cs_disk(&m_csDiskProfiles);
 	CriticalSectionLock cs_md(&m_csMDProfiles);
 	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
 	if (it == m_mapMDProfiles.end()) {
@@ -828,6 +833,7 @@ void RAIDManager::GetRAIDInfo(vector<RAIDInfo>& list)
 {
 	list.clear();
 
+	CriticalSectionLock cs_disk(&m_csDiskProfiles);
 	CriticalSectionLock cs_md(&m_csMDProfiles);
 	map<string, MDProfile>::iterator it = m_mapMDProfiles.begin();	
 	while (it != m_mapMDProfiles.end()) {
@@ -1144,7 +1150,7 @@ void RAIDManager::ThreadProc()
 			}
 
 			dev = udev_device_new_from_subsystem_sysname(udev, "block", it_md->first.c_str());
-			if (NULL == dev) {
+			if (NULL == dev) { /* MD device doesn't  exist. */
 				FreeMDNum(it_md->second.m_iMDNum);
 
 				if (it_md->second.m_fsMgr.get()) {
@@ -1200,8 +1206,13 @@ void RAIDManager::ThreadProc()
 				/* Check format and mount status and mount volume if it is necessary. */
 				int num = -1;
 
-				if (it_md->second.m_fsMgr.get() == NULL)
-					goto md_check_done;
+				if (it_md->second.m_fsMgr.get() == NULL) {
+					if(!it_md->InitializeFSManager()) { /* Re-initialize */
+						printf("%s has no valid filesystem manager.\n",
+								it_md->m_strSysName.c_str());
+						goto md_check_done;
+					}
+				}
 
 				if (it_md->second.m_fsMgr->IsFormated()) {
 					if (!it_md->second.m_fsMgr->IsMounted(num)) {
@@ -1232,7 +1243,7 @@ void RAIDManager::ThreadProc()
 						 * again when it is formated successfully and ready to be mounted.
 						 */
 						num = GetFreeVolumeNum();
-						it_md->second.m_fsMgr->SetVolumeNum(num);
+						it_md->second.m_fsMgr->SetVolumeNum(num); /* Pre-allocated */
 					}
 				}
 
@@ -1289,7 +1300,6 @@ void RAIDManager::ThreadProc()
 								 ad.arrayInfo.raid_disks,
 								 ad.arrayInfo.layout,
 								 1, avail);
-
 			if (!disk_enough) {
 				/*
 				 * Umount the volume, but we don't stop MD device.
@@ -1297,12 +1307,10 @@ void RAIDManager::ThreadProc()
 				 * which actions they want to do. Delete this RAID
 				 * or modify it to add new disks.
 				 */
-				int num;
-
 				if (it_md->second.m_fsMgr.get() == NULL)
 					goto md_check_done;
 
-				if (it_md->second.m_fsMgr->IsMounted(num)) {
+				if (it_md->second.m_fsMgr->IsMounted()) {
 					if (it_md->second.m_fsMgr->Unmount()) {
 						WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 								   "Unmount %s due to RAID doesn't have enough disks\n",
@@ -1386,3 +1394,8 @@ md_check_done:
 	}
 }
 
+void RAIDManager::GetLastError(string &log)
+{
+	 CriticalSectionLock cs(&m_csLastError);
+	 log = m_strLastError;
+}

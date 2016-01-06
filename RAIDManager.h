@@ -156,18 +156,22 @@ struct DiskProfile {
 			if (!m_strSymLink.empty()) {
 				if (m_strSymLink.find("nuuo_sata") != string::npos) {
 					m_diskType = DISK_TYPE_SATA;
-					ret = sscanf(m_strSymLink.c_str(), "/dev/nuuo_sata%d", &m_iBay);
+					ret = sscanf(m_strSymLink.c_str(), "nuuo_sata%d", &m_iBay);
 					if (ret < 1 || ret == EOF || m_iBay > 127 || m_iBay < 0) {
 						m_iBay = -1;
 					}
 				} else if (m_strSymLink.find("nuuo_esata") != string::npos) {
 					m_diskType = DISK_TYPE_ESATA;
-					ret = sscanf(m_strSymLink.c_str(), "/dev/nuuo_sata%d", &m_iBay);
+					ret = sscanf(m_strSymLink.c_str(), "nuuo_esata%d", &m_iBay);
 					if (ret < 1 || ret == EOF || m_iBay > 127 || m_iBay < 0) {
 						m_iBay = -1;
 					}
 				} else if (m_strSymLink.find("nuuo_iscsi") != string::npos) {
 					m_diskType = DISK_TYPE_ISCSI;
+					ret = sscanf(m_strSymLink.c_str(), "nuuo_iscsi%d", &m_iBay);
+					if (ret < 1 || ret == EOF) {
+						m_iBay = -1;
+					}
 				} else {
 					printf("Unknown SYMLINK\n");
 				}
@@ -703,6 +707,7 @@ private:
 private:
 	map<string, MDProfile> m_mapMDProfiles; /* /dev/mdX, profile */
 	map<string, DiskProfile> m_mapDiskProfiles; /* /dev/sdX, profile */
+	string m_strLastError;
 	bool m_bUsedMD[128];
 	bool m_bUsedVolume[128];
 	
@@ -711,6 +716,7 @@ private:
 	CriticalSection m_csNotifyChange;
 	CriticalSection m_csUsedMD;
 	CriticalSection m_csUsedVolume;
+	CriticalSection m_csLastError;
 	Semaphore m_semAssemble;
 	AprCond *m_pNotifyChange;
 
@@ -783,6 +789,7 @@ public:
 	bool GetRAIDInfo(const string& mddev, RAIDInfo& info);
 	void GetRAIDInfo(vector<RAIDInfo>& list);
 	void GetFreeDisksInfo(vector<RAIDDiskInfo> &list);
+	void GetLastError(string &log);
 
 	bool CheckFileSystem();
 	bool DoFileSystemRecovery();

@@ -28,8 +28,7 @@ FilesystemManager::FilesystemManager(const string& dev)
 , m_bMount(false)
 , m_bInitialized(false)
 {
-	CriticalSectionLock cs(&m_csInitialized);
-	m_bInitialized = Initialize();
+	Initialize();
 }
 
 FilesystemManager::FilesystemManager()
@@ -55,9 +54,7 @@ FilesystemManager::~FilesystemManager()
 bool FilesystemManager::SetDeviceNode(const string &dev)
 {
 	m_strDevNode = dev;
-	CriticalSectionLock cs(&m_csInitialized);
-	m_bInitialized = Initialize();
-	return m_bInitialized;
+	return Initialize();
 }
 
 bool FilesystemManager::Initialize()
@@ -82,6 +79,8 @@ bool FilesystemManager::Initialize()
 		return false;
 	}
 
+	CriticalSectionLock cs(&m_csInitialized);
+	m_bInitialized = true;
 	return true;
 }
 
