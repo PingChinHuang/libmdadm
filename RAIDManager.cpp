@@ -1215,7 +1215,7 @@ void RAIDManager::ThreadProc()
 
 				it_disk = m_mapDiskProfiles.find(*it_member);
 				if (it_disk == m_mapDiskProfiles.end()) {
-					it_md->second.m_vMembers.erase(it_member++);
+					it_member = it_md->second.m_vMembers.erase(it_member);
 				} else {
 					it_member++;
 				}
@@ -1344,7 +1344,7 @@ void RAIDManager::ThreadProc()
 								   it_md->first.c_str());
 					}
 				}	
-			} 
+			}
 
 md_check_done:
 			it_md++;
