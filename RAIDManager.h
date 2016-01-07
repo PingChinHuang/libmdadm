@@ -34,6 +34,7 @@ using namespace SYSUTILS_SPACE;
 #include <scsi/sg_cmds.h>
 #include <scsi/sg_unaligned.h>
 #include <libudev.h>
+#include <stdarg.h>
 
 using namespace std;
 
@@ -791,6 +792,8 @@ public:
 	bool GetRAIDInfo(const string& mddev, RAIDInfo& info);
 	void GetRAIDInfo(vector<RAIDInfo>& list);
 	void GetFreeDisksInfo(vector<RAIDDiskInfo> &list);
+
+	void SetLastError(const string &fmt, ...);
 	void GetLastError(string &log);
 
 	bool CheckFileSystem();

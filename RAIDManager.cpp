@@ -3,7 +3,6 @@
 #ifdef NUUO
 #include "common/file.h"
 #include "common/string.h"
-#include "common/directory_traverse.h"
 #include "common/system.h"
 #include "common/time.h"
 #include "debugMsg/Debug.h"
@@ -31,8 +30,7 @@ RAIDManager::RAIDManager()
 		CreateThread();
 	} catch (bad_alloc&) {
 		m_pNotifyChange = NULL;
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-				   "Allocate memory failed.");
+		SetLastError("Allocate memory failed.");
 	}
 }
 
@@ -139,8 +137,7 @@ int RAIDManager::GetFreeMDNum()
 		}
 	}
 
-	WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "No free MD number.\n");
+	SetLastError("No free MD number for creating RAID.\n");
 	return -1; // No valid number
 }
 
@@ -172,8 +169,7 @@ int RAIDManager::GetFreeVolumeNum()
 		}
 	}
 
-	WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "Exceed maximal volume limitation.\n");
+	SetLastError("Exceed maximal volume limitation.\n");
 	return -1; // No valid number
 }
 
@@ -394,8 +390,7 @@ int RAIDManager::OpenMDDev(const string& mddev_path)
 {
 	int fd = open_mddev((char*)mddev_path.c_str(), 1);
 	if (fd < 0) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "Fail to open MD device. %s\n", mddev_path.c_str());
+			  SetLastError("Fail to open MD device %s\n", mddev_path.c_str());
 	}
 
 	return fd;
@@ -443,9 +438,8 @@ bool RAIDManager::CreateRAID(vector<string>& vDevList, int level)
 			// next loop retry
 		} else {
 			if (bRetry) {
-				WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-						   "Retry to create %s failed.\n",
-						   GenerateMDSysName(freeMD).c_str());
+				SetLastError("Retry to create %s failed.\n",
+							 GenerateMDSysName(freeMD).c_str());
 				FreeMDNum(freeMD);
 				bRetry = false; 
 			} else
@@ -493,9 +487,8 @@ int RAIDManager::CreateRAID(const string& mddev, vector<string>& vDevList, int l
 	int ret = Create(NULL, (char*)string_format("/dev/%s", mddev.c_str()).c_str(),
 					 NULL, NULL, vDevPathList.size(), devlist, &s, &c, INVALID_SECTORS);
 	if (ret != SUCCESS) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-				   "Fail to create volume %s: (%d)\n",
-				   mddev.c_str(), ret);
+		SetLastError("Fail to create volume %s: (%d)\n",
+					 mddev.c_str(), ret);
 		return ret;
 	}
 
@@ -540,9 +533,8 @@ bool RAIDManager::AssembleRAID(const int uuid[4], string& mddev)
 				for (int i = 0; i < 16; i++) {
 					strUUID += string_format("%02X ", p_uuid[i]);
 				}
-				WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-						   "Retry to assemble %s failed.\n",
-						   strUUID.c_str());
+				SetLastError("Retry to assemble %s failed.\n",
+							 strUUID.c_str());
 				FreeMDNum(freeMD);
 				bRetry = false; 
 			} else
@@ -584,9 +576,8 @@ int RAIDManager::AssembleRAID(const string& mddev, const int uuid[4])
 		for (int i = 0; i < 16; i++) {
 			strUUID += string_format("%02X ", p_uuid[i]);
 		}
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-					"Fail to assemble volume %s to %s: (%d)\n",
-					strUUID.c_str(), mddev.c_str(), ret);
+		SetLastError("Fail to assemble volume %s to %s: (%d)\n",
+					 strUUID.c_str(), mddev.c_str(), ret);
 	}
 
 	return ret;
@@ -603,8 +594,7 @@ bool RAIDManager::ManageRAIDSubdevs(const string& mddev, vector<string>& vDevLis
 	CriticalSectionLock cs_md(&m_csMDProfiles);
 	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
 	if (it == m_mapMDProfiles.end()) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "%s doesn't exist.\n", mddev.c_str());
+		SetLastError("%s doesn't exist.\n", mddev.c_str());
 		return false;
 	}
 
@@ -655,8 +645,7 @@ bool RAIDManager::ManageRAIDSubdevs(const string& mddev, vector<string>& vDevLis
 	FreeDevList(devlist);
 
 	if (ret != 0) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "Fail to manage volume %s: (%d)\n", mddev.c_str(), ret);
+		SetLastError("Fail to manage volume %s: (%d)\n", mddev.c_str(), ret);
 		return false;
 	}
 
@@ -705,8 +694,7 @@ bool RAIDManager::StopRAID(const string& mddev)
 	CriticalSectionLock cs_md(&m_csMDProfiles);
 	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
 	if (it == m_mapMDProfiles.end()) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "%s doesn't exist.\n", mddev.c_str());
+		SetLastError("%s doesn't exist.\n", mddev.c_str());
 		return true;
 	}
 
@@ -734,9 +722,7 @@ bool RAIDManager::StopRAID(const string& mddev)
 	close(fd);
 
 	if (ret != SUCCESS) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-				   "Fail to stop RAID %s: %d\n",
-				   mddev.c_str(), ret);
+		SetLastError("Fail to stop RAID %s: %d\n", mddev.c_str(), ret);
 		return false;
 	}
 
@@ -844,8 +830,7 @@ bool RAIDManager::GetRAIDInfo(const string& mddev, RAIDInfo& info)
 	CriticalSectionLock cs_md(&m_csMDProfiles);
 	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
 	if (it == m_mapMDProfiles.end()) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-				   "%s doesn't exist.\n", mddev.c_str());
+		SetLastError("%s doesn't exist.\n", mddev.c_str());
 		return false;
 	}
 
@@ -890,23 +875,20 @@ void RAIDManager::GetFreeDisksInfo(vector<RAIDDiskInfo> &list)
 bool RAIDManager::Format(const string& mddev)
 {
 	if (mddev.empty()) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "[%d] Unknown MD device.\n", __LINE__);
+		SetLastError("Unknown MD device.\n");
 		return false;
 	}
 
 	CriticalSectionLock cs_md(&m_csMDProfiles);
 	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
 	if (it == m_mapMDProfiles.end()) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "%s doesn't exist.\n", mddev.c_str());
+		SetLastError("%s doesn't exist.\n", mddev.c_str());
 		return false;
 	}
 
 	if (it->second.m_fsMgr.get() == NULL) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "FilesystemManager is not initialized for %s\n",
-			   mddev.c_str());
+		SetLastError("FilesystemManager is not initialized for %s\n",
+					 mddev.c_str());
 		return false;
 	}
 
@@ -925,30 +907,26 @@ bool RAIDManager::Format(const string& mddev)
 bool RAIDManager::Mount(const string& mddev)
 {
 	if (mddev.empty()) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "[%d] Unknown MD device.\n", __LINE__);
+		SetLastError("Unknown MD device.\n");
 		return false;
 	}
 
 	CriticalSectionLock cs_md(&m_csMDProfiles);
 	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
 	if (it == m_mapMDProfiles.end()) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "%s doesn't exist.\n", mddev.c_str());
+		SetLastError("%s doesn't exist.\n", mddev.c_str());
 		return false;
 	}
 
 	if (it->second.m_fsMgr.get() == NULL) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "FilesystemManager is not initialized for %s\n",
-			   mddev.c_str());
+		SetLastError("FilesystemManager is not initialized for %s\n",
+					 mddev.c_str());
 		return false;
 	}
 
 	if (!it->second.m_fsMgr->IsFormated()) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "%s is not formated.\n",
-			   mddev.c_str());
+		SetLastError("%s is not formated.\n",
+					 mddev.c_str());
 		return false;
 	}
 
@@ -975,23 +953,20 @@ bool RAIDManager::Mount(const string& mddev)
 bool RAIDManager::Unmount(const string& mddev)
 {
 	if (mddev.empty()) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "[%d] Unknown MD device.\n", __LINE__);
+		SetLastError("Unknown MD device.\n");
 		return false;
 	}
 
 	CriticalSectionLock cs_md(&m_csMDProfiles);
 	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
 	if (it == m_mapMDProfiles.end()) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "%s doesn't exist.\n", mddev.c_str());
+		SetLastError("%s doesn't exist.\n", mddev.c_str());
 		return false;
 	}
 
 	if (it->second.m_fsMgr.get() == NULL) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "FilesystemManager is not initialized for %s\n",
-			   mddev.c_str());
+		SetLastError("FilesystemManager is not initialized for %s\n",
+					 mddev.c_str());
 		return false;
 	}
 
@@ -1008,22 +983,19 @@ bool RAIDManager::GetFormatProgress(const string& mddev,
 				    int& stat, int& progress)
 {
 	if (mddev.empty()) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "[%d] Unknown MD device.\n", __LINE__);
+		SetLastError("Unknown MD device.\n");
 		return false;
 	}
 
 	CriticalSectionLock cs_md(&m_csMDProfiles);
 	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
 	if (it == m_mapMDProfiles.end()) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "%s doesn't exist.\n", mddev.c_str());
+		SetLastError("%s doesn't exist.\n", mddev.c_str());
 		return false;
 	}
 
 	if (it->second.m_fsMgr.get() == NULL) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "FilesystemManager is not initialized for %s\n",
+		SetLastError("FilesystemManager is not initialized for %s\n",
 			   mddev.c_str());
 		return false;
 	}
@@ -1034,23 +1006,20 @@ bool RAIDManager::GetFormatProgress(const string& mddev,
 bool RAIDManager::IsMounted(const string& mddev, int &num)
 {
 	if (mddev.empty()) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "[%d] Unknown MD device.\n", __LINE__);
+		SetLastError("Unknown MD device.\n");
 		return false;
 	}
 
 	CriticalSectionLock cs_md(&m_csMDProfiles);
 	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
 	if (it == m_mapMDProfiles.end()) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "%s doesn't exist.\n", mddev.c_str());
+		SetLastError("%s doesn't exist.\n", mddev.c_str());
 		return false;
 	}
 
 	if (it->second.m_fsMgr.get() == NULL) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "FilesystemManager is not initialized for %s\n",
-			   mddev.c_str());
+		SetLastError("FilesystemManager is not initialized for %s\n",
+					 mddev.c_str());
 		return false;
 	}
 
@@ -1060,22 +1029,19 @@ bool RAIDManager::IsMounted(const string& mddev, int &num)
 bool RAIDManager::IsFormated(const string& mddev)
 {
 	if (mddev.empty()) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "[%d] Unknown MD device.\n", __LINE__);
+		SetLastError("Unknown MD device.\n");
 		return false;
 	}
 
 	CriticalSectionLock cs_md(&m_csMDProfiles);
 	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
 	if (it == m_mapMDProfiles.end()) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "%s doesn't exist.\n", mddev.c_str());
+		SetLastError("%s doesn't exist.\n", mddev.c_str());
 		return false;
 	}
 
 	if (it->second.m_fsMgr.get() == NULL) {
-		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-			   "FilesystemManager is not initialized for %s\n",
+		SetLastError("FilesystemManager is not initialized for %s\n",
 			   mddev.c_str());
 		return false;
 	}
@@ -1451,4 +1417,14 @@ string RAIDManager::GetDeviceNodeBySymLink(const string& symlink)
 	}
 
 	return symlink;
+}
+
+void RAIDManager::SetLastError(const string &fmt, ...)
+{
+	va_list args;
+	va_start(args, fmt.c_str());
+	WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
+				fmt.c_str(), args);
+	m_strLastError = string_format(fmt, args);
+	va_end(args);
 }
