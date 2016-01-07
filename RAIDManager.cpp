@@ -1234,54 +1234,6 @@ void RAIDManager::ThreadProc()
 				 goto md_check_done;
 			}
 
-			if (it_md->second.m_iDevCount == ad.arrayInfo.raid_disks) {
-				/* Check format and mount status and mount volume if it is necessary. */
-				int num = -1;
-
-				if (it_md->second.m_fsMgr.get() == NULL) {
-					if(!it_md->second.InitializeFSManager()) { /* Re-initialize */
-						printf("%s has no valid filesystem manager.\n",
-								it_md->second.m_strSysName.c_str());
-						goto md_check_done;
-					}
-				}
-
-				if (it_md->second.m_fsMgr->IsFormated()) {
-					if (!it_md->second.m_fsMgr->IsMounted(num)) {
-						if (num == -1) {
-							num = GetFreeVolumeNum();
-							if (num == -1) {
-								goto md_check_done;
-							} else {
-								/* 
-								 * Volume number is assigned until 
-								 * MD device is stopped or deleted.
-								 */
-								it_md->second.m_fsMgr->SetVolumeNum(num);
-							}
-						}
-
-						if (it_md->second.m_fsMgr->Mount()) {
-							it_md->second.m_fsMgr->GenerateUUIDFile();
-							it_md->second.m_fsMgr->CreateDefaultFolders();
-						}
-					}
-				} else {
-					num = it_md->second.m_fsMgr->GetVolumeNum();
-					if (num == -1) {
-						/* 
-						 * We don't have to care about whether volume num is legal or not,
-						 * because this volume is not formated yet. We can get volume number
-						 * again when it is formated successfully and ready to be mounted.
-						 */
-						num = GetFreeVolumeNum();
-						it_md->second.m_fsMgr->SetVolumeNum(num); /* Pre-allocated */
-					}
-				}
-
-				goto md_check_done;
-			}
-		
 			/*
 			 * MD device has already lost some disks, we have to check
 			 * whehter the remaining is enough for MD device to work.
@@ -1327,7 +1279,55 @@ void RAIDManager::ThreadProc()
 								 ad.arrayInfo.raid_disks,
 								 ad.arrayInfo.layout,
 								 1, avail);
-			if (!disk_enough) {
+
+			if (it_md->second.m_iDevCount == ad.arrayInfo.raid_disks ||
+				disk_enough == 1) {
+				/* Check format and mount status and mount volume if it is necessary. */
+				int num = -1;
+
+				if (it_md->second.m_fsMgr.get() == NULL) {
+					if(!it_md->second.InitializeFSManager()) { /* Re-initialize */
+						printf("%s has no valid filesystem manager.\n",
+								it_md->second.m_strSysName.c_str());
+						goto md_check_done;
+					}
+				}
+
+				if (it_md->second.m_fsMgr->IsFormated()) {
+					if (!it_md->second.m_fsMgr->IsMounted(num)) {
+						if (num == -1) {
+							num = GetFreeVolumeNum();
+							if (num == -1) {
+								goto md_check_done;
+							} else {
+								/* 
+								 * Volume number is assigned until 
+								 * MD device is stopped or deleted.
+								 */
+								it_md->second.m_fsMgr->SetVolumeNum(num);
+							}
+						}
+
+						if (it_md->second.m_fsMgr->Mount()) {
+							it_md->second.m_fsMgr->GenerateUUIDFile();
+							it_md->second.m_fsMgr->CreateDefaultFolders();
+						}
+					}
+				} else {
+					num = it_md->second.m_fsMgr->GetVolumeNum();
+					if (num == -1) {
+						/* 
+						 * We don't have to care about whether volume num is legal or not,
+						 * because this volume is not formated yet. We can get volume number
+						 * again when it is formated successfully and ready to be mounted.
+						 */
+						num = GetFreeVolumeNum();
+						it_md->second.m_fsMgr->SetVolumeNum(num); /* Pre-allocated */
+					}
+				}
+
+				goto md_check_done;
+			} else if (0 == disk_enough) {
 				/*
 				 * Umount the volume, but we don't stop MD device.
 				 * We have to leave this status to user to decide
