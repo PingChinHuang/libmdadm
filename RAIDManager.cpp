@@ -807,7 +807,7 @@ bool RAIDManager::GenerateRAIDInfo(const MDProfile &profile, RAIDInfo& info)
 	array_detail ad;
 	if (!QueryMDDetail(profile.m_strDevPath, ad))
 		return false;
-	 
+
 	info = ad;
 	info.m_strSysName = profile.m_strSysName;
 	if (profile.m_fsMgr.get()) {

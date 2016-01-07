@@ -1248,6 +1248,9 @@ int Detail_ToArrayDetail(const char *dev, struct context *c, struct array_detail
 			disk_counter++;
 		}
 	}
+
+	ad->uDiskCounter = disk_counter;
+
 	if (st)
 		st->ss->free_super(st);
 

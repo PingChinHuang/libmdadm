@@ -574,12 +574,12 @@ struct RAIDInfo {
 	RAIDInfo& operator=(const struct array_detail& rhs)
 	{
 		m_vDiskList.clear();
-		for (int i = 0; i < rhs.arrayInfo.nr_disks; i++) {
+		for (unsigned i = 0; i < rhs.uDiskCounter; i++) {
 			RAIDDiskInfo info;
-			if (rhs.arrayDisks[i].diskInfo.major == 0 &&
-			    rhs.arrayDisks[i].diskInfo.minor == 0)
+			if (rhs.arrayDisks[i].diskInfo.major != 8)
 				continue;
 			
+			printf("%s, %s\n", rhs.strArrayDevName, rhs.arrayDisks[i].strDevName);
 			info = rhs.arrayDisks[i];
 			m_vDiskList.push_back(info);
 		}
