@@ -483,9 +483,7 @@ int RAIDManager::CreateRAID(const string& mddev, vector<string>& vDevList, int l
 
 	vector<string> vDevPathList;
 	for (size_t i = 0; i < vDevList.size(); i++) {
-		printf("%s.\n", vDevList[i].c_str());
 		vDevPathList.push_back(GetDeviceNodeBySymLink("/dev/" + vDevList[i]));
-		printf("%s.\n", vDevPathList[i].c_str());
 	}
 
 	struct mddev_dev* devlist = InitializeDevList(vDevPathList);
@@ -624,21 +622,28 @@ bool RAIDManager::ManageRAIDSubdevs(const string& mddev, vector<string>& vDevLis
 			6.1 false -> FreeDevlist(devlist) -> return false
 */
 	struct mddev_dev* devlist = NULL;
+
+	vector<string> vDevPathList;
+	for (size_t i = 0; i < vDevList.size(); i++) {
+		vDevPathList.push_back(GetDeviceNodeBySymLink("/dev/" + vDevList[i]));
+		printf("%s.\n", vDevPathList[i].c_str());
+	}
+
 	switch (operation) {
 	case 'R':
-		if (vDevList.size() != 2) {
+		if (vDevPathList.size() != 2) {
 			close(fd);
 			WriteHWLog(LOG_LOCAL1, LOG_DEBUG, LOG_LABEL,
 				   "Replace can only accetp two devices. One for replace and another for new.\n");
 			return false;
 		}
 
-		if (NULL == (devlist = InitializeDevList(vDevList[0], vDevList[1]))) {
+		if (NULL == (devlist = InitializeDevList(vDevPathList[0], vDevPathList[1]))) {
 			return false;
 		}
 		break;
 	default:
-		if (NULL == (devlist = InitializeDevList(vDevList, operation))) {
+		if (NULL == (devlist = InitializeDevList(vDevPathList, operation))) {
 			return false;
 		}
 	}
@@ -657,7 +662,7 @@ bool RAIDManager::ManageRAIDSubdevs(const string& mddev, vector<string>& vDevLis
 
 	NotifyChange();
 
-	return SUCCESS;
+	return true;
 }
 
 bool RAIDManager::RemoveMDDisks(const string& mddev, vector<string>& vDevList)
@@ -1229,8 +1234,7 @@ void RAIDManager::ThreadProc()
 				 goto md_check_done;
 			}
 
-			if (it_md->second.m_iDevCount == ad->arrayInfo.raid_disks) {
-						printf("%s, %d\n", __func__, __LINE__);
+			if (it_md->second.m_iDevCount == ad.arrayInfo.raid_disks) {
 				/* Check format and mount status and mount volume if it is necessary. */
 				int num = -1;
 
