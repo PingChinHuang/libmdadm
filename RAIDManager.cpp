@@ -88,6 +88,13 @@ bool RAIDManager::Initialize()
 		case 9: /* MD */
 		{
 			MDProfile profile(strSysName);
+			
+			if (!profile.m_bInMDStat) {
+				printf("%s: non-functional MD device.\n",
+						strSysName.c_str());
+				continue;
+			}
+
 			m_mapMDProfiles[strSysName] = profile;
 			SetMDNum(m_mapMDProfiles[strSysName].m_iMDNum);
 
@@ -1142,6 +1149,8 @@ void RAIDManager::ThreadProc()
 				goto md_check_done;
 			}
 
+			printf("it_md: %s\n", it_md->second.m_strDevPath.c_str());
+
 			dev = udev_device_new_from_subsystem_sysname(udev, "block", it_md->first.c_str());
 			if (NULL == dev) { /* MD device doesn't  exist. */
 				FreeMDNum(it_md->second.m_iMDNum);
@@ -1207,7 +1216,7 @@ void RAIDManager::ThreadProc()
 			 * We have to create this avail array according to the RAID disks' order,
 			 * because it will affect the result of RAID10.
 			 */
-			for (int i = 0; i < ad.arrayInfo.raid_disks; i++) {
+			for (int i = 0; i < ad.uDiskCounter; i++) {
 				bool bFound = false;
 				avail[i] = 0;
 
@@ -1219,7 +1228,8 @@ void RAIDManager::ThreadProc()
 				}
 
 				for (size_t j = 0; j < it_md->second.m_vMembers.size(); j++) {
-					if (it_md->second.m_vMembers[j] == ad.arrayDisks[i].strDevName) {
+					string strMemberName = "/dev/" + it_md->second.m_vMembers[j];
+					if (strMemberName == ad.arrayDisks[i].strDevName) {
 						bFound = true;
 						break;
 					}
@@ -1246,6 +1256,7 @@ void RAIDManager::ThreadProc()
 								 ad.arrayInfo.layout,
 								 1, avail);
 
+			printf("disk_enough %d\n", disk_enough);
 			if (it_md->second.m_iDevCount == ad.arrayInfo.raid_disks ||
 				disk_enough == 1) {
 				/* Check format and mount status and mount volume if it is necessary. */
@@ -1425,6 +1436,6 @@ void RAIDManager::SetLastError(const string &fmt, ...)
 	va_start(args, fmt.c_str());
 	WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 				fmt.c_str(), args);
-	m_strLastError = string_format(fmt, args);
+	m_strLastError = string_format(fmt.c_str(), args);
 	va_end(args);
 }

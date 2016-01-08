@@ -364,6 +364,7 @@ struct MDProfile {
 	int m_iRaidDisks; 
 	int m_iDevCount;
 	int m_iMDNum;
+	bool m_bInMDStat;
 
 	MDProfile()
 	: m_fsMgr(NULL)
@@ -372,6 +373,7 @@ struct MDProfile {
 	, m_iRaidDisks(0)
 	, m_iDevCount(0)
 	, m_iMDNum(-1)
+	, m_bInMDStat(false)
 	{
 		m_vMembers.clear();
 	}
@@ -383,6 +385,7 @@ struct MDProfile {
 	, m_iRaidDisks(0)
 	, m_iDevCount(0)
 	, m_iMDNum(-1)
+	, m_bInMDStat(false)
 	{
 		m_vMembers.clear();
 		SetUDEVInformation();
@@ -464,6 +467,7 @@ struct MDProfile {
 
 				m_iRaidDisks = e->raid_disks;
 				m_iDevCount = e->devcnt;
+				m_bInMDStat = true;
 				break;
 			}
 		}
