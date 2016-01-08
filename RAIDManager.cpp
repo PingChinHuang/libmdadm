@@ -1143,13 +1143,13 @@ void RAIDManager::ThreadProc()
 			char avail[128];
 			int disk_enough = 0;
 
+			memset(avail, 0x00, sizeof(avail));
+
 			udev = udev_new();
 			if (!udev) {
 				printf("can't create udev\n");
 				goto md_check_done;
 			}
-
-			printf("it_md: %s\n", it_md->second.m_strDevPath.c_str());
 
 			dev = udev_device_new_from_subsystem_sysname(udev, "block", it_md->first.c_str());
 			if (NULL == dev) { /* MD device doesn't  exist. */
@@ -1256,7 +1256,6 @@ void RAIDManager::ThreadProc()
 								 ad.arrayInfo.layout,
 								 1, avail);
 
-			printf("disk_enough %d\n", disk_enough);
 			if (it_md->second.m_iDevCount == ad.arrayInfo.raid_disks ||
 				disk_enough == 1) {
 				/* Check format and mount status and mount volume if it is necessary. */
