@@ -9,7 +9,7 @@
 #endif
 
 #define LOG_LABEL "RAIDManager"
-#define RAIDMANAGER_MONITOR_INTERVAL 10000 /* ms */
+#define RAIDMANAGER_MONITOR_INTERVAL 3000 /* ms */
 
 RAIDManager::RAIDManager()
 {
@@ -248,7 +248,7 @@ bool RAIDManager::RemoveDisk(const string& dev)
 	m_csDiskProfiles.Lock();
 	map<string, DiskProfile>::iterator it;
 	it = m_mapDiskProfiles.find(dev);
-	m_mapDiskProfiles.erase(it);
+	m_mapDiskProfiles.erase(it++);
 	m_csDiskProfiles.Unlock();
 	NotifyChange();
 
@@ -734,7 +734,7 @@ bool RAIDManager::StopRAID(const string& mddev)
 	}
 
 	FreeMDNum(it->second.m_iMDNum);
-	m_mapMDProfiles.erase(it);
+	m_mapMDProfiles.erase(it++);
 
 	return true;
 }
@@ -814,15 +814,28 @@ bool RAIDManager::GenerateRAIDInfo(const MDProfile &profile, RAIDInfo& info)
 		info.m_strMountPoint = profile.m_fsMgr->GetMountPoint();
 	}
 
-	for (size_t i = 0; i < info.m_vDiskList.size(); i++) {
+	vector<RAIDDiskInfo>::iterator it = info.m_vDiskList.begin();
+	while (it != info.m_vDiskList.end()) {
 		char csDiskSysName[8];
-		sscanf(info.m_vDiskList[i].m_strDevPath.c_str(),
+		sscanf(it->m_strDevPath.c_str(),
 			   "/dev/%7[^/\n\t ]", csDiskSysName);
 		printf("Search for disk %s's profile.\n", csDiskSysName);
 		map<string, DiskProfile>::iterator it_disk = m_mapDiskProfiles.find(csDiskSysName);
 		if (it_disk != m_mapDiskProfiles.end()) {
-			info.m_vDiskList[i].m_diskProfile = it_disk->second;	
+			it->m_diskProfile = it_disk->second;
+		} else {
+			/*
+			 * Remove the disk from the list because it cannot
+			 * be found in m_mapDiskProfiles. It means that this
+			 * disk is removed already, but MD device doesn't response
+			 * for this status. This situation often happens when iSCSI
+			 * disks disconnected by network issues.
+			 */
+			it = info.m_vDiskList.erase(it);
+			continue;
 		}
+
+		it++;
 	}
 	
 	return true;

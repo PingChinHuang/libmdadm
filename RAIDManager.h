@@ -103,7 +103,6 @@ struct DiskProfile {
 		SetUDEVInformation();
 		SetDiskVendorInfomation();
 		ReadMDStat();
-		Dump();
 	}
 
 	~DiskProfile()
