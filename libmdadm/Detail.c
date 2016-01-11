@@ -1095,9 +1095,14 @@ int Detail_ToArrayDetail(const char *dev, struct context *c, struct array_detail
 			"Rebuild", "Resync",
 			"Reshape", "Check"};
 		strcpy(ad->strRebuildOperation, sync_action[e->resync]);
-		ad->iRebuildProgress = e->percent;
 		ad->bIsRebuilding = 1;
+	} else if (e && e->percent < 0) {
+		ad->bIsRebuilding = 0;
 	}
+
+	if (e)
+		ad->iRebuildProgress = e->percent;
+
 	free_mdstat(ms);
 
 	if(info)

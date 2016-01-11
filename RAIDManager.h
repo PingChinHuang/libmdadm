@@ -606,9 +606,9 @@ struct RAIDInfo {
 		m_iState = rhs.arrayInfo.state;
 		m_iChunkSize = rhs.arrayInfo.chunk_size;
 		m_iRebuildingProgress = rhs.iRebuildProgress;
-		m_bRebuilding = rhs.bIsRebuilding == 1 ? true : false;
-		m_bInactive = rhs.bInactive == 1 ? true : false;
-		m_bSuperBlockPersistent = rhs.bIsSuperBlockPersistent == 1 ? true : false;
+		m_bRebuilding = (rhs.bIsRebuilding == 1) ? true : false;
+		m_bInactive = (rhs.bInactive == 1) ? true : false;
+		m_bSuperBlockPersistent = (rhs.bIsSuperBlockPersistent == 1) ? true : false;
 		m_CreationTime = rhs.arrayInfo.ctime;
 		m_UpdateTime = rhs.arrayInfo.utime;
 

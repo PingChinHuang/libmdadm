@@ -1,4 +1,4 @@
-cscope 15 /media/audy_huang/MyCode_inBuilder/v3.1/utility/sysutils/raid_manager -q 0000009877 0001471720
+cscope 15 /media/audy_huang/MyCode_inBuilder/v3.1/utility/sysutils/raid_manager -q 0000009888 0001474105
 	@../../titanutils/EventAction/ActionModel.cpp
 
 1 
@@ -224700,88 +224700,78 @@ WRITE_INODE_TABLES_UNKNOWN
 )
 
 31 
-CrôiˇlSe˘i⁄Lock
- 
-	`cs
-(&
-m_csInôülized
-);
-
-32 
-m_bInôülized
- = 
 	`Inôülize
 ();
 
-33 
+32 
 	}
 }
 
-35 
+34 
 	gFûesy°emM™agî
 ::
 	$Fûesy°emM™agî
 ()
 
-36 : 
+35 : 
 	`m_°rMou¡Poöt
 ("")
 
-37 , 
+36 , 
 	`m_°rDevNode
 ("")
 
-38 , 
+37 , 
 	`m_°rUUID
 ("")
 
-39 , 
+38 , 
 	`m_°rFSTy≥
 ("")
 
-40 , 
+39 , 
 	`m_iVﬁumeNum
 (-1)
 
-41 , 
+40 , 
 	`m_iF‹m©ögSèã
 (
 WRITE_INODE_TABLES_UNKNOWN
 )
 
-42 , 
+41 , 
 	`m_iF‹m©Progªss
 (0)
 
-43 , 
+42 , 
 	`m_bF‹m©
 (
 Ál£
 )
 
-44 , 
+43 , 
 	`m_bMou¡
 (
 Ál£
 )
 
-45 , 
+44 , 
 	$m_bInôülized
 (
 Ál£
 )
 
-47 
+46 
 	}
 }
 
-49 
+48 
 	gFûesy°emM™agî
 ::~
 	$Fûesy°emM™agî
 ()
 
-51 
+50 
 CrôiˇlSe˘i⁄Lock
  
 	`cs
@@ -224789,17 +224779,17 @@ CrôiˇlSe˘i⁄Lock
 m_csInôülized
 );
 
-52 
+51 
 m_bInôülized
  = 
 Ál£
 ;
 
-53 
+52 
 	}
 }
 
-55 
+54 
 boﬁ
  
 	gFûesy°emM™agî
@@ -224811,35 +224801,21 @@ boﬁ
 dev
 )
 
-57 
+56 
 m_°rDevNode
  = 
 dev
 ;
 
-58 
-CrôiˇlSe˘i⁄Lock
- 
-	`cs
-(&
-m_csInôülized
-);
-
-59 
-m_bInôülized
- = 
+57  
 	`Inôülize
 ();
 
-60  
-m_bInôülized
-;
-
-61 
+58 
 	}
 }
 
-63 
+60 
 boﬁ
  
 	gFûesy°emM™agî
@@ -224847,13 +224823,13 @@ boﬁ
 	$Inôülize
 ()
 
-65 i‡(
+62 i‡(
 m_°rDevNode
 .
 	`em±y
 ()) {
 
-66 
+63 
 	`WrôeHWLog
 (
 LOG_LOCAL0
@@ -224863,17 +224839,17 @@ LOG_ERR
 LOG_LABEL
 ,
 
-68  
+65  
 Ál£
 ;
 
-71 i‡(!
+68 i‡(!
 	`CheckBlockDevi˚
 (
 m_°rDevNode
 )) {
 
-72 
+69 
 	`WrôeHWLog
 (
 LOG_LOCAL0
@@ -224883,21 +224859,21 @@ LOG_ERR
 LOG_LABEL
 ,
 
-74 
+71 
 m_°rDevNode
 .
 	`c_°r
 ());
 
-75  
+72  
 Ál£
 ;
 
-78 i‡(
+75 i‡(
 	`blkid
 () != 0) {
 
-79 
+76 
 	`WrôeHWLog
 (
 LOG_LOCAL0
@@ -224907,33 +224883,17 @@ LOG_ERR
 LOG_LABEL
 ,
 
-81 
+78 
 m_°rDevNode
 .
 	`c_°r
 ());
 
-82  
+79  
 Ál£
 ;
 
-85  
-åue
-;
-
-86 
-	}
-}
-
-88 
-boﬁ
- 
-	gFûesy°emM™agî
-::
-	$IsInôülized
-()
-
-90 
+82 
 CrôiˇlSe˘i⁄Lock
  
 	`cs
@@ -224941,15 +224901,45 @@ CrôiˇlSe˘i⁄Lock
 m_csInôülized
 );
 
-91  
+83 
 m_bInôülized
+ = 
+åue
 ;
 
-92 
+84  
+åue
+;
+
+85 
 	}
 }
 
-94 
+87 
+boﬁ
+ 
+	gFûesy°emM™agî
+::
+	$IsInôülized
+()
+
+89 
+CrôiˇlSe˘i⁄Lock
+ 
+	`cs
+(&
+m_csInôülized
+);
+
+90  
+m_bInôülized
+;
+
+91 
+	}
+}
+
+93 
 	gFûesy°emM™agî
 ::
 	$SëMou¡Poöt
@@ -224959,35 +224949,35 @@ m_bInôülized
 mou¡poöt
 )
 
-96 
+95 
 m_°rMou¡Poöt
  = 
 mou¡poöt
 ;
 
-97 
+96 
 	}
 }
 
-99 #ifde‡
+98 #ifde‡
 NUUO
 
 
-100 
+99 
 	gFûesy°emM™agî
 ::
 	$ThªadProc
 ()
 
-102 
+101 
 	`F‹m©
 ();
 
-113 
+112 
 	}
 }
 
-116 
+115 
 boﬁ
  
 	gFûesy°emM™agî
@@ -224999,17 +224989,17 @@ boﬁ
 f‹˚
 )
 
-118 
+117 
 ªt
  = 0;
 
-120 i‡(
+119 i‡(
 m_°rDevNode
 .
 	`em±y
 ()) {
 
-121 
+120 
 	`WrôeHWLog
 (
 LOG_LOCAL0
@@ -225019,11 +225009,11 @@ LOG_ERR
 LOG_LABEL
 ,
 
-123  
+122  
 Ál£
 ;
 
-126 
+125 
 CrôiˇlSe˘i⁄Lock
  
 	`cs
@@ -225031,21 +225021,21 @@ CrôiˇlSe˘i⁄Lock
 m_csF‹m©
 );
 
-128 i‡(
+127 i‡(
 m_bF‹m©
  && !
 f‹˚
 )
 
-129 
+128 
 f‹m©_d⁄e
 ;
 
-131 
+130 
 	`InôülizeMke2fsH™dÀ
 ();
 
-132 
+131 
 ªt
  = 
 	`mke2fs
@@ -225053,11 +225043,11 @@ f‹m©_d⁄e
 m_mkfsH™dÀ
 );
 
-133 i‡(0 !
+132 i‡(0 !
 ªt
 ) {
 
-134 
+133 
 	`WrôeHWLog
 (
 LOG_LOCAL0
@@ -225067,7 +225057,7 @@ LOG_ERR
 LOG_LABEL
 ,
 
-135 "FaûÅÿf‹m© %†[%d]\n", 
+134 "FaûÅÿf‹m© %†[%d]\n", 
 m_°rDevNode
 .
 	`c_°r
@@ -225075,15 +225065,15 @@ m_°rDevNode
 ªt
 );
 
-136  
+135  
 Ál£
 ;
 
-139 
+138 
 f‹m©_d⁄e
 :
 
-140 
+139 
 	`WrôeHWLog
 (
 LOG_LOCAL0
@@ -225093,21 +225083,21 @@ LOG_INFO
 LOG_LABEL
 ,
 
-141 "F‹m© %†suc˚ssfuŒy.\n", 
+140 "F‹m© %†suc˚ssfuŒy.\n", 
 m_°rDevNode
 .
 	`c_°r
 ());
 
-142  
+141  
 åue
 ;
 
-143 
+142 
 	}
 }
 
-145 
+144 
 boﬁ
  
 	gFûesy°emM™agî
@@ -225115,17 +225105,17 @@ boﬁ
 	$Mou¡
 ()
 
-147  
+146  
 	`Mou¡
 (
 m_°rMou¡Poöt
 );
 
-148 
+147 
 	}
 }
 
-150 
+149 
 boﬁ
  
 	gFûesy°emM™agî
@@ -225137,117 +225127,117 @@ boﬁ
 °rMou¡Poöt
 )
 
-152 
+151 
 °rög
  
 °rEº‹Log
 ;
 
-154 i‡(
+153 i‡(
 °rMou¡Poöt
 .
 	`em±y
 ()) {
 
-155 
+154 
 °rEº‹Log
  = "Invalid mountÖoint.";
 
-156 
+155 
 mou¡_check_îr
 ;
 
-159 i‡(
+158 i‡(
 m_°rDevNode
 .
 	`em±y
 ()) {
 
-160 
+159 
 °rEº‹Log
  = "Invalid device.";
 
-161 
+160 
 mou¡_check_îr
 ;
 
-164 
+163 
 m_csF‹m©
 .
 	`Lock
 ();
 
-165 i‡(!
+164 i‡(!
 m_bF‹m©
 ) {
 
-166 
+165 
 °rEº‹Log
  = "The device isn't formated.";
 
-167 
+166 
 m_csF‹m©
 .
 	`U∆ock
 ();
 
-168 
+167 
 mou¡_check_îr
 ;
 
-170 
+169 
 m_csF‹m©
 .
 	`U∆ock
 ();
 
-172 i‡(!
+171 i‡(!
 	`CheckBlockDevi˚
 (
 m_°rDevNode
 )) {
 
-173 
+172 
 °rEº‹Log
  = "The device isÇotá block device.";
 
-174 
+173 
 mou¡_check_îr
 ;
 
-177 
+176 
 m_csMou¡
 .
 	`Lock
 ();
 
-178 i‡(
+177 i‡(
 m_bMou¡
 
 
-179 && !
+178 && !
 m_°rMou¡Poöt
 .
 	`em±y
 ()
 
-180 && 
+179 && 
 m_°rMou¡Poöt
  =
 °rMou¡Poöt
 
 
-181 && 
+180 && 
 	`CheckDúe˘‹yExi°
 (
 m_°rMou¡Poöt
 )
 
-182 #ifde‡
+181 #ifde‡
 NUUO
 
 
-183 && 
+182 && 
 	`ROOTFS_PROTECT
 (
 m_°rMou¡Poöt
@@ -225255,69 +225245,69 @@ m_°rMou¡Poöt
 	`c_°r
 ())
 
-186 
+185 
 mou¡_ok
 ;
 
-189 i‡(
+188 i‡(
 m_bMou¡
  &&
 
-190 !
+189 !
 m_°rMou¡Poöt
 .
 	`em±y
 () &&
 
-191 
+190 
 m_°rMou¡Poöt
  !
 °rMou¡Poöt
 ) {
 
-194 
+193 
 °rEº‹Log
  = "The device hasálready be mounted. WhyÑequestÅo mountágain withá different mountÖoint?";
 
-195 
+194 
 mou¡_îr
 ;
 
-198 i‡(!
+197 i‡(!
 	`CheckDúe˘‹yExi°
 (
 °rMou¡Poöt
 )) {
 
-199 i‡(!
+198 i‡(!
 	`MakeDúe˘‹y
 (
 °rMou¡Poöt
 )) {
 
-200 
+199 
 °rEº‹Log
  = "FailÅo create mountÖoint.";
 
-201 
+200 
 mou¡_îr
 ;
 
-203 } i‡(
+202 } i‡(
 	`IsMou¡Poöt
 (
 °rMou¡Poöt
 )) {
 
-206 
+205 
 °rEº‹Log
  = "The mountÖoint is using byánother device..";
 
-207 
+206 
 mou¡_îr
 ;
 
-210 i‡(
+209 i‡(
 	`mou¡
 (
 m_°rDevNode
@@ -225327,17 +225317,17 @@ m_°rDevNode
 °rMou¡Poöt
 .c_str(),
 
-211 
+210 
 m_°rFSTy≥
 .
 	`c_°r
 (), 0, "") < 0) {
 
-213 
+212 
 	`SÀïMS
 (2000);
 
-215 i‡(
+214 i‡(
 	`mou¡
 (
 m_°rDevNode
@@ -225347,63 +225337,63 @@ m_°rDevNode
 °rMou¡Poöt
 .c_str(),
 
-216 
+215 
 m_°rFSTy≥
 .
 	`c_°r
 (), 0, "") < 0) {
 
-217 
+216 
 °rEº‹Log
  = 
 	`°rög_f‹m©
 ("FailÅo mount %sÅo %s. (%s)",
 
-218 
+217 
 m_°rDevNode
 .
 	`c_°r
 (),
 
-219 
+218 
 m_°rMou¡Poöt
 .
 	`c_°r
 (),
 
-220 
+219 
 	`°ªº‹
 (
 î∫o
 ));
 
-221 
+220 
 mou¡_îr
 ;
 
-225 
+224 
 mou¡_ok
 :
 
-226 
+225 
 m_bMou¡
  = 
 åue
 ;
 
-227 
+226 
 m_°rMou¡Poöt
  = 
 °rMou¡Poöt
 ;
 
-228 
+227 
 m_csMou¡
 .
 	`U∆ock
 ();
 
-229 
+228 
 	`WrôeHWLog
 (
 LOG_LOCAL0
@@ -225413,37 +225403,37 @@ LOG_INFO
 LOG_LABEL
 ,
 
-231 
+230 
 m_°rDevNode
 .
 	`c_°r
 (),
 
-232 
+231 
 m_°rMou¡Poöt
 .
 	`c_°r
 ());
 
-234  
+233  
 åue
 ;
 
-236 
+235 
 mou¡_îr
 :
 
-237 
+236 
 m_csMou¡
 .
 	`U∆ock
 ();
 
-238 
+237 
 mou¡_check_îr
 :
 
-239 
+238 
 	`WrôeHWLog
 (
 LOG_LOCAL0
@@ -225453,21 +225443,21 @@ LOG_ERR
 LOG_LABEL
 ,
 
-240 "%s", 
+239 "%s", 
 °rEº‹Log
 .
 	`c_°r
 ());
 
-241  
+240  
 Ál£
 ;
 
-242 
+241 
 	}
 }
 
-244 
+243 
 boﬁ
  
 	gFûesy°emM™agî
@@ -225475,7 +225465,7 @@ boﬁ
 	$Unmou¡
 ()
 
-246 
+245 
 CrôiˇlSe˘i⁄Lock
  
 	`cs
@@ -225483,45 +225473,45 @@ CrôiˇlSe˘i⁄Lock
 m_csMou¡
 );
 
-248 i‡(!
+247 i‡(!
 m_bMou¡
 )
 
-249 
+248 
 unmou¡_d⁄e
 ;
 
-251 i‡(
+250 i‡(
 m_°rMou¡Poöt
 .
 	`em±y
 ())
 
-252 
+251 
 unmou¡_d⁄e
 ;
 
-254 i‡(!
+253 i‡(!
 	`CheckDúe˘‹yExi°
 (
 m_°rMou¡Poöt
 ))
 
-255 
+254 
 unmou¡_d⁄e
 ;
 
-257 i‡(!
+256 i‡(!
 	`IsMou¡Poöt
 (
 m_°rMou¡Poöt
 ))
 
-258 
+257 
 unmou¡_d⁄e
 ;
 
-260 i‡(
+259 i‡(
 	`umou¡2
 (
 m_°rMou¡Poöt
@@ -225533,7 +225523,7 @@ UMOUNT_NOFOLLOW
 MNT_DETACH
 ) < 0) {
 
-261 
+260 
 	`WrôeHWLog
 (
 LOG_LOCAL0
@@ -225543,7 +225533,7 @@ LOG_ERR
 LOG_LABEL
 , "FailÅo unmount %s (%s)\n",
 
-262 
+261 
 m_°rMou¡Poöt
 .
 	`c_°r
@@ -225553,15 +225543,15 @@ m_°rMou¡Poöt
 î∫o
 ));
 
-263  
+262  
 Ál£
 ;
 
-270 
+269 
 unmou¡_d⁄e
 :
 
-271 
+270 
 	`WrôeHWLog
 (
 LOG_LOCAL0
@@ -225571,27 +225561,27 @@ LOG_INFO
 LOG_LABEL
 ,
 
-273 
+272 
 m_°rMou¡Poöt
 .
 	`c_°r
 ());
 
-274 
+273 
 m_bMou¡
  = 
 Ál£
 ;
 
-278  
+277  
 åue
 ;
 
-279 
+278 
 	}
 }
 
-281 
+280 
 boﬁ
  
 	gFûesy°emM™agî
@@ -225599,15 +225589,15 @@ boﬁ
 	$IsF‹m©ed
 ()
 
-283  
+282  
 m_bF‹m©
 ;
 
-284 
+283 
 	}
 }
 
-286 
+285 
 boﬁ
  
 	gFûesy°emM™agî
@@ -225619,49 +225609,49 @@ boﬁ
 °©
 )
 
-288 
+287 
 ¥ogªss
  = 
 m_iF‹m©Progªss
 ;
 
-289 
+288 
 °©
  = 
 m_iF‹m©ögSèã
 ;
 
-290 i‡(
+289 i‡(
 m_iF‹m©ögSèã
  =
 WRITE_INODE_TABLES_WRITING
  ||
 
-291 
+290 
 m_iF‹m©ögSèã
  =
 WRITE_INODE_TABLES_WRITING_DONE
  ||
 
-292 
+291 
 m_iF‹m©ögSèã
  =
 WRITE_INODE_TABLES_INIT
 )
 
-293  
+292  
 åue
 ;
 
-295  
+294  
 Ál£
 ;
 
-296 
+295 
 	}
 }
 
-298 
+297 
 boﬁ
  
 	gFûesy°emM™agî
@@ -225673,7 +225663,7 @@ boﬁ
 °rMou¡Poöt
 )
 
-300 
+299 
 CrôiˇlSe˘i⁄Lock
  
 	`cs
@@ -225681,21 +225671,21 @@ CrôiˇlSe˘i⁄Lock
 m_csMou¡
 );
 
-301 
+300 
 °rMou¡Poöt
  = 
 m_°rMou¡Poöt
 ;
 
-302  
+301  
 m_bMou¡
 ;
 
-303 
+302 
 	}
 }
 
-305 
+304 
 boﬁ
  
 	gFûesy°emM™agî
@@ -225705,7 +225695,7 @@ boﬁ
 num
 )
 
-307 
+306 
 CrôiˇlSe˘i⁄Lock
  
 	`cs
@@ -225713,21 +225703,45 @@ CrôiˇlSe˘i⁄Lock
 m_csMou¡
 );
 
-308 
+307 
 num
  = 
 m_iVﬁumeNum
 ;
 
-309  
+308  
 m_bMou¡
 ;
 
-310 
+309 
 	}
 }
 
-312 
+311 
+boﬁ
+ 
+	gFûesy°emM™agî
+::
+	$IsMou¡ed
+()
+
+313 
+CrôiˇlSe˘i⁄Lock
+ 
+	`cs
+(&
+m_csMou¡
+);
+
+314  
+m_bMou¡
+;
+
+315 
+	}
+}
+
+317 
 	gFûesy°emM™agî
 ::
 	$SëF‹m©Info
@@ -225741,29 +225755,29 @@ f‹m©
 °©
 )
 
-314 
+319 
 m_bF‹m©
  = 
 f‹m©
 ;
 
-315 
+320 
 m_iF‹m©Progªss
  = 
 ¥ogªss
 ;
 
-316 
+321 
 m_iF‹m©ögSèã
  = 
 °©
 ;
 
-317 
+322 
 	}
 }
 
-319 
+324 
 	gFûesy°emM™agî
 ::
 	$MakeFûesy°emProgªss
@@ -225773,19 +225787,19 @@ pD©a
 °©
 ,
 
-320 
+325 
 cuºít
 , 
 tŸÆ
 )
 
-322 i‡(
+327 i‡(
 pD©a
  =
 NULL
 )
 
-324 
+329 
 Fûesy°emM™agî
  *
 pFSMgr
@@ -225793,15 +225807,15 @@ pFSMgr
 pD©a
 ;
 
-326 
+331 
 °©
 ) {
 
-327 
+332 
 WRITE_INODE_TABLES_INIT
 :
 
-328 
+333 
 pFSMgr
 ->
 	`SëF‹m©Info
@@ -225811,15 +225825,15 @@ pFSMgr
 °©
 );
 
-330 
+335 
 WRITE_INODE_TABLES_WRITING
 :
 
-331 
+336 
 WRITE_INODE_TABLES_WRITING_DONE
 :
 
-332 
+337 
 pFSMgr
 ->
 	`SëF‹m©Info
@@ -225833,11 +225847,11 @@ tŸÆ
 °©
 );
 
-334 
+339 
 WRITE_INODE_TABLES_DONE
 :
 
-335 
+340 
 pFSMgr
 ->
 	`SëF‹m©Info
@@ -225847,11 +225861,11 @@ pFSMgr
 °©
 );
 
-337 
+342 
 WRITE_INODE_TABLES_ERROR
 :
 
-338 
+343 
 pFSMgr
 ->
 	`SëF‹m©Info
@@ -225861,17 +225875,17 @@ pFSMgr
 °©
 );
 
-341 
+346 
 	}
 }
 
-343 
+348 
 	gFûesy°emM™agî
 ::
 	$Gíî©eUUIDFûe
 ()
 
-345 
+350 
 CrôiˇlSe˘i⁄Lock
  
 	`cs_mou¡
@@ -225879,7 +225893,7 @@ CrôiˇlSe˘i⁄Lock
 m_csMou¡
 );
 
-347 i‡(!
+352 i‡(!
 m_bMou¡
  || 
 m_°rMou¡Poöt
@@ -225887,17 +225901,17 @@ m_°rMou¡Poöt
 	`em±y
 () ||
 
-348 !
+353 !
 	`CheckDúe˘‹yExi°
 (
 m_°rMou¡Poöt
 )
 
-349 #ifde‡
+354 #ifde‡
 NUUO
 
 
-350 || !
+355 || !
 	`ROOTFS_PROTECT
 (
 m_°rMou¡Poöt
@@ -225905,7 +225919,7 @@ m_°rMou¡Poöt
 	`c_°r
 ())
 
-355 
+360 
 °rög
  
 °rUUIDFûeName
@@ -225913,19 +225927,19 @@ m_°rMou¡Poöt
 m_°rMou¡Poöt
  + "/uuid";
 
-356 i‡(
+361 i‡(
 	`CheckFûeExi°
 (
 °rUUIDFûeName
 ) &&
 
-357 
+362 
 	`GëFûeSt‹ageSize
 (
 °rUUIDFûeName
 ) == 32)
 
-360 
+365 
 CrôiˇlSe˘i⁄Lock
  
 	`cs_f‹m©
@@ -225933,13 +225947,13 @@ CrôiˇlSe˘i⁄Lock
 m_csF‹m©
 );
 
-362 i‡(
+367 i‡(
 m_°rUUID
 .
 	`em±y
 ())
 
-365 
+370 
 FILE
  *
 pf
@@ -225951,11 +225965,11 @@ pf
 	`c_°r
 (), "w+");
 
-366 i‡(
+371 i‡(
 pf
 ) {
 
-367 
+372 
 	`Ârötf
 (
 pf
@@ -225965,17 +225979,17 @@ m_°rUUID
 	`c_°r
 ());
 
-368 
+373 
 	`f˛o£
 (
 pf
 );
 
-370 
+375 
 	}
 }
 
-372 
+377 
 boﬁ
  
 	gFûesy°emM™agî
@@ -225983,7 +225997,7 @@ boﬁ
 	$Cª©eDeÁu…Fﬁdîs
 ()
 
-374 
+379 
 CrôiˇlSe˘i⁄Lock
  
 	`cs
@@ -225991,7 +226005,7 @@ CrôiˇlSe˘i⁄Lock
 m_csMou¡
 );
 
-376 i‡(!
+381 i‡(!
 m_bMou¡
  || 
 m_°rMou¡Poöt
@@ -225999,17 +226013,17 @@ m_°rMou¡Poöt
 	`em±y
 () ||
 
-377 !
+382 !
 	`CheckDúe˘‹yExi°
 (
 m_°rMou¡Poöt
 )
 
-378 #ifde‡
+383 #ifde‡
 NUUO
 
 
-379 || !
+384 || !
 	`ROOTFS_PROTECT
 (
 m_°rMou¡Poöt
@@ -226017,11 +226031,11 @@ m_°rMou¡Poöt
 	`c_°r
 ())
 
-382  
+387  
 Ál£
 ;
 
-384 
+389 
 °rög
  
 °rFﬁdîName
@@ -226029,59 +226043,59 @@ m_°rMou¡Poöt
 m_°rMou¡Poöt
  + "/VIDEODATA";
 
-385 i‡(!
+390 i‡(!
 	`CheckDúe˘‹yExi°
 (
 °rFﬁdîName
 )) {
 
-386 i‡(!
+391 i‡(!
 	`MakeDúe˘‹y
 (
 °rFﬁdîName
 ))
 
-387  
+392  
 Ál£
 ;
 
-390 
+395 
 °rFﬁdîName
  = 
 m_°rMou¡Poöt
  + "/LOG";
 
-391 i‡(!
+396 i‡(!
 	`CheckDúe˘‹yExi°
 (
 °rFﬁdîName
 )) {
 
-392 i‡(!
+397 i‡(!
 	`MakeDúe˘‹y
 (
 °rFﬁdîName
 ))
 
-393  
+398  
 Ál£
 ;
 
-396  
+401  
 åue
 ;
 
-397 
+402 
 	}
 }
 
-399 
+404 
 	gFûesy°emM™agî
 ::
 	$blkid
 ()
 
-401 
+406 
 blkid_ˇche
  
 ˇche
@@ -226089,11 +226103,11 @@ blkid_ˇche
 NULL
 ;
 
-402 
+407 
 ªtvÆ
  = 0;
 
-404 i‡(
+409 i‡(
 ªtvÆ
  = 
 	`blkid_gë_ˇche
@@ -226103,7 +226117,7 @@ NULL
 NULL
 ) < 0) {
 
-405 
+410 
 	`WrôeHWLog
 (
 LOG_LOCAL1
@@ -226113,21 +226127,21 @@ LOG_ERR
 LOG_LABEL
 ,
 
-406 "[%d] FaûÅÿgë blkid cache.", 
+411 "[%d] FaûÅÿgë blkid cache.", 
 __LINE__
 );
 
-407  
+412  
 MKE2FS_FAIL_TO_GET_BLKID_CACHE
 ;
 
-410 
+415 
 m_csF‹m©
 .
 	`Lock
 ();
 
-411 
+416 
 blkid_dev
  
 dev
@@ -226143,7 +226157,7 @@ m_°rDevNode
 BLKID_DEV_NORMAL
 );
 
-412 c⁄° *
+417 c⁄° *
 dev«me
  = 
 	`blkid_dev_dev«me
@@ -226151,13 +226165,13 @@ dev«me
 dev
 );
 
-413 i‡(!
+418 i‡(!
 	`CheckBlockDevi˚
 (
 m_°rDevNode
 )) {
 
-414 
+419 
 	`WrôeHWLog
 (
 LOG_LOCAL1
@@ -226167,7 +226181,7 @@ LOG_ERR
 LOG_LABEL
 ,
 
-415 "[%d] %†i†nŸá block devi˚.", 
+420 "[%d] %†i†nŸá block devi˚.", 
 __LINE__
 , 
 m_°rDevNode
@@ -226175,35 +226189,35 @@ m_°rDevNode
 	`c_°r
 ());
 
-416 
+421 
 m_csF‹m©
 .
 	`U∆ock
 ();
 
-417  
+422  
 MKE2FS_NOT_BLOCK_DEV
 ;
 
-420 
+425 
 blkid_èg_ôî©e
  
 ôî
 ;
 
-421 c⁄° * 
+426 c⁄° * 
 ty≥
  = 
 NULL
 ;
 
-422 c⁄° * 
+427 c⁄° * 
 vÆue
  = 
 NULL
 ;
 
-423 
+428 
 ôî
  = 
 	`blkid_èg_ôî©e_begö
@@ -226211,7 +226225,7 @@ NULL
 dev
 );
 
-424 
+429 
 	`blkid_èg_√xt
 (
 ôî
@@ -226221,19 +226235,19 @@ ty≥
 vÆue
 ) == 0) {
 
-425 i‡(!
+430 i‡(!
 	`°rcmp
 (
 ty≥
 , "UUID")) {
 
-426 
+431 
 m_°rUUID
  = 
 vÆue
 ;
 
-427 
+432 
 m_°rUUID
 .
 	`îa£
@@ -226247,63 +226261,63 @@ m_°rUUID
 	`íd
 (), '-'), m_strUUID.end());
 
-429 i‡(!
+434 i‡(!
 	`°rcmp
 (
 ty≥
 , "TYPE")) {
 
-430 
+435 
 m_°rFSTy≥
  = 
 vÆue
 ;
 
-431 i‡(
+436 i‡(
 m_°rFSTy≥
  == "ext4" ||
 
-432 
+437 
 m_°rFSTy≥
  == "ext3")
 
-433 
+438 
 m_bF‹m©
  = 
 åue
 ;
 
-434 } i‡(!
+439 } i‡(!
 	`°rcmp
 (
 ty≥
 , "LABEL"))
 
-437 
+442 
 	`blkid_èg_ôî©e_íd
 (
 ôî
 );
 
-438 
+443 
 m_csF‹m©
 .
 	`U∆ock
 ();
 
-440 
+445 
 mçt
 [256];
 
-441 
+446 
 mou¡_Êags
  = 0;
 
-442 
+447 
 mçt
 [0] = '\0';
 
-443 
+448 
 ªtvÆ
  = 
 	`ext2fs_check_mou¡_poöt
@@ -226315,15 +226329,15 @@ m_°rDevNode
 mou¡_Êags
 ,
 
-444 
+449 
 mçt
 , (mtpt));
 
-445 i‡(
+450 i‡(
 ªtvÆ
  == 0) {
 
-446 
+451 
 CrôiˇlSe˘i⁄Lock
  
 	`cs
@@ -226331,51 +226345,51 @@ CrôiˇlSe˘i⁄Lock
 m_csMou¡
 );
 
-447 
+452 
 ªt
  = 0;
 
-448 
+453 
 m_°rMou¡Poöt
  = 
 mçt
 ;
 
-449 i‡(
+454 i‡(
 mou¡_Êags
  & 
 EXT2_MF_MOUNTED
 ) {
 
-450 
+455 
 m_bMou¡
  = 
 åue
 ;
 
-451 } i‡(
+456 } i‡(
 mou¡_Êags
  & 
 EXT2_MF_BUSY
 ) {
 
-452 
+457 
 m_bMou¡
  = 
 åue
 ;
 
-454 
+459 
 m_bMou¡
  = 
 Ál£
 ;
 
-461 i‡(
+466 i‡(
 m_bMou¡
 ) {
 
-462 
+467 
 ªt
  = 
 	`ssˇnf
@@ -226385,7 +226399,7 @@ mçt
 m_iVﬁumeNum
 );
 
-463 i‡(
+468 i‡(
 ªt
  < 0 ||Ñë =
 EOF
@@ -226393,15 +226407,15 @@ EOF
 m_iVﬁumeNum
  > 128 ||
 
-464 
+469 
 m_iVﬁumeNum
  < 1) {
 
-465 
+470 
 m_iVﬁumeNum
  = -1;
 
-466 i‡(
+471 i‡(
 	`umou¡2
 (
 m_°rMou¡Poöt
@@ -226409,13 +226423,13 @@ m_°rMou¡Poöt
 	`c_°r
 (),
 
-467 
+472 
 UMOUNT_NOFOLLOW
  | 
 MNT_DETACH
 ) < 0) {
 
-468 
+473 
 	`WrôeHWLog
 (
 LOG_LOCAL0
@@ -226425,33 +226439,33 @@ LOG_ERR
 LOG_LABEL
 , "FailÅo unmount %s (%s)\n",
 
-469 
+474 
 m_°rMou¡Poöt
 .
 	`c_°r
 (),
 
-470 
+475 
 	`°ªº‹
 (
 î∫o
 ));
 
-472 
+477 
 m_bMou¡
  = 
 Ál£
 ;
 
-473 
+478 
 m_°rMou¡Poöt
  = "";
 
-480 
+485 
 m_iVﬁumeNum
 --;
 
-484 
+489 
 	`WrôeHWLog
 (
 LOG_LOCAL1
@@ -226461,31 +226475,31 @@ LOG_ERR
 LOG_LABEL
 ,
 
-485 "[%d] FaûÅÿcheck mou¡Öoöt.", 
+490 "[%d] FaûÅÿcheck mou¡Öoöt.", 
 __LINE__
 );
 
-486  
+491  
 MKE2FS_CHECK_MOUNT_POINT_FAIL
 ;
 
-490 
+495 
 	}
 }
 
-492 
+497 
 	gFûesy°emM™agî
 ::
 	$Dump
 ()
 
-494 
+499 
 	`Ârötf
 (
 °dout
 , "\tMount Point: %s(%s), Filesystem: %s(%s)\n"
 
-496 
+501 
 m_°rMou¡Poöt
 .
 	`c_°r
@@ -226493,7 +226507,7 @@ m_°rMou¡Poöt
 m_bMou¡
 ?"Mounted":"Not mounted",
 
-497 
+502 
 m_°rFSTy≥
 .
 	`c_°r
@@ -226501,17 +226515,17 @@ m_°rFSTy≥
 m_bF‹m©
 ?"Formated":"Not Formated",
 
-498 
+503 
 m_°rUUID
 .
 	`c_°r
 ());
 
-499 
+504 
 	}
 }
 
-501 
+506 
 boﬁ
  
 	gFûesy°emM™agî
@@ -226527,21 +226541,21 @@ boﬁ
 °
 ,
 
-502 
+507 
 do_l°©
 , 
 quõt
 )
 
-504 
+509 
 n
  = 0;
 
-506 i‡(
+511 i‡(
 do_l°©
 )
 
-507 
+512 
 n
  = 
 	`l°©
@@ -226553,7 +226567,7 @@ n
 °
 );
 
-509 
+514 
 n
  = 
 	`°©
@@ -226565,21 +226579,21 @@ n
 °
 );
 
-511 i‡(
+516 i‡(
 n
  != 0) {
 
-512 i‡(!
+517 i‡(!
 quõt
 )
 
-513 
+518 
 	`Ârötf
 (
 °dîr
 , "mountpoint: %s: %s\n",
 
-514 
+519 
 ∑th
 .
 	`c_°r
@@ -226589,19 +226603,19 @@ quõt
 î∫o
 ));
 
-515  
+520  
 Ál£
 ;
 
-518  
+523  
 åue
 ;
 
-519 
+524 
 	}
 }
 
-521 
+526 
 boﬁ
  
 	gFûesy°emM™agî
@@ -226613,7 +226627,7 @@ boﬁ
 ∑th
 )
 
-523 
+528 
 °©
  
 °
@@ -226621,7 +226635,7 @@ boﬁ
 °2
 ;
 
-524 i‡(!
+529 i‡(!
 	`do°©
 (
 ∑th
@@ -226629,11 +226643,11 @@ boﬁ
 °
 , 1, 0))
 
-525  
+530  
 Ál£
 ;
 
-527 i‡(!
+532 i‡(!
 	`do°©
 (
 ∑th
@@ -226641,11 +226655,11 @@ boﬁ
 °2
 , 1, 0))
 
-528  
+533  
 Ál£
 ;
 
-530 i‡((
+535 i‡((
 °
 .
 °_dev
@@ -226653,7 +226667,7 @@ boﬁ
 °2
 .st_dev) ||
 
-531 (
+536 (
 °
 .
 °_dev
@@ -226663,25 +226677,25 @@ boﬁ
 °_öo
  == st2.st_ino)) {
 
-532  
+537  
 åue
 ;
 
-535  
+540  
 Ál£
 ;
 
-536 
+541 
 	}
 }
 
-538 
+543 
 	gFûesy°emM™agî
 ::
 	$InôülizeMke2fsH™dÀ
 ()
 
-540 
+545 
 	`mem£t
 (&
 m_mkfsH™dÀ
@@ -226691,7 +226705,7 @@ cfg
 e2fs_cfg
 ));
 
-541 
+546 
 	`°∫˝y
 (
 m_mkfsH™dÀ
@@ -226703,13 +226717,13 @@ m_°rDevNode
 	`c_°r
 (),
 
-542 (
+547 (
 m_mkfsH™dÀ
 .
 devi˚_«me
 ));
 
-543 
+548 
 m_mkfsH™dÀ
 .
 cb_func
@@ -226717,7 +226731,7 @@ cb_func
 MakeFûesy°emProgªss
 ;
 
-544 
+549 
 m_mkfsH™dÀ
 .
 buf
@@ -226725,7 +226739,7 @@ buf
 NULL
 ;
 
-545 
+550 
 m_mkfsH™dÀ
 .
 pD©a
@@ -226733,7 +226747,7 @@ pD©a
 this
 ;
 
-547 
+552 
 m_mkfsH™dÀ
 .
 cfg
@@ -226741,7 +226755,7 @@ cfg
 blocksize
  = 4096;
 
-548 
+553 
 m_mkfsH™dÀ
 .
 cfg
@@ -226749,7 +226763,7 @@ cfg
 ª£rved_øtio
  = 1;
 
-549 
+554 
 m_mkfsH™dÀ
 .
 cfg
@@ -226757,7 +226771,7 @@ cfg
 r_›t
  = -1;
 
-550 
+555 
 m_mkfsH™dÀ
 .
 cfg
@@ -226765,7 +226779,7 @@ cfg
 f‹˚
  = 1;
 
-551 
+556 
 m_mkfsH™dÀ
 .
 cfg
@@ -226773,11 +226787,11 @@ cfg
 quõt
  = 1;
 
-552 #ifde‡
+557 #ifde‡
 DEBUG
 
 
-553 
+558 
 m_mkfsH™dÀ
 .
 cfg
@@ -226785,7 +226799,7 @@ cfg
 vîbo£
  = 1;
 
-555 
+560 
 m_mkfsH™dÀ
 .
 cfg
@@ -226793,7 +226807,7 @@ cfg
 vîbo£
  = 0;
 
-557 
+562 
 m_mkfsH™dÀ
 .
 cfg
@@ -226803,7 +226817,7 @@ cfg
 EXT2_OS_LINUX
 ;
 
-558 
+563 
 	`°∫˝y
 (
 m_mkfsH™dÀ
@@ -226815,11 +226829,11 @@ fs_ty≥
 	`°æí
 ("ext4"));
 
-559 
+564 
 	}
 }
 
-561 
+566 
 	gFûesy°emM™agî
 ::
 	$SëVﬁumeNum
@@ -226827,13 +226841,13 @@ fs_ty≥
 num
 )
 
-563 
+568 
 m_iVﬁumeNum
  = 
 num
 ;
 
-564 
+569 
 m_°rMou¡Poöt
  = 
 	`°rög_f‹m©
@@ -226841,34 +226855,18 @@ m_°rMou¡Poöt
 m_iVﬁumeNum
  + 1);
 
-565 
+570 
 	}
 }
 
-567 
+572 
 	gFûesy°emM™agî
 ::
 	$GëVﬁumeNum
 ()
 
-569  
-m_iVﬁumeNum
-;
-
-570 
-	}
-}
-
-572 
-°rög
- 
-	gFûesy°emM™agî
-::
-	$GëMou¡Poöt
-()
-
 574  
-m_°rMou¡Poöt
+m_iVﬁumeNum
 ;
 
 575 
@@ -226881,21 +226879,37 @@ m_°rMou¡Poöt
 	gFûesy°emM™agî
 ::
 	$GëMou¡Poöt
+()
+
+579  
+m_°rMou¡Poöt
+;
+
+580 
+	}
+}
+
+582 
+°rög
+ 
+	gFûesy°emM™agî
+::
+	$GëMou¡Poöt
 (c⁄° & 
 num
 )
 
-579 
+584 
 	`SëVﬁumeNum
 (
 num
 );
 
-580  
+585  
 m_°rMou¡Poöt
 ;
 
-581 
+586 
 	}
 }
 
@@ -227238,10 +227252,16 @@ num
 89 
 boﬁ
  
+IsMou¡ed
+();
+
+90 
+boﬁ
+ 
 IsInôülized
 ();
 
-90 
+91 
 SëF‹m©Info
 (
 boﬁ
@@ -227251,25 +227271,25 @@ f‹m©
 ¥ogªss
 ,
 
-91 
+92 
 °©
 );
 
-93 
+94 
 Gíî©eUUIDFûe
 ();
 
-94 
+95 
 boﬁ
  
 Cª©eDeÁu…Fﬁdîs
 ();
 
-96 
+97 
 Dump
 ();
 
-98 
+99 
 boﬁ
  
 do°©
@@ -227283,13 +227303,13 @@ do°©
 °
 ,
 
-99 
+100 
 do_l°©
 , 
 quõt
 );
 
-100 
+101 
 boﬁ
  
 IsMou¡Poöt
@@ -227318,11 +227338,11 @@ NUUO
 "
 
 6 
-	~"comm⁄/dúe˘‹y_åavî£.h
+	~"comm⁄/sy°em.h
 "
 
 7 
-	~"comm⁄/sy°em.h
+	~"comm⁄/time.h
 "
 
 8 
@@ -227337,7 +227357,7 @@ NUUO
 
 12 
 	#RAIDMANAGER_MONITOR_INTERVAL
- 3000
+ 10000
 
 	)
 
@@ -227374,17 +227394,17 @@ i
 21 
 CrôiˇlSe˘i⁄Lock
  
-	`cs_MDProfûes
+	`cs_DiskProfûes
 (&
-m_csMDProfûes
+m_csDiskProfûes
 );
 
 22 
 CrôiˇlSe˘i⁄Lock
  
-	`cs_DiskProfûes
+	`cs_MDProfûes
 (&
-m_csDiskProfûes
+m_csMDProfûes
 );
 
 23 
@@ -227392,6 +227412,12 @@ m_csDiskProfûes
 ();
 
 25 
+m_£mAs£mbÀ
+.
+	`Po°
+();
+
+27 
 CrôiˇlSe˘i⁄Lock
  
 	`cs_NŸifyCh™ge
@@ -227399,11 +227425,11 @@ CrôiˇlSe˘i⁄Lock
 m_csNŸifyCh™ge
 );
 
-26 
+28 
 åy
  {
 
-27 
+29 
 m_pNŸifyCh™ge
  = 
 √w
@@ -227413,53 +227439,47 @@ m_pNŸifyCh™ge
 Ál£
 );
 
-28 
+30 
 	`Cª©eThªad
 ();
 
-29 } 
+31 } 
 	`ˇtch
  (
 bad_Æloc
 &) {
 
-30 
+32 
 m_pNŸifyCh™ge
  = 
 NULL
 ;
 
-31 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
+33 
+	`SëLa°Eº‹
+("Allocate memory failed.");
 
-34 
+35 
 	}
 }
 
-36 
+37 
 	gRAIDM™agî
 ::~
 	$RAIDM™agî
 ()
 
-38 i‡(
+39 i‡(
 	`ThªadExi°s
 ()) {
 
-39 
+40 
 uöt32_t
  
 ªsu…
 ;
 
-40 
+41 
 	`CÆlW‹kî
 (
 eTC_STOP
@@ -227467,11 +227487,11 @@ eTC_STOP
 ªsu…
 );
 
-41 i‡(
+42 i‡(
 ªsu…
  == 0) {
 
-42 
+43 
 CrôiˇlSe˘i⁄Lock
  
 	`cs_NŸifyCh™ge
@@ -227479,23 +227499,23 @@ CrôiˇlSe˘i⁄Lock
 m_csNŸifyCh™ge
 );
 
-43 
+44 
 dñëe
  
 m_pNŸifyCh™ge
 ;
 
-44 
+45 
 m_pNŸifyCh™ge
  = 
 NULL
 ;
 
-47 
+48 
 	}
 }
 
-49 
+50 
 boﬁ
  
 	gRAIDM™agî
@@ -227503,17 +227523,17 @@ boﬁ
 	$Inôülize
 ()
 
-51 
+52 
 udev
  *udev;
 
-52 
+53 
 udev_íumî©e
  *
 íumî©e
 ;
 
-53 
+54 
 udev_li°_íåy
  *
 devi˚s
@@ -227521,31 +227541,31 @@ devi˚s
 dev_li°_íåy
 ;
 
-54 
+55 
 udev_devi˚
  *
 dev
 ;
 
-56 
+57 
 udev
  = 
 	`udev_√w
 ();
 
-57 i‡(!
+58 i‡(!
 udev
 ) {
 
-58 
+59 
 	`¥ötf
 ("can't create udev\n");
 
-59  
+60  
 Ál£
 ;
 
-62 
+63 
 íumî©e
  = 
 	`udev_íumî©e_√w
@@ -227553,19 +227573,19 @@ udev
 udev
 );
 
-63 
+64 
 	`udev_íumî©e_add_m©ch_subsy°em
 (
 íumî©e
 , "block");
 
-64 
+65 
 	`udev_íumî©e_sˇn_devi˚s
 (
 íumî©e
 );
 
-65 
+66 
 devi˚s
  = 
 	`udev_íumî©e_gë_li°_íåy
@@ -227573,7 +227593,7 @@ devi˚s
 íumî©e
 );
 
-66 
+67 
 	`udev_li°_íåy_f‹óch
 (
 dev_li°_íåy
@@ -227581,29 +227601,29 @@ dev_li°_íåy
 devi˚s
 ) {
 
-67 
+68 
 °rög
  
 °rSysName
 ;
 
-68 
+69 
 °rög
  
 °rMaj‹
 ;
 
-69 
+70 
 iMaj‹
  = 0;
 
-70 c⁄° *
+71 c⁄° *
 ∑th
  = 
 NULL
 ;
 
-72 
+73 
 ∑th
  = 
 	`udev_li°_íåy_gë_«me
@@ -227611,7 +227631,7 @@ NULL
 dev_li°_íåy
 );
 
-73 
+74 
 dev
  = 
 	`udev_devi˚_√w_‰om_sy•©h
@@ -227621,7 +227641,7 @@ udev
 ∑th
 );
 
-75 
+76 
 °rSysName
  = 
 	`udev_devi˚_gë_sy¢ame
@@ -227629,7 +227649,7 @@ udev
 dev
 );
 
-76 
+77 
 °rMaj‹
  = 
 	`udev_devi˚_gë_¥›îty_vÆue
@@ -227637,7 +227657,7 @@ dev
 dev
 , "MAJOR");
 
-78 
+79 
 iMaj‹
  = 
 	`°r_to_i32
@@ -227645,11 +227665,11 @@ iMaj‹
 °rMaj‹
 );
 
-79 
+80 
 iMaj‹
 ) {
 
-82 
+83 
 DiskProfûe
  
 	`¥ofûe
@@ -227657,7 +227677,13 @@ DiskProfûe
 °rSysName
 );
 
-83 
+84 i‡(
+¥ofûe
+.
+m_°rSymLök
+ != "nuuo_satadom")
+
+85 
 m_m≠DiskProfûes
 [
 °rSysName
@@ -227665,7 +227691,7 @@ m_m≠DiskProfûes
 ¥ofûe
 ;
 
-88 
+90 
 MDProfûe
  
 	`¥ofûe
@@ -227673,7 +227699,23 @@ MDProfûe
 °rSysName
 );
 
-89 
+92 i‡(!
+¥ofûe
+.
+m_bInMDSèt
+) {
+
+93 
+	`¥ötf
+("%s:Çon-functional MD device.\n",
+
+94 
+°rSysName
+.
+	`c_°r
+());
+
+98 
 m_m≠MDProfûes
 [
 °rSysName
@@ -227681,7 +227723,7 @@ m_m≠MDProfûes
 ¥ofûe
 ;
 
-90 
+99 
 	`SëMDNum
 (
 m_m≠MDProfûes
@@ -227691,7 +227733,7 @@ m_m≠MDProfûes
 m_iMDNum
 );
 
-92 i‡(
+101 i‡(
 NULL
  =
 m_m≠MDProfûes
@@ -227703,7 +227745,7 @@ m_fsMgr
 	`gë
 ())
 
-93 
+102 
 m_m≠MDProfûes
 [
 °rSysName
@@ -227711,7 +227753,7 @@ m_m≠MDProfûes
 	`InôülizeFSM™agî
 ();
 
-95 i‡(
+104 i‡(
 m_m≠MDProfûes
 [
 °rSysName
@@ -227721,7 +227763,7 @@ m_fsMgr
 	`gë
 ()) {
 
-96 i‡(
+105 i‡(!
 m_m≠MDProfûes
 [
 °rSysName
@@ -227731,19 +227773,7 @@ m_fsMgr
 	`IsInôülized
 ()) {
 
-97 
-	`SëVﬁumeNum
-(
-m_m≠MDProfûes
-[
-°rSysName
-].
-m_fsMgr
-->
-	`GëVﬁumeNum
-());
-
-99 
+106 i‡(!
 m_m≠MDProfûes
 [
 °rSysName
@@ -227751,9 +227781,37 @@ m_m≠MDProfûes
 m_fsMgr
 ->
 	`Inôülize
+())
+
+110 
+num
+ = 
+m_m≠MDProfûes
+[
+°rSysName
+].
+m_fsMgr
+->
+	`GëVﬁumeNum
 ();
 
-100 
+111 i‡(
+num
+ < 0) {
+
+113 
+m_m≠MDProfûes
+[
+°rSysName
+].
+m_fsMgr
+->
+	`SëVﬁumeNum
+(
+	`GëFªeVﬁumeNum
+());
+
+115 
 	`SëVﬁumeNum
 (
 m_m≠MDProfûes
@@ -227765,45 +227823,45 @@ m_fsMgr
 	`GëVﬁumeNum
 ());
 
-103 
+117 
 	`¥ötf
 ("[%s] FilesystemManager initializationÑetried failed.\n",
 
-104 
+118 
 °rSysName
 .
 	`c_°r
 ());
 
-111 
+125 
 	`udev_devi˚_uƒef
 (
 dev
 );
 
-113 
+127 
 	`udev_íumî©e_uƒef
 (
 íumî©e
 );
 
-114 
+128 
 	`udev_uƒef
 (
 udev
 );
 
-121 
+135 
 	}
 }
 
-123 
+137 
 	gRAIDM™agî
 ::
 	$GëFªeMDNum
 ()
 
-125 
+139 
 CrôiˇlSe˘i⁄Lock
  
 	`cs_md
@@ -227811,17 +227869,17 @@ CrôiˇlSe˘i⁄Lock
 m_csU£dMD
 );
 
-126 
+140 
 i
  = 0 ; i < 128; i++) {
 
-127 i‡(!
+141 i‡(!
 m_bU£dMD
 [
 i
 ]) {
 
-128 
+142 
 m_bU£dMD
 [
 i
@@ -227829,25 +227887,19 @@ i
 åue
 ;
 
-129  
+143  
 i
 ;
 
-133 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
+147 
+	`SëLa°Eº‹
+("No free MDÇumber for creating RAID.\n");
 
-136 
+149 
 	}
 }
 
-138 
+151 
 	gRAIDM™agî
 ::
 	$FªeMDNum
@@ -227855,11 +227907,11 @@ LOG_LABEL
 n
 )
 
-140 i‡(
+153 i‡(
 n
  < 0 ||Ç > 127)
 
-143 
+156 
 CrôiˇlSe˘i⁄Lock
  
 	`cs_md
@@ -227867,7 +227919,7 @@ CrôiˇlSe˘i⁄Lock
 m_csU£dMD
 );
 
-144 
+157 
 m_bU£dMD
 [
 n
@@ -227875,11 +227927,11 @@ n
 Ál£
 ;
 
-145 
+158 
 	}
 }
 
-147 
+160 
 	gRAIDM™agî
 ::
 	$SëMDNum
@@ -227887,11 +227939,11 @@ n
 n
 )
 
-149 i‡(
+162 i‡(
 n
  < 0 ||Ç > 127)
 
-152 
+165 
 CrôiˇlSe˘i⁄Lock
  
 	`cs_md
@@ -227899,7 +227951,7 @@ CrôiˇlSe˘i⁄Lock
 m_csU£dMD
 );
 
-153 
+166 
 m_bU£dMD
 [
 n
@@ -227907,77 +227959,17 @@ n
 åue
 ;
 
-154 
+167 
 	}
 }
 
-156 
-	gRAIDM™agî
-::
-	$GëF‹mîVﬁumeNum
-(
-n
-)
-
-158 
-CrôiˇlSe˘i⁄Lock
- 
-	`cs_md
-(&
-m_csU£dVﬁume
-);
-
-160 i‡(
-m_bU£dVﬁume
-[
-n
-]) {
-
-161 
-i
- = 0; i < 128; i++) {
-
-162 i‡(!
-m_bU£dMD
-[
-i
-]) {
-
-163 
-m_bU£dMD
-[
-i
-] = 
-åue
-;
-
-164  
-i
-;
-
-170 
-m_bU£dVﬁume
-[
-n
-] = 
-åue
-;
-
-171  
-n
-;
-
-173 
-	}
-}
-
-175 
+169 
 	gRAIDM™agî
 ::
 	$GëFªeVﬁumeNum
 ()
 
-177 
+171 
 CrôiˇlSe˘i⁄Lock
  
 	`cs_md
@@ -227985,17 +227977,17 @@ CrôiˇlSe˘i⁄Lock
 m_csU£dVﬁume
 );
 
-178 
+172 
 i
  = 0 ; i < 128; i++) {
 
-179 i‡(!
+173 i‡(!
 m_bU£dVﬁume
 [
 i
 ]) {
 
-180 
+174 
 m_bU£dVﬁume
 [
 i
@@ -228003,25 +227995,19 @@ i
 åue
 ;
 
-181  
+175  
 i
 ;
 
-185 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
+179 
+	`SëLa°Eº‹
+("Exceed maximal volumeÜimitation.\n");
 
-188 
+181 
 	}
 }
 
-190 
+183 
 	gRAIDM™agî
 ::
 	$FªeVﬁumeNum
@@ -228029,11 +228015,11 @@ LOG_LABEL
 n
 )
 
-192 i‡(
+185 i‡(
 n
  < 0 ||Ç > 127)
 
-195 
+188 
 CrôiˇlSe˘i⁄Lock
  
 	`cs_md
@@ -228041,7 +228027,7 @@ CrôiˇlSe˘i⁄Lock
 m_csU£dVﬁume
 );
 
-196 
+189 
 m_bU£dVﬁume
 [
 n
@@ -228049,11 +228035,11 @@ n
 Ál£
 ;
 
-197 
+190 
 	}
 }
 
-199 
+192 
 	gRAIDM™agî
 ::
 	$SëVﬁumeNum
@@ -228061,11 +228047,11 @@ n
 n
 )
 
-201 i‡(
+194 i‡(
 n
  < 0 ||Ç > 127)
 
-204 
+197 
 CrôiˇlSe˘i⁄Lock
  
 	`cs_md
@@ -228073,7 +228059,7 @@ CrôiˇlSe˘i⁄Lock
 m_csU£dVﬁume
 );
 
-205 
+198 
 m_bU£dVﬁume
 [
 n
@@ -228081,25 +228067,25 @@ n
 åue
 ;
 
-206 
+199 
 	}
 }
 
-208 
+201 
 	gRAIDM™agî
 ::
 	$QuîyMDSu≥rBlockInDisk
 (c⁄° 
 °rög
 & 
-dev
+dev_∑th
 , 
 examöe_ªsu…
  &
 ªsu…
 )
 
-210 
+203 
 ve˘‹
 <
 °rög
@@ -228107,7 +228093,7 @@ ve˘‹
 vDevLi°
 ;
 
-211 
+204 
 mddev_dev
 * 
 devli°
@@ -228115,25 +228101,25 @@ devli°
 NULL
 ;
 
-212 
+205 
 c⁄ãxt
  
 c
 ;
 
-213 
+206 
 îr
  = 0;
 
-215 
+208 
 vDevLi°
 .
 	`push_back
 (
-dev
+dev_∑th
 );
 
-216 i‡(
+209 i‡(
 NULL
  =(
 devli°
@@ -228143,23 +228129,23 @@ devli°
 vDevLi°
 ))) {
 
-217 
+210 
 îr
  = 
 EXAMINE_MEM_ALLOC_FAIL
 ;
 
-218  
+211  
 îr
 ;
 
-221 
+214 
 	`InôülizeC⁄ãxt
 (
 c
 );
 
-222 
+215 
 îr
  = 
 	`Examöe_ToResu…
@@ -228173,15 +228159,45 @@ NULL
 ªsu…
 );
 
-223 
+216 
 	`FªeDevLi°
 (
 devli°
 );
 
-225  
+218  
 îr
 ;
+
+219 
+	}
+}
+
+221 
+	gRAIDM™agî
+::
+	$NŸifyCh™ge
+()
+
+223 
+CrôiˇlSe˘i⁄Lock
+ 
+	`cs_NŸifyCh™ge
+(&
+m_csNŸifyCh™ge
+);
+
+224 i‡(
+NULL
+ =
+m_pNŸifyCh™ge
+)
+
+225 
+m_pNŸifyCh™ge
+->
+	`£t
+();
 
 226 
 	}
@@ -228199,49 +228215,23 @@ boﬁ
 dev
 )
 
-231 i‡(
+230 i‡(
 dev
 .
 	`em±y
 ())
 
-232  
+231  
 Ál£
 ;
 
-237 i‡(!
-	`CheckBlockDevi˚
-(
-dev
-)) {
-
-238 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-239 "%†i†nŸá block devi˚.\n", 
-dev
-.
-	`c_°r
-());
-
-240  
-Ál£
-;
-
-243 
+233 
 m_csDiskProfûes
 .
 	`Lock
 ();
 
-244 
+234 
 DiskProfûe
  
 	`¥ofûe
@@ -228249,7 +228239,7 @@ DiskProfûe
 dev
 );
 
-245 
+235 
 m_m≠DiskProfûes
 [
 dev
@@ -228257,41 +228247,31 @@ dev
 ¥ofûe
 ;
 
-246 
+236 
 m_csDiskProfûes
 .
 	`U∆ock
 ();
 
-248 
-CrôiˇlSe˘i⁄Lock
- 
-	`cs_NŸifyCh™ge
-(&
-m_csNŸifyCh™ge
-);
-
-249 i‡(
-NULL
- =
-m_pNŸifyCh™ge
-)
-
-250 
-m_pNŸifyCh™ge
-->
-	`£t
+237 
+m_£mAs£mbÀ
+.
+	`Po°
 ();
 
-252  
+238 
+	`NŸifyCh™ge
+();
+
+240  
 åue
 ;
 
-253 
+241 
 	}
 }
 
-255 
+243 
 boﬁ
  
 	gRAIDM™agî
@@ -228303,23 +228283,23 @@ boﬁ
 dev
 )
 
-258 i‡(
+245 i‡(
 dev
 .
 	`em±y
 ())
 
-259  
+246  
 Ál£
 ;
 
-261 
+248 
 m_csDiskProfûes
 .
 	`Lock
 ();
 
-262 
+249 
 m≠
 <
 °rög
@@ -228331,7 +228311,7 @@ DiskProfûe
 ô
 ;
 
-263 
+250 
 ô
  = 
 m_m≠DiskProfûes
@@ -228341,7 +228321,7 @@ m_m≠DiskProfûes
 dev
 );
 
-264 
+251 
 m_m≠DiskProfûes
 .
 	`îa£
@@ -228349,41 +228329,25 @@ m_m≠DiskProfûes
 ô
 );
 
-265 
+252 
 m_csDiskProfûes
 .
 	`U∆ock
 ();
 
-267 
-CrôiˇlSe˘i⁄Lock
- 
-	`cs_NŸifyCh™ge
-(&
-m_csNŸifyCh™ge
-);
-
-268 i‡(
-NULL
- =
-m_pNŸifyCh™ge
-)
-
-269 
-m_pNŸifyCh™ge
-->
-	`£t
+253 
+	`NŸifyCh™ge
 ();
 
-271  
+255  
 åue
 ;
 
-272 
+256 
 	}
 }
 
-274 
+258 
 boﬁ
  
 	gRAIDM™agî
@@ -228392,39 +228356,39 @@ boﬁ
 (c⁄° 
 °rög
 & 
-mddev
+mddev_∑th
 ,
 
-275 
+259 
 ¨øy_dëaû
  &
 ad
 )
 
-277 
+261 
 c⁄ãxt
  
 c
 ;
 
-278 
+262 
 ªt
  = 
 SUCCESS
 ;
 
-280 
+264 
 	`InôülizeC⁄ãxt
 (
 c
 );
 
-281 
+265 
 ªt
  = 
 	`Dëaû_ToAºayDëaû
 (
-mddev
+mddev_∑th
 .
 	`c_°r
 (), &
@@ -228433,13 +228397,13 @@ c
 ad
 );
 
-282 i‡(
+266 i‡(
 ªt
  !
 SUCCESS
 ) {
 
-283 
+267 
 	`WrôeHWLog
 (
 LOG_LOCAL1
@@ -228449,29 +228413,29 @@ LOG_DEBUG
 LOG_LABEL
 ,
 
-285 
+269 
 __LINE__
 , 
-mddev
+mddev_∑th
 .
 	`c_°r
 (), 
 ªt
 );
 
-286  
+270  
 Ál£
 ;
 
-289  
+273  
 åue
 ;
 
-290 
+274 
 	}
 }
 
-292 
+276 
 	gRAIDM™agî
 ::
 	$InôülizeSh≠e
@@ -228491,7 +228455,7 @@ bôm≠_chunk
 bôm≠_fûe
 )
 
-294 
+278 
 	`mem£t
 (&
 s
@@ -228499,19 +228463,19 @@ s
 sh≠e
 ));
 
-295 
+279 
 s
 .
 øiddisks
  =Ñaiddisks;
 
-296 
+280 
 s
 .
 Àvñ
  =Üevel;
 
-297 
+281 
 s
 .
 œyout
@@ -228519,35 +228483,35 @@ s
 UnSë
 ;
 
-298 
+282 
 s
 .
 bôm≠_chunk
  = bitmap_chunk;
 
-299 
+283 
 s
 .
 chunk
  = chunk;
 
-300 
+284 
 s
 .
 assume_˛ón
  = 0;
 
-301 
+285 
 s
 .
 bôm≠_fûe
  = bitmap_file;
 
-302 
+286 
 	}
 }
 
-304 
+288 
 	gRAIDM™agî
 ::
 	$InôülizeC⁄ãxt
@@ -228563,7 +228527,7 @@ run°›
 vîbo£
 )
 
-306 
+290 
 	`mem£t
 (&
 c
@@ -228571,13 +228535,13 @@ c
 c⁄ãxt
 ));
 
-307 
+291 
 c
 .
 f‹˚
  = force;
 
-308 
+292 
 c
 .
 dñay
@@ -228585,29 +228549,29 @@ dñay
 DEFAULT_BITMAP_DELAY
 ;
 
-309 
+293 
 c
 .
 run°›
  =Ñunstop;
 
-310 
+294 
 c
 .
 vîbo£
  = verbose;
 
-311 
+295 
 c
 .
 brõf
  = 0;
 
-312 
+296 
 	}
 }
 
-314 
+298 
 	gRAIDM™agî
 ::
 	$InôülizeMDDevIdít
@@ -228625,7 +228589,7 @@ bôm≠_fd
 bôm≠_fûe
 )
 
-316 
+300 
 	`mem£t
 (&
 idít
@@ -228633,13 +228597,13 @@ idít
 mddev_idít
 ));
 
-317 
+301 
 idít
 .
 uuid_£t
  = uuid_set;
 
-318 
+302 
 idít
 .
 su≥r_mö‹
@@ -228647,7 +228611,7 @@ su≥r_mö‹
 UnSë
 ;
 
-319 
+303 
 idít
 .
 Àvñ
@@ -228655,7 +228619,7 @@ idít
 UnSë
 ;
 
-320 
+304 
 idít
 .
 øid_disks
@@ -228663,7 +228627,7 @@ idít
 UnSë
 ;
 
-321 
+305 
 idít
 .
 •¨e_disks
@@ -228671,23 +228635,23 @@ idít
 UnSë
 ;
 
-322 
+306 
 idít
 .
 bôm≠_fd
  = bitmap_fd;
 
-323 
+307 
 idít
 .
 bôm≠_fûe
  = bitmap_file;
 
-324 i‡(
+308 i‡(
 uuid_£t
 ) {
 
-325 
+309 
 	`mem˝y
 (
 idít
@@ -228695,11 +228659,11 @@ idít
 uuid
 , uuid, () * 4);
 
-326 
+310 
 i
  = 0; i < 4; i++) {
 
-327 
+311 
 idít
 .
 uuid
@@ -228709,11 +228673,11 @@ i
 	`__be32_to_˝u
 (ident.uuid[i]);
 
-330 
+314 
 	}
 }
 
-332 
+316 
 mddev_dev
 * 
 	gRAIDM™agî
@@ -228727,7 +228691,7 @@ mddev_dev
 wôh
 )
 
-334 
+318 
 mddev_dev
 * 
 devli°
@@ -228735,7 +228699,7 @@ devli°
 NULL
 ;
 
-335 
+319 
 mddev_dev
 ** 
 devli°íd
@@ -228743,7 +228707,7 @@ devli°íd
 devli°
 ;
 
-336 
+320 
 mddev_dev
 * 
 dv
@@ -228751,7 +228715,7 @@ dv
 NULL
 ;
 
-338 i‡(
+322 i‡(
 ª∂a˚
 .
 	`em±y
@@ -228759,17 +228723,17 @@ NULL
 wôh
 .empty())
 
-339  
+323  
 NULL
 ;
 
-341 
+325 
 devli°
  = 
 NULL
 ;
 
-342 
+326 
 dv
  = (
 mddev_dev
@@ -228777,13 +228741,13 @@ mddev_dev
 	`mÆloc
 ((mddev_dev));
 
-343 i‡(
+327 i‡(
 dv
  =
 NULL
 ) {
 
-344 
+328 
 	`WrôeHWLog
 (
 LOG_LOCAL1
@@ -228793,15 +228757,15 @@ LOG_DEBUG
 LOG_LABEL
 ,
 
-345 "[%d] FaûÅÿÆloˇã mem‹y.\n", 
+329 "[%d] FaûÅÿÆloˇã mem‹y.\n", 
 __LINE__
 );
 
-346  
+330  
 NULL
 ;
 
-348 
+332 
 dv
 ->
 dev«me
@@ -228811,25 +228775,25 @@ dev«me
 	`c_°r
 ();
 
-349 
+333 
 dv
 ->
 di•osôi⁄
  = 'R';
 
-350 
+334 
 dv
 ->
 wrôemo°ly
  = 0;
 
-351 
+335 
 dv
 ->
 u£d
  = 0;
 
-352 
+336 
 dv
 ->
 √xt
@@ -228837,13 +228801,13 @@ dv
 NULL
 ;
 
-353 *
+337 *
 devli°íd
  = 
 dv
 ;
 
-354 
+338 
 devli°íd
  = &
 dv
@@ -228851,7 +228815,7 @@ dv
 √xt
 ;
 
-356 
+340 
 dv
  = (
 mddev_dev
@@ -228859,19 +228823,19 @@ mddev_dev
 	`mÆloc
 ((mddev_dev));
 
-357 i‡(
+341 i‡(
 dv
  =
 NULL
 ) {
 
-358 
+342 
 	`FªeDevLi°
 (
 devli°
 );
 
-359 
+343 
 	`WrôeHWLog
 (
 LOG_LOCAL1
@@ -228881,15 +228845,15 @@ LOG_DEBUG
 LOG_LABEL
 ,
 
-360 "[%d] FaûÅÿÆloˇã mem‹y.\n", 
+344 "[%d] FaûÅÿÆloˇã mem‹y.\n", 
 __LINE__
 );
 
-361  
+345  
 NULL
 ;
 
-363 
+347 
 dv
 ->
 dev«me
@@ -228899,25 +228863,25 @@ wôh
 	`c_°r
 ();
 
-364 
+348 
 dv
 ->
 di•osôi⁄
  = 'w';
 
-365 
+349 
 dv
 ->
 wrôemo°ly
  = 0;
 
-366 
+350 
 dv
 ->
 u£d
  = 0;
 
-367 
+351 
 dv
 ->
 √xt
@@ -228925,13 +228889,13 @@ dv
 NULL
 ;
 
-368 *
+352 *
 devli°íd
  = 
 dv
 ;
 
-369 
+353 
 devli°íd
  = &
 dv
@@ -228939,15 +228903,15 @@ dv
 √xt
 ;
 
-371  
+355  
 devli°
 ;
 
-372 
+356 
 	}
 }
 
-374 
+358 
 mddev_dev
 * 
 	gRAIDM™agî
@@ -228963,7 +228927,7 @@ devNameLi°
 di•osôi⁄
 )
 
-376 
+360 
 mddev_dev
 * 
 	gdevli°
@@ -228971,7 +228935,7 @@ mddev_dev
 NULL
 ;
 
-377 
+361 
 mddev_dev
 ** 
 	gdevli°íd
@@ -228979,7 +228943,7 @@ mddev_dev
 devli°
 ;
 
-378 
+362 
 mddev_dev
 * 
 	gdv
@@ -228987,17 +228951,17 @@ mddev_dev
 NULL
 ;
 
-380 i‡(
+364 i‡(
 	gdevNameLi°
 .
 em±y
 ())
 
-381  
+365  
 	gNULL
 ;
 
-383 
+367 
 size_t
  
 	gi
@@ -229007,7 +228971,7 @@ size_t
 size
 (); i ++) {
 
-384 
+368 
 	gdv
  = (
 mddev_dev
@@ -229015,19 +228979,19 @@ mddev_dev
 mÆloc
 ((mddev_dev));
 
-385 i‡(
+369 i‡(
 	gdv
  =
 NULL
 ) {
 
-386 
+370 
 FªeDevLi°
 (
 devli°
 );
 
-387 
+371 
 WrôeHWLog
 (
 LOG_LOCAL1
@@ -229037,15 +229001,15 @@ LOG_DEBUG
 LOG_LABEL
 ,
 
-388 "[%d] FaûÅÿÆloˇã mem‹y.\n", 
+372 "[%d] FaûÅÿÆloˇã mem‹y.\n", 
 __LINE__
 );
 
-389  
+373  
 	gNULL
 ;
 
-391 
+375 
 	gdv
 ->
 	gdev«me
@@ -229057,7 +229021,7 @@ i
 c_°r
 ();
 
-392 
+376 
 	gdv
 ->
 	gdi•osôi⁄
@@ -229065,19 +229029,19 @@ c_°r
 di•osôi⁄
 ;
 
-393 
+377 
 	gdv
 ->
 	gwrôemo°ly
  = 0;
 
-394 
+378 
 	gdv
 ->
 	gu£d
  = 0;
 
-395 
+379 
 	gdv
 ->
 	g√xt
@@ -229085,13 +229049,13 @@ di•osôi⁄
 NULL
 ;
 
-396 *
+380 *
 	gdevli°íd
  = 
 dv
 ;
 
-397 
+381 
 	gdevli°íd
  = &
 dv
@@ -229099,11 +229063,11 @@ dv
 √xt
 ;
 
-400  
+384  
 	gdevli°
 ;
 
-403 
+387 
 	gRAIDM™agî
 ::
 	$FªeDevLi°
@@ -229113,7 +229077,7 @@ mddev_dev
 devli°
 )
 
-405 
+389 
 mddev_dev
 * 
 dv
@@ -229121,7 +229085,7 @@ dv
 NULL
 ;
 
-406 
+390 
 dv
  = 
 devli°
@@ -229129,71 +229093,63 @@ devli°
 √xt
 ) {
 
-407 
+391 
 	`‰ì
 (
 dv
 );
 
-409 
+393 
 devli°
  = 
 NULL
 ;
 
-410 
+394 
 	}
 }
 
-412 
+396 
 	gRAIDM™agî
 ::
 	$O≥nMDDev
 (c⁄° 
 °rög
 & 
-mddev
+mddev_∑th
 )
 
-414 
+398 
 fd
  = 
 	`›í_mddev
 ((*)
-mddev
+mddev_∑th
 .
 	`c_°r
 (), 1);
 
-415 i‡(
+399 i‡(
 fd
  < 0) {
 
-416 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-417 "FaûÅÿ›í MD devi˚. %s\n", 
-mddev
+400 
+	`SëLa°Eº‹
+("FaûÅÿ›í MD devi˚ %s\n", 
+mddev_∑th
 .
 	`c_°r
 ());
 
-420  
+403  
 fd
 ;
 
-421 
+404 
 	}
 }
 
-423 
+406 
 °rög
  
 	gRAIDM™agî
@@ -229203,17 +229159,17 @@ fd
 num
 )
 
-425  
+408  
 	`°rög_f‹m©
 ("md%d", 
 num
 );
 
-426 
+409 
 	}
 }
 
-428 
+411 
 boﬁ
  
 	gRAIDM™agî
@@ -229229,13 +229185,13 @@ vDevLi°
 Àvñ
 )
 
-430 
+413 
 	gªt
  = 
 SUCCESS
 ;
 
-431 
+414 
 boﬁ
  
 	gbRëry
@@ -229243,19 +229199,19 @@ boﬁ
 Ál£
 ;
 
-432 
+415 
 	g‰ìMD
  = 
 GëFªeMDNum
 ();
 
-433 i‡(
+416 i‡(
 	g‰ìMD
  < 0Ë 
 	gÁl£
 ;
 
-443 
+426 
 CrôiˇlSe˘i⁄Lock
  
 cs_md
@@ -229263,7 +229219,7 @@ cs_md
 m_csMDProfûes
 );
 
-444 
+427 
 	gªt
  = 
 Cª©eRAID
@@ -229277,13 +229233,13 @@ vDevLi°
 Àvñ
 );
 
-445 i‡(
+428 i‡(
 	gªt
  =
 SUCCESS
 ) {
 
-446 
+429 
 WrôeHWLog
 (
 LOG_LOCAL0
@@ -229293,7 +229249,7 @@ LOG_INFO
 LOG_LABEL
 ,
 
-448 
+431 
 Gíî©eMDSysName
 (
 ‰ìMD
@@ -229301,7 +229257,7 @@ Gíî©eMDSysName
 c_°r
 ());
 
-450 
+433 
 MDProfûe
  
 ¥ofûe
@@ -229311,7 +229267,7 @@ Gíî©eMDSysName
 ‰ìMD
 ));
 
-452 i‡(
+435 i‡(
 	g¥ofûe
 .
 	gm_fsMgr
@@ -229321,7 +229277,7 @@ gë
 NULL
 )
 
-453 
+436 
 ¥ofûe
 .
 m_fsMgr
@@ -229329,7 +229285,7 @@ m_fsMgr
 Cª©eThªad
 ();
 
-455 
+438 
 	gm_m≠MDProfûes
 [
 Gíî©eMDSysName
@@ -229339,63 +229295,41 @@ Gíî©eMDSysName
 ¥ofûe
 ;
 
-457 
-CrôiˇlSe˘i⁄Lock
- 
-cs_NŸifyCh™ge
-(&
-m_csNŸifyCh™ge
-);
-
-458 i‡(
-	gm_pNŸifyCh™ge
- !
-NULL
-)
-
-459 
-m_pNŸifyCh™ge
-->
-£t
+439 
+NŸifyCh™ge
 ();
 
-460  
+440  
 	gåue
 ;
 
-461 } i‡(
+441 } i‡(
 	gªt
  =
 CREATE_MDDEV_INUSE
 ) {
 
-463 
+443 
 ‰ìMD
  = 
 GëFªeMDNum
 ();
 
-464 i‡(
+444 i‡(
 	g‰ìMD
  < 0Ë 
 	gÁl£
 ;
 
-467 i‡(
+447 i‡(
 	gbRëry
 ) {
 
-468 
-WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
+448 
+SëLa°Eº‹
+("RetryÅo create %s failed.\n",
 
-470 
+449 
 Gíî©eMDSysName
 (
 ‰ìMD
@@ -229403,25 +229337,25 @@ Gíî©eMDSysName
 c_°r
 ());
 
-471 
+450 
 FªeMDNum
 (
 ‰ìMD
 );
 
-472 
+451 
 	gbRëry
  = 
 Ál£
 ;
 
-474 
+453 
 	gbRëry
  = 
 åue
 ;
 
-476 } 
+455 } 
 	gªt
  =
 CREATE_MDDEV_INUSE
@@ -229429,7 +229363,7 @@ CREATE_MDDEV_INUSE
 bRëry
 );
 
-478 
+457 
 WrôeHWLog
 (
 LOG_LOCAL1
@@ -229439,17 +229373,17 @@ LOG_DEBUG
 LOG_LABEL
 ,
 
-479 "[%d] Cª©êEº‹ Code: (%d)\n", 
+458 "[%d] Cª©êEº‹ Code: (%d)\n", 
 __LINE__
 , 
 ªt
 );
 
-480  
+459  
 	gÁl£
 ;
 
-483 
+462 
 	gRAIDM™agî
 ::
 Cª©eRAID
@@ -229465,27 +229399,27 @@ vDevLi°
 Àvñ
 )
 
-485 i‡(
+464 i‡(
 	gmddev
 .
 em±y
 ())
 
-486  
+465  
 	gCREATE_MDDEV_UNSET
 ;
 
-488 i‡(
+467 i‡(
 	gvDevLi°
 .
 em±y
 ())
 
-489  
+468  
 	gCREATE_RAID_DEVS_NOT_ENOUGH
 ;
 
-491 
+470 
 	gm≠
 <
 	g°rög
@@ -229503,7 +229437,7 @@ föd
 mddev
 );
 
-492 i‡(
+471 i‡(
 	gô
  !
 m_m≠MDProfûes
@@ -229511,7 +229445,7 @@ m_m≠MDProfûes
 íd
 ()) {
 
-493 
+472 
 WrôeHWLog
 (
 LOG_LOCAL1
@@ -229521,23 +229455,25 @@ LOG_DEBUG
 LOG_LABEL
 ,
 
-494 "[%d] Cª©êEº‹ Code: (%d)\n", 
+473 "[%d] Cª©êEº‹ Code: (%d)\n", 
 __LINE__
-, 
+,
+
+474 
 CREATE_MDDEV_INUSE
 );
 
-496  
+476  
 	gCREATE_MDDEV_INUSE
 ;
 
-499 
+479 
 sh≠e
  
 	gs
 ;
 
-500 
+480 
 InôülizeSh≠e
 (
 s
@@ -229549,39 +229485,69 @@ size
 Àvñ
 , 512);
 
-502 
+482 
 c⁄ãxt
  
 	gc
 ;
 
-503 
+483 
 InôülizeC⁄ãxt
 (
 c
 );
 
-505 
+485 
+	gve˘‹
+<
+	g°rög
+> 
+	gvDevP©hLi°
+;
+
+486 
+size_t
+ 
+	gi
+ = 0; i < 
+	gvDevLi°
+.
+size
+(); i++) {
+
+487 
+	gvDevP©hLi°
+.
+push_back
+(
+GëDevi˚NodeBySymLök
+("/dev/" + 
+vDevLi°
+[
+i
+]));
+
+490 
 mddev_dev
 * 
 	gdevli°
  = 
 InôülizeDevLi°
 (
-vDevLi°
+vDevP©hLi°
 );
 
-506 i‡(
+491 i‡(
 	gdevli°
  =
 NULL
 )
 
-507  
+492  
 Ál£
 ;
 
-509 
+494 
 	gªt
  = 
 Cª©e
@@ -229595,10 +229561,10 @@ mddev
 c_°r
 ()).c_str(),
 
-510 
+495 
 NULL
 , NULL, 
-vDevLi°
+vDevP©hLi°
 .
 size
 (), 
@@ -229611,23 +229577,17 @@ c
 INVALID_SECTORS
 );
 
-511 i‡(
+496 i‡(
 	gªt
  !
 SUCCESS
 ) {
 
-512 
-WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
+497 
+SëLa°Eº‹
+("FailÅo create volume %s: (%d)\n",
 
-513 "FaûÅÿ¸óã vﬁumê%s: (%d)\n", 
+498 
 mddev
 .
 c_°r
@@ -229635,21 +229595,21 @@ c_°r
 ªt
 );
 
-514  
+499  
 	gªt
 ;
 
-517 
+502 
 FªeDevLi°
 (
 devli°
 );
 
-518  
+503  
 	gSUCCESS
 ;
 
-521 
+506 
 boﬁ
  
 	gRAIDM™agî
@@ -229663,13 +229623,13 @@ uuid
 mddev
 )
 
-523 
+508 
 ªt
  = 
 SUCCESS
 ;
 
-524 
+509 
 boﬁ
  
 bRëry
@@ -229677,21 +229637,21 @@ bRëry
 Ál£
 ;
 
-525 
+510 
 ‰ìMD
  = 
 	`GëFªeMDNum
 ();
 
-526 i‡(
+511 i‡(
 ‰ìMD
  < 0)
 
-527  
+512  
 Ál£
 ;
 
-530 
+515 
 mddev
  = 
 	`Gíî©eMDSysName
@@ -229699,7 +229659,7 @@ mddev
 ‰ìMD
 );
 
-531 
+516 
 ªt
  = 
 	`As£mbÀRAID
@@ -229709,29 +229669,29 @@ mddev
 uuid
 );
 
-532 i‡(
+517 i‡(
 ªt
  =
 SUCCESS
 ) {
 
-533 * 
+518 * 
 p_uuid
  = (*Ë
 uuid
 ;
 
-534 
+519 
 °rög
  
 	`°rUUID
 ("");
 
-535 
+520 
 i
  = 0; i < 16; i++) {
 
-536 
+521 
 °rUUID
  +
 	`°rög_f‹m©
@@ -229741,7 +229701,7 @@ p_uuid
 i
 ]);
 
-538 
+523 
 	`WrôeHWLog
 (
 LOG_LOCAL0
@@ -229751,7 +229711,7 @@ LOG_INFO
 LOG_LABEL
 ,
 
-539 "%swa†as£mbÀdÅÿ%s.\n", 
+524 "%swa†as£mbÀdÅÿ%s.\n", 
 °rUUID
 .
 	`c_°r
@@ -229759,7 +229719,7 @@ LOG_LABEL
 mddev
 .c_str());
 
-541 
+526 
 MDProfûe
  
 	`¥ofûe
@@ -229767,7 +229727,7 @@ MDProfûe
 mddev
 );
 
-542 
+527 
 m_m≠MDProfûes
 [
 mddev
@@ -229775,67 +229735,67 @@ mddev
 ¥ofûe
 ;
 
-543  
+528  
 åue
 ;
 
-544 } i‡(
+529 } i‡(
 ªt
  =
 ASSEMBLE_MD_ALREADY_ACTIVE
 ) {
 
-545  
+530  
 åue
 ;
 
-546 } i‡(
+531 } i‡(
 ªt
  =
 ASSEMBLE_MDDEV_INUSE
 ) {
 
-547 
+532 
 ‰ìMD
  = 
 	`GëFªeMDNum
 ();
 
-548 i‡(
+533 i‡(
 ‰ìMD
  < 0)
 
-549  
+534  
 Ál£
 ;
 
-551 } i‡(
+536 } i‡(
 ªt
  !
 ASSEMBLE_RAID_DEVS_NOT_ENOUGH
 ) {
 
-552 i‡(
+537 i‡(
 bRëry
 ) {
 
-553 * 
+538 * 
 p_uuid
  = (*Ë
 uuid
 ;
 
-554 
+539 
 °rög
  
 	`°rUUID
 ("");
 
-555 
+540 
 i
  = 0; i < 16; i++) {
 
-556 
+541 
 °rUUID
  +
 	`°rög_f‹m©
@@ -229845,41 +229805,35 @@ p_uuid
 i
 ]);
 
-558 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
+543 
+	`SëLa°Eº‹
+("RetryÅoássemble %s failed.\n",
 
-560 
+544 
 °rUUID
 .
 	`c_°r
 ());
 
-561 
+545 
 	`FªeMDNum
 (
 ‰ìMD
 );
 
-562 
+546 
 bRëry
  = 
 Ál£
 ;
 
-564 
+548 
 bRëry
  = 
 åue
 ;
 
-566 } 
+550 } 
 ªt
  =
 ASSEMBLE_MDDEV_INUSE
@@ -229887,7 +229841,7 @@ ASSEMBLE_MDDEV_INUSE
 bRëry
 );
 
-568 
+552 
 	`WrôeHWLog
 (
 LOG_LOCAL1
@@ -229897,21 +229851,21 @@ LOG_DEBUG
 LOG_LABEL
 ,
 
-569 "[%d] As£mbÀ Eº‹ Code: (%d)\n", 
+553 "[%d] As£mbÀ Eº‹ Code: (%d)\n", 
 __LINE__
 , 
 ªt
 );
 
-570  
+554  
 Ál£
 ;
 
-571 
+555 
 	}
 }
 
-573 
+557 
 	gRAIDM™agî
 ::
 	$As£mbÀRAID
@@ -229923,27 +229877,27 @@ mddev
 uuid
 [4])
 
-579 i‡(
+559 i‡(
 mddev
 .
 	`em±y
 ())
 
-580  
+560  
 ASSEMBLE_MDDEV_UNSET
 ;
 
-586 i‡(
+562 i‡(
 uuid
  =
 NULL
 )
 
-587  
+563  
 ASSEMBLE_INVALID_UUID
 ;
 
-593 
+565 
 m≠
 <
 °rög
@@ -229961,7 +229915,7 @@ m_m≠MDProfûes
 mddev
 );
 
-594 i‡(
+566 i‡(
 ô
  !
 m_m≠MDProfûes
@@ -229969,7 +229923,7 @@ m_m≠MDProfûes
 	`íd
 ()) {
 
-595 
+567 
 	`WrôeHWLog
 (
 LOG_LOCAL1
@@ -229979,23 +229933,23 @@ LOG_DEBUG
 LOG_LABEL
 ,
 
-596 "[%d] As£mbÀ Eº‹ Code: (%d)\n", 
+569 
 __LINE__
 , 
 ASSEMBLE_MDDEV_INUSE
 );
 
-597  
+570  
 ASSEMBLE_MDDEV_INUSE
 ;
 
-603 
+573 
 mddev_idít
  
 idít
 ;
 
-604 
+574 
 	`InôülizeMDDevIdít
 (
 idít
@@ -230003,19 +229957,19 @@ idít
 uuid
 );
 
-610 
+576 
 c⁄ãxt
  
 c
 ;
 
-611 
+577 
 	`InôülizeC⁄ãxt
 (
 c
 );
 
-612 
+578 
 ªt
  = 
 	`As£mbÀ
@@ -230029,7 +229983,7 @@ mddev
 	`c_°r
 ()).c_str(),
 
-613 &
+579 &
 idít
 , 
 NULL
@@ -230037,29 +229991,29 @@ NULL
 c
 );
 
-614 i‡(
+580 i‡(
 ªt
  !
 SUCCESS
 ) {
 
-615 * 
+581 * 
 p_uuid
  = (*Ë
 uuid
 ;
 
-616 
+582 
 °rög
  
 	`°rUUID
 ("");
 
-617 
+583 
 i
  = 0; i < 16; i++) {
 
-618 
+584 
 °rUUID
  +
 	`°rög_f‹m©
@@ -230069,17 +230023,11 @@ p_uuid
 i
 ]);
 
-620 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
+586 
+	`SëLa°Eº‹
+("FailÅoássemble volume %sÅo %s: (%d)\n",
 
-622 
+587 
 °rUUID
 .
 	`c_°r
@@ -230089,15 +230037,15 @@ mddev
 ªt
 );
 
-625  
+590  
 ªt
 ;
 
-626 
+591 
 	}
 }
 
-628 
+593 
 boﬁ
  
 	gRAIDM™agî
@@ -230115,27 +230063,27 @@ vDevLi°
 ›î©i⁄
 )
 
-630 i‡(
+595 i‡(
 	gmddev
 .
 em±y
 ())
 
-631  
+596  
 	gÁl£
 ;
 
-633 i‡(
+598 i‡(
 	gvDevLi°
 .
 em±y
 ())
 
-634  
+599  
 	gÁl£
 ;
 
-636 
+601 
 CrôiˇlSe˘i⁄Lock
  
 cs_md
@@ -230143,7 +230091,7 @@ cs_md
 m_csMDProfûes
 );
 
-637 
+602 
 	gm≠
 <
 	g°rög
@@ -230161,7 +230109,7 @@ föd
 mddev
 );
 
-638 i‡(
+603 i‡(
 	gô
  =
 m_m≠MDProfûes
@@ -230169,27 +230117,19 @@ m_m≠MDProfûes
 íd
 ()) {
 
-639 
-WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-640 "%†d€¢'àexi°.\n", 
+604 
+SëLa°Eº‹
+("%†d€¢'àexi°.\n", 
 mddev
 .
 c_°r
 ());
 
-641  
+605  
 	gÁl£
 ;
 
-644 
+608 
 	gfd
  = 
 O≥nMDDev
@@ -230203,15 +230143,15 @@ m_°rDevP©h
 c_°r
 ());
 
-645 i‡(
+609 i‡(
 	gfd
  < 0)
 
-646  
+610  
 	gÁl£
 ;
 
-657 
+621 
 mddev_dev
 * 
 	gdevli°
@@ -230219,23 +230159,63 @@ mddev_dev
 NULL
 ;
 
-658 
+623 
+	gve˘‹
+<
+	g°rög
+> 
+	gvDevP©hLi°
+;
+
+624 
+size_t
+ 
+	gi
+ = 0; i < 
+	gvDevLi°
+.
+size
+(); i++) {
+
+625 
+	gvDevP©hLi°
+.
+push_back
+(
+GëDevi˚NodeBySymLök
+("/dev/" + 
+vDevLi°
+[
+i
+]));
+
+626 
+¥ötf
+("%s.\n", 
+vDevP©hLi°
+[
+i
+].
+c_°r
+());
+
+629 
 	g›î©i⁄
 ) {
 
-660 i‡(
-vDevLi°
+631 i‡(
+vDevP©hLi°
 .
 size
 () != 2) {
 
-661 
+632 
 ˛o£
 (
 fd
 );
 
-662 
+633 
 WrôeHWLog
 (
 LOG_LOCAL1
@@ -230245,53 +230225,53 @@ LOG_DEBUG
 LOG_LABEL
 ,
 
-664  
+635  
 	gÁl£
 ;
 
-667 i‡(
+638 i‡(
 	gNULL
  =(
 devli°
  = 
 InôülizeDevLi°
 (
-vDevLi°
-[0], vDevList[1]))) {
+vDevP©hLi°
+[0], vDevPathList[1]))) {
 
-668  
+639  
 	gÁl£
 ;
 
-672 i‡(
+643 i‡(
 NULL
  =(
 devli°
  = 
 InôülizeDevLi°
 (
-vDevLi°
+vDevP©hLi°
 , 
 ›î©i⁄
 ))) {
 
-673  
+644  
 	gÁl£
 ;
 
-677 
+648 
 c⁄ãxt
  
 	gc
 ;
 
-678 
+649 
 InôülizeC⁄ãxt
 (
 c
 );
 
-679 
+650 
 	gªt
  = 
 M™age_subdevs
@@ -230317,33 +230297,25 @@ NULL
 f‹˚
 );
 
-680 
+651 
 ˛o£
 (
 fd
 );
 
-681 
+652 
 FªeDevLi°
 (
 devli°
 );
 
-690 i‡(
+654 i‡(
 	gªt
  != 0) {
 
-691 
-WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-692 "FaûÅÿm™agêvﬁumê%s: (%d)\n", 
+655 
+SëLa°Eº‹
+("FaûÅÿm™agêvﬁumê%s: (%d)\n", 
 mddev
 .
 c_°r
@@ -230351,35 +230323,19 @@ c_°r
 ªt
 );
 
-693  
+656  
 	gÁl£
 ;
 
-696 
-CrôiˇlSe˘i⁄Lock
- 
-cs_NŸifyCh™ge
-(&
-m_csNŸifyCh™ge
-);
-
-697 i‡(
-	gm_pNŸifyCh™ge
- !
-NULL
-)
-
-698 
-m_pNŸifyCh™ge
-->
-£t
+659 
+NŸifyCh™ge
 ();
 
-700  
-	gSUCCESS
+661  
+	gåue
 ;
 
-703 
+664 
 boﬁ
  
 	gRAIDM™agî
@@ -230395,7 +230351,7 @@ ve˘‹
 vDevLi°
 )
 
-705  
+666  
 M™ageRAIDSubdevs
 (
 mddev
@@ -230403,7 +230359,7 @@ mddev
 vDevLi°
 , 'r');
 
-708 
+669 
 boﬁ
  
 	gRAIDM™agî
@@ -230419,7 +230375,7 @@ ve˘‹
 vDevLi°
 )
 
-710  
+671  
 M™ageRAIDSubdevs
 (
 mddev
@@ -230427,7 +230383,7 @@ mddev
 vDevLi°
 , 'f');
 
-713 
+674 
 boﬁ
  
 	gRAIDM™agî
@@ -230443,7 +230399,7 @@ ve˘‹
 vDevLi°
 )
 
-715  
+676  
 M™ageRAIDSubdevs
 (
 mddev
@@ -230451,7 +230407,7 @@ mddev
 vDevLi°
 , 'a');
 
-718 
+679 
 boﬁ
  
 	gRAIDM™agî
@@ -230467,7 +230423,7 @@ ve˘‹
 vDevLi°
 )
 
-720  
+681  
 M™ageRAIDSubdevs
 (
 mddev
@@ -230475,7 +230431,7 @@ mddev
 vDevLi°
 , 'A');
 
-723 
+684 
 boﬁ
  
 	gRAIDM™agî
@@ -230491,7 +230447,7 @@ mddev
 wôh
 )
 
-725 i‡(
+686 i‡(
 ª∂a˚
 .
 	`em±y
@@ -230499,11 +230455,11 @@ wôh
 wôh
 .empty())
 
-726  
+687  
 Ál£
 ;
 
-728 
+689 
 ve˘‹
 <
 °rög
@@ -230511,7 +230467,7 @@ ve˘‹
 vDevLi°
 ;
 
-729 
+690 
 vDevLi°
 .
 	`push_back
@@ -230519,7 +230475,7 @@ vDevLi°
 ª∂a˚
 );
 
-730 
+691 
 vDevLi°
 .
 	`push_back
@@ -230527,7 +230483,7 @@ vDevLi°
 wôh
 );
 
-732  
+693  
 	`M™ageRAIDSubdevs
 (
 mddev
@@ -230535,11 +230491,11 @@ mddev
 vDevLi°
 , 'R');
 
-733 
+694 
 	}
 }
 
-735 
+696 
 boﬁ
  
 	gRAIDM™agî
@@ -230551,17 +230507,17 @@ boﬁ
 mddev
 )
 
-737 i‡(
+698 i‡(
 mddev
 .
 	`em±y
 ())
 
-738  
+699  
 Ál£
 ;
 
-740 
+701 
 CrôiˇlSe˘i⁄Lock
  
 	`cs_md
@@ -230569,7 +230525,7 @@ CrôiˇlSe˘i⁄Lock
 m_csMDProfûes
 );
 
-741 
+702 
 m≠
 <
 °rög
@@ -230587,7 +230543,7 @@ m_m≠MDProfûes
 mddev
 );
 
-742 i‡(
+703 i‡(
 ô
  =
 m_m≠MDProfûes
@@ -230595,27 +230551,19 @@ m_m≠MDProfûes
 	`íd
 ()) {
 
-743 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-744 "%†d€¢'àexi°.\n", 
+704 
+	`SëLa°Eº‹
+("%†d€¢'àexi°.\n", 
 mddev
 .
 	`c_°r
 ());
 
-745  
+705  
 åue
 ;
 
-749 
+709 
 °©
  = 
 WRITE_INODE_TABLES_UNKNOWN
@@ -230623,7 +230571,7 @@ WRITE_INODE_TABLES_UNKNOWN
 ¥ogªss
  = -1;
 
-750 i‡(
+710 i‡(
 ô
 ->
 £c⁄d
@@ -230639,7 +230587,7 @@ m_fsMgr
 °©
 )) {
 
-751 
+711 
 	`WrôeHWLog
 (
 LOG_LOCAL0
@@ -230649,7 +230597,7 @@ LOG_INFO
 LOG_LABEL
 ,
 
-753 
+713 
 mddev
 .
 	`c_°r
@@ -230659,21 +230607,11 @@ mddev
 ¥ogªss
 );
 
-754  
+714  
 Ál£
 ;
 
-757 i‡(
-ô
-->
-£c⁄d
-.
-m_fsMgr
-.
-	`gë
-()) {
-
-758 
+717 
 ô
 ->
 £c⁄d
@@ -230683,7 +230621,7 @@ m_fsMgr
 	`Unmou¡
 ();
 
-759 
+718 
 	`FªeVﬁumeNum
 (
 ô
@@ -230695,41 +230633,47 @@ m_fsMgr
 	`GëVﬁumeNum
 ());
 
-762 
+720 
 fd
  = 
 	`O≥nMDDev
 (
-mddev
-);
+ô
+->
+£c⁄d
+.
+m_°rDevP©h
+.
+	`c_°r
+());
 
-763 i‡(
+721 i‡(
 fd
  < 0)
 
-764  
+722  
 Ál£
 ;
 
-766 
+724 
 c⁄ãxt
  
 c
 ;
 
-767 
+725 
 ªt
  = 
 SUCCESS
 ;
 
-769 
+727 
 	`InôülizeC⁄ãxt
 (
 c
 );
 
-770 
+728 
 ªt
  = 
 	`M™age_°›
@@ -230749,29 +230693,21 @@ c
 vîbo£
 , 0);
 
-771 
+729 
 	`˛o£
 (
 fd
 );
 
-773 i‡(
+731 i‡(
 ªt
  !
 SUCCESS
 ) {
 
-774 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-776 
+732 
+	`SëLa°Eº‹
+("FaûÅÿ°› RAID %s: %d\n", 
 mddev
 .
 	`c_°r
@@ -230779,11 +230715,11 @@ mddev
 ªt
 );
 
-777  
+733  
 Ál£
 ;
 
-780 
+736 
 	`FªeMDNum
 (
 ô
@@ -230793,7 +230729,7 @@ mddev
 m_iMDNum
 );
 
-781 
+737 
 m_m≠MDProfûes
 .
 	`îa£
@@ -230801,15 +230737,15 @@ m_m≠MDProfûes
 ô
 );
 
-783  
+739  
 åue
 ;
 
-784 
+740 
 	}
 }
 
-786 
+742 
 boﬁ
  
 	gRAIDM™agî
@@ -230821,7 +230757,49 @@ boﬁ
 mddev
 )
 
-788 
+744 
+¨øy_dëaû
+ 
+ad
+;
+
+745 
+c⁄ãxt
+ 
+c
+;
+
+746 
+boﬁ
+ 
+bQuîyDëaûOK
+ = 
+Ál£
+;
+
+747 
+ªt
+ = 
+SUCCESS
+;
+
+748 
+	`InôülizeC⁄ãxt
+(
+c
+);
+
+751 
+bQuîyDëaûOK
+ = 
+	`QuîyMDDëaû
+("/dev/" + 
+mddev
+, 
+ad
+);
+
+753 
 CrôiˇlSe˘i⁄Lock
  
 	`cs
@@ -230829,35 +230807,17 @@ CrôiˇlSe˘i⁄Lock
 m_csDiskProfûes
 );
 
-789 i‡(!
+754 i‡(!
 	`St›RAID
 (
 mddev
 ))
 
-790  
+755  
 Ál£
 ;
 
-792 
-c⁄ãxt
- 
-c
-;
-
-793 
-ªt
- = 
-SUCCESS
-;
-
-795 
-	`InôülizeC⁄ãxt
-(
-c
-);
-
-796 
+757 
 m≠
 <
 °rög
@@ -230873,7 +230833,7 @@ m_m≠DiskProfûes
 	`begö
 ();
 
-797 
+758 
 ô
  !
 m_m≠DiskProfûes
@@ -230881,7 +230841,27 @@ m_m≠DiskProfûes
 	`íd
 ()) {
 
-798 i‡(
+759 
+examöe_ªsu…
+ 
+î
+;
+
+760 
+ªt
+ = 
+	`QuîyMDSu≥rBlockInDisk
+(
+ô
+->
+£c⁄d
+.
+m_°rDevP©h
+, 
+î
+);
+
+762 i‡(
 mddev
  =
 ô
@@ -230889,9 +230869,29 @@ mddev
 £c⁄d
 .
 m_°rMDDev
-) {
+ ||
 
-799 
+763 (
+ªt
+ =
+SUCCESS
+ && 
+bQuîyDëaûOK
+ &&
+
+764 0 =
+	`memcmp
+(
+ad
+.
+uuid
+, 
+î
+.
+¨øyUUID
+, (ad.uuid))))
+
+766 
 ô
 ->
 £c⁄d
@@ -230899,7 +230899,7 @@ m_°rMDDev
 	`RódMDSèt
 ();
 
-800 
+767 
 ªt
  = 
 	`Kûl
@@ -230921,13 +230921,13 @@ f‹˚
 vîbo£
 , 0);
 
-801 i‡(
+768 i‡(
 ªt
  !
 SUCCESS
 ) {
 
-802 
+769 
 	`WrôeHWLog
 (
 LOG_LOCAL1
@@ -230937,7 +230937,7 @@ LOG_DEBUG
 LOG_LABEL
 ,
 
-804 
+771 
 ô
 ->
 fú°
@@ -230947,19 +230947,7 @@ fú°
 ªt
 );
 
-808 
-examöe_ªsu…
- 
-î
-;
-
-809 
-ªt
- = 
-SUCCESS
-;
-
-810 i‡((
+775 i‡((
 ªt
  = 
 	`QuîyMDSu≥rBlockInDisk
@@ -230975,7 +230963,7 @@ m_°rDevP©h
 EXAMINE_NO_MD_SUPERBLOCK
 ) {
 
-811 
+776 
 	`WrôeHWLog
 (
 LOG_LOCAL0
@@ -230985,7 +230973,7 @@ LOG_WARNING
 LOG_LABEL
 ,
 
-813 
+778 
 ô
 ->
 fú°
@@ -230995,7 +230983,7 @@ fú°
 ªt
 );
 
-815 
+780 
 °rög
  
 cmd
@@ -231003,7 +230991,7 @@ cmd
 	`°rög_f‹m©
 ("dd if=/dev/zero of=%s bs=512 count=1",
 
-816 
+781 
 ô
 ->
 £c⁄d
@@ -231013,7 +231001,7 @@ m_°rDevP©h
 	`c_°r
 ());
 
-817 
+782 
 	`sy°em
 (
 cmd
@@ -231021,7 +231009,7 @@ cmd
 	`c_°r
 ());
 
-821 
+784 
 	`WrôeHWLog
 (
 LOG_LOCAL1
@@ -231031,7 +231019,7 @@ LOG_WARNING
 LOG_LABEL
 ,
 
-823 
+786 
 ô
 ->
 fú°
@@ -231039,19 +231027,37 @@ fú°
 	`c_°r
 ());
 
-824 
+789 
+	`WrôeHWLog
+(
+LOG_LOCAL1
+, 
+LOG_WARNING
+, 
+LOG_LABEL
+,
+
+791 
+ô
+->
+fú°
+.
+	`c_°r
+());
+
+792 
 ô
 ++;
 
-827  
+795  
 åue
 ;
 
-828 
+796 
 	}
 }
 
-830 
+798 
 boﬁ
  
 	gRAIDM™agî
@@ -231067,13 +231073,13 @@ RAIDInfo
 öfo
 )
 
-832 
+800 
 ¨øy_dëaû
  
 ad
 ;
 
-833 i‡(!
+801 i‡(!
 	`QuîyMDDëaû
 (
 ¥ofûe
@@ -231083,17 +231089,17 @@ m_°rDevP©h
 ad
 ))
 
-834  
+802  
 Ál£
 ;
 
-836 
+804 
 öfo
  = 
 ad
 ;
 
-837 
+805 
 öfo
 .
 m_°rSysName
@@ -231101,7 +231107,7 @@ m_°rSysName
 ¥ofûe
 .m_strSysName;
 
-838 i‡(
+806 i‡(
 ¥ofûe
 .
 m_fsMgr
@@ -231109,11 +231115,7 @@ m_fsMgr
 	`gë
 ()) {
 
-839 
-num
- = -1;
-
-840 
+807 
 öfo
 .
 m_bMou¡
@@ -231123,11 +231125,9 @@ m_bMou¡
 m_fsMgr
 ->
 	`IsMou¡ed
-(
-num
-);
+();
 
-841 
+808 
 öfo
 .
 m_bF‹m©
@@ -231139,7 +231139,7 @@ m_fsMgr
 	`IsF‹m©ed
 ();
 
-843 i‡(!
+810 i‡(!
 ¥ofûe
 .
 m_fsMgr
@@ -231153,13 +231153,13 @@ m_iF‹m©ögSèã
 m_iF‹m©Progªss
 )) {
 
-844 
+811 
 öfo
 .
 m_iF‹m©Progªss
  = -1;
 
-847 
+814 
 öfo
 .
 m_°rMou¡Poöt
@@ -231171,15 +231171,7 @@ m_fsMgr
 	`GëMou¡Poöt
 ();
 
-850 
-CrôiˇlSe˘i⁄Lock
- 
-	`cs_disk
-(&
-m_csDiskProfûes
-);
-
-851 
+817 
 size_t
  
 i
@@ -231191,11 +231183,11 @@ m_vDiskLi°
 	`size
 (); i++) {
 
-852 
+818 
 csDiskSysName
 [8];
 
-853 
+819 
 	`ssˇnf
 (
 öfo
@@ -231209,17 +231201,17 @@ m_°rDevP©h
 	`c_°r
 (),
 
-854 "/dev/%7[^/\n\à]", 
+820 "/dev/%7[^/\n\à]", 
 csDiskSysName
 );
 
-855 
+821 
 	`¥ötf
 ("Sórch f‹ disk %s'†¥ofûe.\n", 
 csDiskSysName
 );
 
-856 
+822 
 m≠
 <
 °rög
@@ -231237,7 +231229,7 @@ m_m≠DiskProfûes
 csDiskSysName
 );
 
-857 i‡(
+823 i‡(
 ô_disk
  !
 m_m≠DiskProfûes
@@ -231245,7 +231237,7 @@ m_m≠DiskProfûes
 	`íd
 ()) {
 
-858 
+824 
 öfo
 .
 m_vDiskLi°
@@ -231259,15 +231251,15 @@ m_diskProfûe
 £c⁄d
 ;
 
-862  
+828  
 åue
 ;
 
-863 
+829 
 	}
 }
 
-865 
+831 
 boﬁ
  
 	gRAIDM™agî
@@ -231283,17 +231275,25 @@ RAIDInfo
 öfo
 )
 
-867 i‡(
+833 i‡(
 mddev
 .
 	`em±y
 ())
 
-868  
+834  
 Ál£
 ;
 
-870 
+836 
+CrôiˇlSe˘i⁄Lock
+ 
+	`cs_disk
+(&
+m_csDiskProfûes
+);
+
+837 
 CrôiˇlSe˘i⁄Lock
  
 	`cs_md
@@ -231301,7 +231301,7 @@ CrôiˇlSe˘i⁄Lock
 m_csMDProfûes
 );
 
-871 
+838 
 m≠
 <
 °rög
@@ -231319,7 +231319,7 @@ m_m≠MDProfûes
 mddev
 );
 
-872 i‡(
+839 i‡(
 ô
  =
 m_m≠MDProfûes
@@ -231327,27 +231327,19 @@ m_m≠MDProfûes
 	`íd
 ()) {
 
-873 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-874 "%†d€¢'àexi°.\n", 
+840 
+	`SëLa°Eº‹
+("%†d€¢'àexi°.\n", 
 mddev
 .
 	`c_°r
 ());
 
-875  
+841  
 Ál£
 ;
 
-878 i‡(!
+844 i‡(!
 	`Gíî©eRAIDInfo
 (
 ô
@@ -231357,19 +231349,19 @@ mddev
 öfo
 ))
 
-879  
+845  
 Ál£
 ;
 
-881  
+847  
 åue
 ;
 
-882 
+848 
 	}
 }
 
-884 
+850 
 	gRAIDM™agî
 ::
 GëRAIDInfo
@@ -231381,13 +231373,21 @@ RAIDInfo
 li°
 )
 
-886 
+852 
 li°
 .
 ˛ór
 ();
 
-888 
+854 
+CrôiˇlSe˘i⁄Lock
+ 
+cs_disk
+(&
+m_csDiskProfûes
+);
+
+855 
 CrôiˇlSe˘i⁄Lock
  
 cs_md
@@ -231395,7 +231395,7 @@ cs_md
 m_csMDProfûes
 );
 
-889 
+856 
 	gm≠
 <
 	g°rög
@@ -231411,7 +231411,7 @@ m_m≠MDProfûes
 begö
 ();
 
-890 
+857 
 	gô
  !
 m_m≠MDProfûes
@@ -231419,13 +231419,13 @@ m_m≠MDProfûes
 íd
 ()) {
 
-891 
+858 
 RAIDInfo
  
 öfo
 ;
 
-892 i‡(
+859 i‡(
 Gíî©eRAIDInfo
 (
 ô
@@ -231435,7 +231435,7 @@ Gíî©eRAIDInfo
 öfo
 ))
 
-893 
+860 
 	gli°
 .
 push_back
@@ -231443,11 +231443,11 @@ push_back
 öfo
 );
 
-894 
+861 
 	gô
 ++;
 
-898 
+865 
 	gRAIDM™agî
 ::
 GëFªeDisksInfo
@@ -231459,13 +231459,13 @@ RAIDDiskInfo
 li°
 )
 
-900 
+867 
 li°
 .
 ˛ór
 ();
 
-902 
+869 
 CrôiˇlSe˘i⁄Lock
  
 cs
@@ -231473,7 +231473,7 @@ cs
 m_csDiskProfûes
 );
 
-903 
+870 
 	gm≠
 <
 	g°rög
@@ -231489,7 +231489,7 @@ m_m≠DiskProfûes
 begö
 ();
 
-904 
+871 
 	gô
  !
 m_m≠DiskProfûes
@@ -231497,7 +231497,7 @@ m_m≠DiskProfûes
 íd
 ()) {
 
-905 i‡(!
+872 i‡(
 ô
 ->
 £c⁄d
@@ -231507,13 +231507,13 @@ m_°rMDDev
 em±y
 ()) {
 
-906 
+873 
 RAIDDiskInfo
  
 öfo
 ;
 
-907 
+874 
 	göfo
 .
 	gm_°rDevP©h
@@ -231525,7 +231525,7 @@ RAIDDiskInfo
 m_°rDevP©h
 ;
 
-908 
+875 
 	göfo
 .
 	gm_diskProfûe
@@ -231535,16 +231535,172 @@ m_°rDevP©h
 £c⁄d
 ;
 
-910 
+876 
+	gli°
+.
+push_back
+(
+öfo
+);
+
+878 
 	gô
 ++;
+
+882 
+boﬁ
+ 
+	gRAIDM™agî
+::
+	$F‹m©
+(c⁄° 
+°rög
+& 
+mddev
+)
+
+884 i‡(
+mddev
+.
+	`em±y
+()) {
+
+885 
+	`SëLa°Eº‹
+("Unknown MD device.\n");
+
+886  
+Ál£
+;
+
+889 
+CrôiˇlSe˘i⁄Lock
+ 
+	`cs_md
+(&
+m_csMDProfûes
+);
+
+890 
+m≠
+<
+°rög
+, 
+MDProfûe
+>::
+ôî©‹
+ 
+ô
+ = 
+m_m≠MDProfûes
+.
+	`föd
+(
+mddev
+);
+
+891 i‡(
+ô
+ =
+m_m≠MDProfûes
+.
+	`íd
+()) {
+
+892 
+	`SëLa°Eº‹
+("%†d€¢'àexi°.\n", 
+mddev
+.
+	`c_°r
+());
+
+893  
+Ál£
+;
+
+896 i‡(
+ô
+->
+£c⁄d
+.
+m_fsMgr
+.
+	`gë
+(Ë=
+NULL
+) {
+
+897 
+	`SëLa°Eº‹
+("FilesystemManager isÇot initialized for %s\n",
+
+898 
+mddev
+.
+	`c_°r
+());
+
+899  
+Ál£
+;
+
+902 i‡(
+ô
+->
+£c⁄d
+.
+m_fsMgr
+->
+	`GëVﬁumeNum
+() < 0) {
+
+903 
+num
+ = 
+	`GëFªeVﬁumeNum
+();
+
+904 
+ô
+->
+£c⁄d
+.
+m_fsMgr
+->
+	`SëVﬁumeNum
+(
+num
+);
+
+907 #ifde‡
+NUUO
+
+
+908 
+ô
+->
+£c⁄d
+.
+m_fsMgr
+->
+	`Cª©eThªad
+();
+
+911  
+åue
+;
+
+912 
+	}
+}
 
 914 
 boﬁ
  
 	gRAIDM™agî
 ::
-	$F‹m©
+	$Mou¡
 (c⁄° 
 °rög
 & 
@@ -231558,24 +231714,14 @@ mddev
 ()) {
 
 917 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
+	`SëLa°Eº‹
+("Unknown MD device.\n");
 
-918 "[%d] Unknow¿MD devi˚.\n", 
-__LINE__
-);
-
-919  
+918  
 Ál£
 ;
 
-922 
+921 
 CrôiˇlSe˘i⁄Lock
  
 	`cs_md
@@ -231583,7 +231729,7 @@ CrôiˇlSe˘i⁄Lock
 m_csMDProfûes
 );
 
-923 
+922 
 m≠
 <
 °rög
@@ -231601,7 +231747,7 @@ m_m≠MDProfûes
 mddev
 );
 
-924 i‡(
+923 i‡(
 ô
  =
 m_m≠MDProfûes
@@ -231609,27 +231755,19 @@ m_m≠MDProfûes
 	`íd
 ()) {
 
-925 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-926 "%†d€¢'àexi°.\n", 
+924 
+	`SëLa°Eº‹
+("%†d€¢'àexi°.\n", 
 mddev
 .
 	`c_°r
 ());
 
-927  
+925  
 Ál£
 ;
 
-930 i‡(
+928 i‡(
 ô
 ->
 £c⁄d
@@ -231641,43 +231779,77 @@ m_fsMgr
 NULL
 ) {
 
-931 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
+929 
+	`SëLa°Eº‹
+("FilesystemManager isÇot initialized for %s\n",
 
-933 
+930 
 mddev
 .
 	`c_°r
 ());
 
-934  
+931  
 Ál£
 ;
 
-937 i‡(
+934 i‡(!
 ô
 ->
 £c⁄d
 .
 m_fsMgr
 ->
-	`GëVﬁumeNum
-() < 0) {
+	`IsF‹m©ed
+()) {
 
-938 
+935 
+	`SëLa°Eº‹
+("%s isÇot formated.\n",
+
+936 
+mddev
+.
+	`c_°r
+());
+
+937  
+Ál£
+;
+
+940 
+num
+ = -1;
+
+941 i‡(!
+ô
+->
+£c⁄d
+.
+m_fsMgr
+->
+	`IsMou¡ed
+(
+num
+)) {
+
+942 i‡(
+num
+ < 0) {
+
+943 
 num
  = 
 	`GëFªeVﬁumeNum
 ();
 
-939 
+944 i‡(
+num
+ < 0Ë 
+Ál£
+;
+
+946 
 ô
 ->
 £c⁄d
@@ -231689,235 +231861,7 @@ m_fsMgr
 num
 );
 
-942 #ifde‡
-NUUO
-
-
-943 
-ô
-->
-£c⁄d
-.
-m_fsMgr
-->
-	`Cª©eThªad
-();
-
-946  
-åue
-;
-
-947 
-	}
-}
-
-949 
-boﬁ
- 
-	gRAIDM™agî
-::
-	$Mou¡
-(c⁄° 
-°rög
-& 
-mddev
-)
-
-951 i‡(
-mddev
-.
-	`em±y
-()) {
-
-952 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-953 "[%d] Unknow¿MD devi˚.\n", 
-__LINE__
-);
-
-954  
-Ál£
-;
-
-957 
-CrôiˇlSe˘i⁄Lock
- 
-	`cs_md
-(&
-m_csMDProfûes
-);
-
-958 
-m≠
-<
-°rög
-, 
-MDProfûe
->::
-ôî©‹
- 
-ô
- = 
-m_m≠MDProfûes
-.
-	`föd
-(
-mddev
-);
-
-959 i‡(
-ô
- =
-m_m≠MDProfûes
-.
-	`íd
-()) {
-
-960 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-961 "%†d€¢'àexi°.\n", 
-mddev
-.
-	`c_°r
-());
-
-962  
-Ál£
-;
-
-965 i‡(
-ô
-->
-£c⁄d
-.
-m_fsMgr
-.
-	`gë
-(Ë=
-NULL
-) {
-
-966 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-968 
-mddev
-.
-	`c_°r
-());
-
-969  
-Ál£
-;
-
-972 i‡(!
-ô
-->
-£c⁄d
-.
-m_fsMgr
-->
-	`IsF‹m©ed
-()) {
-
-973 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-975 
-mddev
-.
-	`c_°r
-());
-
-976  
-Ál£
-;
-
-979 
-num
- = -1;
-
-980 i‡(!
-ô
-->
-£c⁄d
-.
-m_fsMgr
-->
-	`IsMou¡ed
-(
-num
-)) {
-
-981 i‡(
-ô
-->
-£c⁄d
-.
-m_fsMgr
-->
-	`GëVﬁumeNum
-() < 0) {
-
-982 
-num
- = 
-	`GëFªeVﬁumeNum
-();
-
-983 i‡(
-num
- < 0Ë 
-Ál£
-;
-
-985 
-°rög
- 
-°rMou¡Poöt
- = 
-ô
-->
-£c⁄d
-.
-m_fsMgr
-->
-	`GëMou¡Poöt
-(
-num
-);
-
-986 i‡(!
+947 i‡(!
 ô
 ->
 £c⁄d
@@ -231925,15 +231869,13 @@ num
 m_fsMgr
 ->
 	`Mou¡
-(
-°rMou¡Poöt
-)) {
+()) {
 
-987  
+948  
 Ál£
 ;
 
-993 
+954 
 ô
 ->
 £c⁄d
@@ -231943,7 +231885,7 @@ m_fsMgr
 	`Gíî©eUUIDFûe
 ();
 
-994 
+955 
 ô
 ->
 £c⁄d
@@ -231953,15 +231895,15 @@ m_fsMgr
 	`Cª©eDeÁu…Fﬁdîs
 ();
 
-996  
+957  
 åue
 ;
 
-997 
+958 
 	}
 }
 
-999 
+960 
 boﬁ
  
 	gRAIDM™agî
@@ -231973,31 +231915,21 @@ boﬁ
 mddev
 )
 
-1001 i‡(
+962 i‡(
 mddev
 .
 	`em±y
 ()) {
 
-1002 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
+963 
+	`SëLa°Eº‹
+("Unknown MD device.\n");
 
-1003 "[%d] Unknow¿MD devi˚.\n", 
-__LINE__
-);
-
-1004  
+964  
 Ál£
 ;
 
-1007 
+967 
 CrôiˇlSe˘i⁄Lock
  
 	`cs_md
@@ -232005,7 +231937,7 @@ CrôiˇlSe˘i⁄Lock
 m_csMDProfûes
 );
 
-1008 
+968 
 m≠
 <
 °rög
@@ -232023,7 +231955,7 @@ m_m≠MDProfûes
 mddev
 );
 
-1009 i‡(
+969 i‡(
 ô
  =
 m_m≠MDProfûes
@@ -232031,27 +231963,19 @@ m_m≠MDProfûes
 	`íd
 ()) {
 
-1010 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-1011 "%†d€¢'àexi°.\n", 
+970 
+	`SëLa°Eº‹
+("%†d€¢'àexi°.\n", 
 mddev
 .
 	`c_°r
 ());
 
-1012  
+971  
 Ál£
 ;
 
-1015 i‡(
+974 i‡(
 ô
 ->
 £c⁄d
@@ -232063,31 +231987,21 @@ m_fsMgr
 NULL
 ) {
 
-1016 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
+975 
+	`SëLa°Eº‹
+("FilesystemManager isÇot initialized for %s\n",
 
-1018 
+976 
 mddev
 .
 	`c_°r
 ());
 
-1019  
+977  
 Ál£
 ;
 
-1022 
-num
- = -1;
-
-1023 i‡(
+980 i‡(
 ô
 ->
 £c⁄d
@@ -232095,11 +232009,9 @@ num
 m_fsMgr
 ->
 	`IsMou¡ed
-(
-num
-)) {
+()) {
 
-1024 i‡(!
+981 i‡(!
 ô
 ->
 £c⁄d
@@ -232109,19 +232021,19 @@ m_fsMgr
 	`Unmou¡
 ()) {
 
-1025  
+982  
 Ál£
 ;
 
-1029  
+986  
 åue
 ;
 
-1030 
+987 
 	}
 }
 
-1032 
+989 
 boﬁ
  
 	gRAIDM™agî
@@ -232133,37 +232045,27 @@ boﬁ
 mddev
 ,
 
-1033 & 
+990 & 
 °©
 , & 
 ¥ogªss
 )
 
-1035 i‡(
+992 i‡(
 mddev
 .
 	`em±y
 ()) {
 
-1036 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
+993 
+	`SëLa°Eº‹
+("Unknown MD device.\n");
 
-1037 "[%d] Unknow¿MD devi˚.\n", 
-__LINE__
-);
-
-1038  
+994  
 Ál£
 ;
 
-1041 
+997 
 CrôiˇlSe˘i⁄Lock
  
 	`cs_md
@@ -232171,7 +232073,7 @@ CrôiˇlSe˘i⁄Lock
 m_csMDProfûes
 );
 
-1042 
+998 
 m≠
 <
 °rög
@@ -232189,7 +232091,7 @@ m_m≠MDProfûes
 mddev
 );
 
-1043 i‡(
+999 i‡(
 ô
  =
 m_m≠MDProfûes
@@ -232197,27 +232099,19 @@ m_m≠MDProfûes
 	`íd
 ()) {
 
-1044 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-1045 "%†d€¢'àexi°.\n", 
+1000 
+	`SëLa°Eº‹
+("%†d€¢'àexi°.\n", 
 mddev
 .
 	`c_°r
 ());
 
-1046  
+1001  
 Ál£
 ;
 
-1049 i‡(
+1004 i‡(
 ô
 ->
 £c⁄d
@@ -232229,15 +232123,241 @@ m_fsMgr
 NULL
 ) {
 
-1050 
-	`WrôeHWLog
+1005 
+	`SëLa°Eº‹
+("FilesystemManager isÇot initialized for %s\n",
+
+1006 
+mddev
+.
+	`c_°r
+());
+
+1007  
+Ál£
+;
+
+1010  
+ô
+->
+£c⁄d
+.
+m_fsMgr
+->
+	`IsF‹m©ög
 (
-LOG_LOCAL0
+¥ogªss
 , 
-LOG_ERR
+°©
+);
+
+1011 
+	}
+}
+
+1013 
+boﬁ
+ 
+	gRAIDM™agî
+::
+	$IsMou¡ed
+(c⁄° 
+°rög
+& 
+mddev
+, &
+num
+)
+
+1015 i‡(
+mddev
+.
+	`em±y
+()) {
+
+1016 
+	`SëLa°Eº‹
+("Unknown MD device.\n");
+
+1017  
+Ál£
+;
+
+1020 
+CrôiˇlSe˘i⁄Lock
+ 
+	`cs_md
+(&
+m_csMDProfûes
+);
+
+1021 
+m≠
+<
+°rög
 , 
-LOG_LABEL
-,
+MDProfûe
+>::
+ôî©‹
+ 
+ô
+ = 
+m_m≠MDProfûes
+.
+	`föd
+(
+mddev
+);
+
+1022 i‡(
+ô
+ =
+m_m≠MDProfûes
+.
+	`íd
+()) {
+
+1023 
+	`SëLa°Eº‹
+("%†d€¢'àexi°.\n", 
+mddev
+.
+	`c_°r
+());
+
+1024  
+Ál£
+;
+
+1027 i‡(
+ô
+->
+£c⁄d
+.
+m_fsMgr
+.
+	`gë
+(Ë=
+NULL
+) {
+
+1028 
+	`SëLa°Eº‹
+("FilesystemManager isÇot initialized for %s\n",
+
+1029 
+mddev
+.
+	`c_°r
+());
+
+1030  
+Ál£
+;
+
+1033  
+ô
+->
+£c⁄d
+.
+m_fsMgr
+->
+	`IsMou¡ed
+(
+num
+);
+
+1034 
+	}
+}
+
+1036 
+boﬁ
+ 
+	gRAIDM™agî
+::
+	$IsF‹m©ed
+(c⁄° 
+°rög
+& 
+mddev
+)
+
+1038 i‡(
+mddev
+.
+	`em±y
+()) {
+
+1039 
+	`SëLa°Eº‹
+("Unknown MD device.\n");
+
+1040  
+Ál£
+;
+
+1043 
+CrôiˇlSe˘i⁄Lock
+ 
+	`cs_md
+(&
+m_csMDProfûes
+);
+
+1044 
+m≠
+<
+°rög
+, 
+MDProfûe
+>::
+ôî©‹
+ 
+ô
+ = 
+m_m≠MDProfûes
+.
+	`föd
+(
+mddev
+);
+
+1045 i‡(
+ô
+ =
+m_m≠MDProfûes
+.
+	`íd
+()) {
+
+1046 
+	`SëLa°Eº‹
+("%†d€¢'àexi°.\n", 
+mddev
+.
+	`c_°r
+());
+
+1047  
+Ál£
+;
+
+1050 i‡(
+ô
+->
+£c⁄d
+.
+m_fsMgr
+.
+	`gë
+(Ë=
+NULL
+) {
+
+1051 
+	`SëLa°Eº‹
+("FilesystemManager isÇot initialized for %s\n",
 
 1052 
 mddev
@@ -232256,348 +232376,68 @@ mddev
 .
 m_fsMgr
 ->
-	`IsF‹m©ög
-(
-¥ogªss
-, 
-°©
-);
+	`IsF‹m©ed
+();
 
 1057 
 	}
 }
 
-1059 
-boﬁ
- 
-	gRAIDM™agî
-::
-	$IsMou¡ed
-(c⁄° 
-°rög
-& 
-mddev
-, &
-num
-)
-
-1061 i‡(
-mddev
-.
-	`em±y
-()) {
-
-1062 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-1063 "[%d] Unknow¿MD devi˚.\n", 
-__LINE__
-);
-
-1064  
-Ál£
-;
-
-1067 
-CrôiˇlSe˘i⁄Lock
- 
-	`cs_md
-(&
-m_csMDProfûes
-);
-
-1068 
-m≠
-<
-°rög
-, 
-MDProfûe
->::
-ôî©‹
- 
-ô
- = 
-m_m≠MDProfûes
-.
-	`föd
-(
-mddev
-);
-
-1069 i‡(
-ô
- =
-m_m≠MDProfûes
-.
-	`íd
-()) {
-
-1070 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-1071 "%†d€¢'àexi°.\n", 
-mddev
-.
-	`c_°r
-());
-
-1072  
-Ál£
-;
-
-1075 i‡(
-ô
-->
-£c⁄d
-.
-m_fsMgr
-.
-	`gë
-(Ë=
-NULL
-) {
-
-1076 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-1078 
-mddev
-.
-	`c_°r
-());
-
-1079  
-Ál£
-;
-
-1082  
-ô
-->
-£c⁄d
-.
-m_fsMgr
-->
-	`IsMou¡ed
-(
-num
-);
-
-1083 
-	}
-}
-
-1085 
-boﬁ
- 
-	gRAIDM™agî
-::
-	$IsF‹m©ed
-(c⁄° 
-°rög
-& 
-mddev
-)
-
-1087 i‡(
-mddev
-.
-	`em±y
-()) {
-
-1088 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-1089 "[%d] Unknow¿MD devi˚.\n", 
-__LINE__
-);
-
-1090  
-Ál£
-;
-
-1093 
-CrôiˇlSe˘i⁄Lock
- 
-	`cs_md
-(&
-m_csMDProfûes
-);
-
-1094 
-m≠
-<
-°rög
-, 
-MDProfûe
->::
-ôî©‹
- 
-ô
- = 
-m_m≠MDProfûes
-.
-	`föd
-(
-mddev
-);
-
-1095 i‡(
-ô
- =
-m_m≠MDProfûes
-.
-	`íd
-()) {
-
-1096 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-1097 "%†d€¢'àexi°.\n", 
-mddev
-.
-	`c_°r
-());
-
-1098  
-Ál£
-;
-
-1101 i‡(
-ô
-->
-£c⁄d
-.
-m_fsMgr
-.
-	`gë
-(Ë=
-NULL
-) {
-
-1102 
-	`WrôeHWLog
-(
-LOG_LOCAL0
-, 
-LOG_ERR
-, 
-LOG_LABEL
-,
-
-1104 
-mddev
-.
-	`c_°r
-());
-
-1105  
-Ál£
-;
-
-1108  
-ô
-->
-£c⁄d
-.
-m_fsMgr
-->
-	`IsF‹m©ed
-();
-
-1109 
-	}
-}
-
-1111 
+1059 
 	gRAIDM™agî
 ::
 	$Dump
 ()
 
-1113 
+1061 
 	`¥ötf
 ("Used MD Number: ");
 
-1114 
+1062 
 i
  = 0; i < 128; i ++)
 
-1115 i‡(
+1063 i‡(
 m_bU£dMD
 [
 i
 ])
 
-1116 
+1064 
 	`¥ötf
 ("%d ", 
 i
 );
 
-1117 
+1065 
 	`¥ötf
 ("\n");
 
-1118 
+1067 
 	`¥ötf
 ("Used Volume Number: ");
 
-1119 
+1068 
 i
  = 0; i < 128; i ++)
 
-1120 i‡(
+1069 i‡(
 m_bU£dVﬁume
 [
 i
 ])
 
-1121 
+1070 
 	`¥ötf
 ("%d ", 
 i
  + 1);
 
-1122 
+1071 
 	`¥ötf
 ("\n");
 
-1124 
+1073 
 m≠
 <
 °rög
@@ -232613,7 +232453,7 @@ m_m≠MDProfûes
 	`begö
 ();
 
-1125 i‡(
+1074 i‡(
 ô
  !
 m_m≠MDProfûes
@@ -232621,7 +232461,7 @@ m_m≠MDProfûes
 	`íd
 ()) {
 
-1126 
+1075 
 ô
 ->
 £c⁄d
@@ -232629,17 +232469,17 @@ m_m≠MDProfûes
 	`Dump
 ();
 
-1128 
+1077 
 	}
 }
 
-1130 
+1079 
 	gRAIDM™agî
 ::
 	$ThªadProc
 ()
 
-1132 
+1081 
 uöt32_t
  
 uMesßge
@@ -232647,35 +232487,35 @@ uMesßge
 eTC_STOP
 ;
 
-1135 i‡(
+1084 i‡(
 	`CheckReque°
 (&
 uMesßge
 )) {
 
-1136 
+1085 
 uMesßge
 ) {
 
-1137 
+1086 
 eTC_STOP
 :
 
-1138 
+1087 
 	`Rïly
 (0);
 
-1141 
+1090 
 	`Rïly
 (-1);
 
-1153 
+1102 
 m_csDiskProfûes
 .
 	`Lock
 ();
 
-1154 
+1103 
 m≠
 <
 °rög
@@ -232691,7 +232531,7 @@ m_m≠DiskProfûes
 	`begö
 ();
 
-1155 
+1104 
 ô_disk
  !
 m_m≠DiskProfûes
@@ -232699,13 +232539,13 @@ m_m≠DiskProfûes
 	`íd
 ()) {
 
-1156 
+1105 
 udev
  *udev = 
 NULL
 ;
 
-1157 
+1106 
 udev_devi˚
  *
 dev
@@ -232713,25 +232553,25 @@ dev
 NULL
 ;
 
-1158 
+1107 
 udev
  = 
 	`udev_√w
 ();
 
-1159 i‡(!
+1108 i‡(!
 udev
 ) {
 
-1160 
+1109 
 	`¥ötf
 ("can't create udev\n");
 
-1161 
+1110 
 ô_disk
 ++;
 
-1165 
+1114 
 dev
  = 
 	`udev_devi˚_√w_‰om_subsy°em_sy¢ame
@@ -232745,13 +232585,13 @@ fú°
 	`c_°r
 ());
 
-1166 i‡(
+1115 i‡(
 NULL
  =
 dev
 ) {
 
-1167 
+1116 
 m_m≠DiskProfûes
 .
 	`îa£
@@ -232759,7 +232599,7 @@ m_m≠DiskProfûes
 ô_disk
 ++);
 
-1169 
+1118 
 DiskProfûe
  
 	`¥ofûe
@@ -232769,7 +232609,7 @@ DiskProfûe
 fú°
 );
 
-1170 i‡(!(
+1119 i‡(!(
 ¥ofûe
  =
 ô_disk
@@ -232777,7 +232617,7 @@ fú°
 £c⁄d
 )) {
 
-1171 
+1120 
 	`ASSERT2
 (0, "[%s] Sy°emÇamêi†thêßme, buàŸhî disk inf‹m©i⁄ i†dif„ª¡.\n", 
 ô_disk
@@ -232787,7 +232627,7 @@ fú°
 	`c_°r
 ());
 
-1175 
+1124 
 ô_disk
 ->
 £c⁄d
@@ -232795,29 +232635,29 @@ fú°
 ¥ofûe
 ;
 
-1176 
+1125 
 ô_disk
 ++;
 
-1179 
+1128 
 	`udev_devi˚_uƒef
 (
 dev
 );
 
-1180 
+1129 
 	`udev_uƒef
 (
 udev
 );
 
-1183 
+1132 
 m_csMDProfûes
 .
 	`Lock
 ();
 
-1185 
+1134 
 m≠
 <
 °rög
@@ -232833,7 +232673,7 @@ m_m≠MDProfûes
 	`begö
 ();
 
-1186 
+1135 
 ô_md
  !
 m_m≠MDProfûes
@@ -232841,7 +232681,7 @@ m_m≠MDProfûes
 	`íd
 ()) {
 
-1190 
+1139 
 ve˘‹
 <
 °rög
@@ -232851,13 +232691,13 @@ ve˘‹
 ô_membî
 ;;
 
-1191 
+1140 
 udev
  *udev = 
 NULL
 ;
 
-1192 
+1141 
 udev_devi˚
  *
 dev
@@ -232865,39 +232705,45 @@ dev
 NULL
 ;
 
-1193 
+1142 
 ¨øy_dëaû
  
 ad
 ;
 
-1194 
+1143 
 avaû
 [128];
 
-1195 
+1144 
 disk_íough
  = 0;
 
-1197 
+1146 
+	`mem£t
+(
+avaû
+, 0x00, (avail));
+
+1148 
 udev
  = 
 	`udev_√w
 ();
 
-1198 i‡(!
+1149 i‡(!
 udev
 ) {
 
-1199 
+1150 
 	`¥ötf
 ("can't create udev\n");
 
-1200 
+1151 
 md_check_d⁄e
 ;
 
-1203 
+1154 
 dev
  = 
 	`udev_devi˚_√w_‰om_subsy°em_sy¢ame
@@ -232911,13 +232757,13 @@ fú°
 	`c_°r
 ());
 
-1204 i‡(
+1155 i‡(
 NULL
  =
 dev
 ) {
 
-1205 
+1156 
 	`FªeMDNum
 (
 ô_md
@@ -232927,7 +232773,7 @@ dev
 m_iMDNum
 );
 
-1207 i‡(
+1158 i‡(
 ô_md
 ->
 £c⁄d
@@ -232937,7 +232783,7 @@ m_fsMgr
 	`gë
 ()) {
 
-1208 
+1159 
 ô_md
 ->
 £c⁄d
@@ -232947,7 +232793,7 @@ m_fsMgr
 	`Unmou¡
 ();
 
-1209 
+1160 
 	`FªeVﬁumeNum
 (
 ô_md
@@ -232959,7 +232805,7 @@ m_fsMgr
 	`GëVﬁumeNum
 ());
 
-1217 
+1168 
 m_m≠MDProfûes
 .
 	`îa£
@@ -232967,25 +232813,25 @@ m_m≠MDProfûes
 ô_md
 ++);
 
-1218 
+1169 
 	`udev_uƒef
 (
 udev
 );
 
-1222 
+1173 
 	`udev_devi˚_uƒef
 (
 dev
 );
 
-1223 
+1174 
 	`udev_uƒef
 (
 udev
 );
 
-1225 
+1176 
 ô_md
 ->
 £c⁄d
@@ -232993,7 +232839,7 @@ udev
 	`RódMDSèt
 ();
 
-1227 
+1178 
 ô_membî
  = 
 ô_md
@@ -233005,7 +232851,7 @@ m_vMembîs
 	`begö
 ();
 
-1228 
+1179 
 ô_membî
  !
 ô_md
@@ -233017,7 +232863,7 @@ m_vMembîs
 	`íd
 ()) {
 
-1240 
+1191 
 ô_disk
  = 
 m_m≠DiskProfûes
@@ -233027,7 +232873,7 @@ m_m≠DiskProfûes
 ô_membî
 );
 
-1241 i‡(
+1192 i‡(
 ô_disk
  =
 m_m≠DiskProfûes
@@ -233035,7 +232881,9 @@ m_m≠DiskProfûes
 	`íd
 ()) {
 
-1242 
+1193 
+ô_membî
+ = 
 ô_md
 ->
 £c⁄d
@@ -233043,15 +232891,13 @@ m_m≠DiskProfûes
 m_vMembîs
 .
 	`îa£
-(
-ô_membî
-++);
+(it_member);
 
-1244 
+1195 
 ô_membî
 ++;
 
-1254 
+1205 
 ô_md
 ->
 £c⁄d
@@ -233063,137 +232909,7 @@ m_vMembîs
 	`size
 ();
 
-1256 i‡(
-ô_md
-->
-£c⁄d
-.
-m_iDevCou¡
- =ô_md->£c⁄d.
-m_iRaidDisks
-) {
-
-1258 
-iVﬁumeNum
- = -1;
-
-1260 i‡(
-ô_md
-->
-£c⁄d
-.
-m_fsMgr
-.
-	`gë
-(Ë=
-NULL
-)
-
-1261 
-md_check_d⁄e
-;
-
-1263 i‡(
-ô_md
-->
-£c⁄d
-.
-m_fsMgr
-->
-	`IsF‹m©ed
-()) {
-
-1264 i‡(!
-ô_md
-->
-£c⁄d
-.
-m_fsMgr
-->
-	`IsMou¡ed
-(
-iVﬁumeNum
-)) {
-
-1265 i‡(
-iVﬁumeNum
- == -1) {
-
-1266 
-iVﬁumeNum
- = 
-	`GëFªeVﬁumeNum
-();
-
-1267 i‡(
-iVﬁumeNum
- == -1) {
-
-1268 
-md_check_d⁄e
-;
-
-1274 
-ô_md
-->
-£c⁄d
-.
-m_fsMgr
-->
-	`SëVﬁumeNum
-(
-iVﬁumeNum
-);
-
-1278 
-ô_md
-->
-£c⁄d
-.
-m_fsMgr
-->
-	`Mou¡
-();
-
-1281 
-iVﬁumeNum
- = 
-ô_md
-->
-£c⁄d
-.
-m_fsMgr
-->
-	`GëVﬁumeNum
-();
-
-1282 i‡(
-iVﬁumeNum
- == -1) {
-
-1288 
-iVﬁumeNum
- = 
-	`GëFªeVﬁumeNum
-();
-
-1289 
-ô_md
-->
-£c⁄d
-.
-m_fsMgr
-->
-	`SëVﬁumeNum
-(
-iVﬁumeNum
-);
-
-1293 
-md_check_d⁄e
-;
-
-1300 i‡(!
+1207 i‡(!
 	`QuîyMDDëaû
 (
 ô_md
@@ -233205,7 +232921,7 @@ m_°rDevP©h
 ad
 )) {
 
-1301 
+1208 
 	`ASSERT2
 (0, "C™nŸ quîy %s'†dëaû inf‹m©i⁄.", 
 ô_md
@@ -233215,21 +232931,19 @@ fú°
 	`c_°r
 ());
 
-1302 
+1209 
 md_check_d⁄e
 ;
 
-1309 
+1219 
 i
  = 0; i < 
 ad
 .
-¨øyInfo
-.
-øid_disks
+uDiskCou¡î
 ; i++) {
 
-1310 
+1220 
 boﬁ
  
 bFound
@@ -233237,13 +232951,35 @@ bFound
 Ál£
 ;
 
-1311 
+1221 
 avaû
 [
 i
 ] = 0;
 
-1313 
+1224 i‡(
+	`°æí
+(
+ad
+.
+¨øyDisks
+[
+i
+].
+°rDevName
+) == 0) {
+
+1225 
+	`¥ötf
+("MD device %s has disks withoutány information.\n",
+
+1226 
+ad
+.
+°rAºayDevName
+);
+
+1230 
 size_t
  
 j
@@ -233257,7 +232993,11 @@ m_vMembîs
 	`size
 (); j++) {
 
-1314 i‡(
+1231 
+°rög
+ 
+°rMembîName
+ = "/dev/" + 
 ô_md
 ->
 £c⁄d
@@ -233265,7 +233005,11 @@ m_vMembîs
 m_vMembîs
 [
 j
-] =
+];
+
+1232 i‡(
+°rMembîName
+ =
 ad
 .
 ¨øyDisks
@@ -233275,17 +233019,17 @@ i
 °rDevName
 ) {
 
-1315 
+1233 
 bFound
  = 
 åue
 ;
 
-1321 i‡(!
+1239 i‡(!
 bFound
 ) {
 
-1325 i‡(
+1243 i‡(
 ad
 .
 ¨øyDisks
@@ -233299,13 +233043,13 @@ diskInfo
 MD_DISK_SYNC
 )) {
 
-1326 
+1244 
 avaû
 [
 i
 ] = 1;
 
-1336 
+1254 
 disk_íough
  = 
 	`íough
@@ -233317,7 +233061,7 @@ ad
 Àvñ
 ,
 
-1337 
+1255 
 ad
 .
 ¨øyInfo
@@ -233325,7 +233069,7 @@ ad
 øid_disks
 ,
 
-1338 
+1256 
 ad
 .
 ¨øyInfo
@@ -233333,19 +233077,195 @@ ad
 œyout
 ,
 
-1339 1, 
+1257 1, 
 avaû
 );
 
-1341 i‡(!
+1259 i‡(
+ô_md
+->
+£c⁄d
+.
+m_iDevCou¡
+ =
+ad
+.
+¨øyInfo
+.
+øid_disks
+ ||
+
+1260 
+disk_íough
+ == 1) {
+
+1262 
+num
+ = -1;
+
+1264 i‡(
+ô_md
+->
+£c⁄d
+.
+m_fsMgr
+.
+	`gë
+(Ë=
+NULL
+) {
+
+1265 if(!
+ô_md
+->
+£c⁄d
+.
+	`InôülizeFSM™agî
+()) {
+
+1266 
+	`¥ötf
+("%s hasÇo valid filesystem manager.\n",
+
+1267 
+ô_md
+->
+£c⁄d
+.
+m_°rSysName
+.
+	`c_°r
+());
+
+1268 
+md_check_d⁄e
+;
+
+1272 i‡(
+ô_md
+->
+£c⁄d
+.
+m_fsMgr
+->
+	`IsF‹m©ed
+()) {
+
+1273 i‡(!
+ô_md
+->
+£c⁄d
+.
+m_fsMgr
+->
+	`IsMou¡ed
+(
+num
+)) {
+
+1274 i‡(
+num
+ == -1) {
+
+1275 
+num
+ = 
+	`GëFªeVﬁumeNum
+();
+
+1276 i‡(
+num
+ == -1) {
+
+1277 
+md_check_d⁄e
+;
+
+1283 
+ô_md
+->
+£c⁄d
+.
+m_fsMgr
+->
+	`SëVﬁumeNum
+(
+num
+);
+
+1287 i‡(
+ô_md
+->
+£c⁄d
+.
+m_fsMgr
+->
+	`Mou¡
+()) {
+
+1288 
+ô_md
+->
+£c⁄d
+.
+m_fsMgr
+->
+	`Gíî©eUUIDFûe
+();
+
+1289 
+ô_md
+->
+£c⁄d
+.
+m_fsMgr
+->
+	`Cª©eDeÁu…Fﬁdîs
+();
+
+1293 
+num
+ = 
+ô_md
+->
+£c⁄d
+.
+m_fsMgr
+->
+	`GëVﬁumeNum
+();
+
+1294 i‡(
+num
+ == -1) {
+
+1300 
+num
+ = 
+	`GëFªeVﬁumeNum
+();
+
+1301 
+ô_md
+->
+£c⁄d
+.
+m_fsMgr
+->
+	`SëVﬁumeNum
+(
+num
+);
+
+1305 
+md_check_d⁄e
+;
+
+1306 } i‡(0 =
 disk_íough
 ) {
 
-1348 
-iVﬁumeNum
-;
-
-1350 i‡(
+1313 i‡(
 ô_md
 ->
 £c⁄d
@@ -233357,11 +233277,11 @@ m_fsMgr
 NULL
 )
 
-1351 
+1314 
 md_check_d⁄e
 ;
 
-1353 i‡(
+1316 i‡(
 ô_md
 ->
 £c⁄d
@@ -233369,11 +233289,9 @@ md_check_d⁄e
 m_fsMgr
 ->
 	`IsMou¡ed
-(
-iVﬁumeNum
-)) {
+()) {
 
-1354 i‡(
+1317 i‡(
 ô_md
 ->
 £c⁄d
@@ -233383,7 +233301,7 @@ m_fsMgr
 	`Unmou¡
 ()) {
 
-1355 
+1318 
 	`WrôeHWLog
 (
 LOG_LOCAL0
@@ -233393,7 +233311,7 @@ LOG_ERR
 LOG_LABEL
 ,
 
-1357 
+1320 
 ô_md
 ->
 fú°
@@ -233401,15 +233319,21 @@ fú°
 	`c_°r
 ());
 
-1362 
+1325 
 md_check_d⁄e
 :
 
-1363 
+1326 
 ô_md
 ++;
 
-1366 
+1329 i‡(
+m_£mAs£mbÀ
+.
+	`Waô
+(0)) {
+
+1330 
 ô_disk
  = 
 m_m≠DiskProfûes
@@ -233417,7 +233341,7 @@ m_m≠DiskProfûes
 	`begö
 ();
 
-1367 
+1331 
 ô_disk
  !
 m_m≠DiskProfûes
@@ -233425,7 +233349,7 @@ m_m≠DiskProfûes
 	`íd
 ()) {
 
-1370 
+1334 
 ô_disk
 ->
 £c⁄d
@@ -233433,7 +233357,7 @@ m_m≠DiskProfûes
 	`RódMDSèt
 ();
 
-1371 i‡(
+1335 i‡(
 ô_disk
 ->
 £c⁄d
@@ -233443,37 +233367,39 @@ m_°rMDDev
 	`em±y
 ()) {
 
-1372 
+1336 
 examöe_ªsu…
  
 î
 ;
 
-1373 
+1337 
 îr
  = 0;
 
-1374 i‡((
+1338 i‡((
 îr
  = 
 	`QuîyMDSu≥rBlockInDisk
 (
 ô_disk
 ->
-fú°
+£c⁄d
+.
+m_°rDevP©h
 , 
 î
 )Ë=
 SUCCESS
 ) {
 
-1375 
+1340 
 °rög
  
 mddev
 ;
 
-1376 i‡(
+1341 i‡(
 	`As£mbÀRAID
 (
 î
@@ -233483,7 +233409,7 @@ mddev
 mddev
 )) {
 
-1377 i‡(
+1342 i‡(
 m_m≠MDProfûes
 [
 mddev
@@ -233495,7 +233421,7 @@ m_fsMgr
 NULL
 ) {
 
-1378 
+1343 
 m_m≠MDProfûes
 [
 mddev
@@ -233503,7 +233429,7 @@ mddev
 	`InôülizeFSM™agî
 ();
 
-1379 i‡(
+1344 i‡(
 m_m≠MDProfûes
 [
 mddev
@@ -233515,15 +233441,15 @@ m_fsMgr
 NULL
 ) {
 
-1380 
+1345 
 ô_disk
 ++;
 
-1385 
-iVﬁumeNum
+1350 
+num
  = -1;
 
-1386 i‡(
+1351 i‡(
 m_m≠MDProfûes
 [
 mddev
@@ -233533,7 +233459,7 @@ m_fsMgr
 	`IsF‹m©ed
 ()) {
 
-1387 i‡(!
+1352 i‡(!
 m_m≠MDProfûes
 [
 mddev
@@ -233542,24 +233468,24 @@ m_fsMgr
 ->
 	`IsMou¡ed
 (
-iVﬁumeNum
+num
 )) {
 
-1388 i‡(
-iVﬁumeNum
+1353 i‡(
+num
  == -1) {
 
-1389 
-iVﬁumeNum
+1354 
+num
  = 
 	`GëFªeVﬁumeNum
 ();
 
-1390 i‡(
-iVﬁumeNum
+1355 i‡(
+num
  == -1) {
 
-1393 
+1358 
 m_m≠MDProfûes
 [
 mddev
@@ -233568,10 +233494,10 @@ m_fsMgr
 ->
 	`SëVﬁumeNum
 (
-iVﬁumeNum
+num
 );
 
-1394 
+1359 i‡(
 m_m≠MDProfûes
 [
 mddev
@@ -233579,9 +233505,29 @@ mddev
 m_fsMgr
 ->
 	`Mou¡
+()) {
+
+1360 
+m_m≠MDProfûes
+[
+mddev
+].
+m_fsMgr
+->
+	`Gíî©eUUIDFûe
 ();
 
-1397 
+1361 
+m_m≠MDProfûes
+[
+mddev
+].
+m_fsMgr
+->
+	`Cª©eDeÁu…Fﬁdîs
+();
+
+1365 i‡(
 m_m≠MDProfûes
 [
 mddev
@@ -233589,15 +233535,35 @@ mddev
 m_fsMgr
 ->
 	`Mou¡
+()) {
+
+1366 
+m_m≠MDProfûes
+[
+mddev
+].
+m_fsMgr
+->
+	`Gíî©eUUIDFûe
 ();
 
-1401 
-iVﬁumeNum
+1367 
+m_m≠MDProfûes
+[
+mddev
+].
+m_fsMgr
+->
+	`Cª©eDeÁu…Fﬁdîs
+();
+
+1372 
+num
  = 
 	`GëFªeVﬁumeNum
 ();
 
-1402 
+1373 
 m_m≠MDProfûes
 [
 mddev
@@ -233606,10 +233572,10 @@ m_fsMgr
 ->
 	`SëVﬁumeNum
 (
-iVﬁumeNum
+num
 );
 
-1405 
+1376 
 ô_disk
 ->
 £c⁄d
@@ -233617,13 +233583,13 @@ iVﬁumeNum
 	`RódMDSèt
 ();
 
-1407 } i‡(
+1378 } i‡(
 îr
  !
 EXAMINE_NO_MD_SUPERBLOCK
 ) {
 
-1408 
+1379 
 	`WrôeHWLog
 (
 LOG_LOCAL1
@@ -233633,11 +233599,11 @@ LOG_DEBUG
 LOG_LABEL
 ,
 
-1409 "[%d] FaûÅÿexamöê%s.\n", 
+1380 "[%d] FaûÅÿexamöê%s.\n", 
 __LINE__
 ,
 
-1410 
+1381 
 ô_disk
 ->
 fú°
@@ -233645,35 +233611,65 @@ fú°
 	`c_°r
 ());
 
-1414 
+1385 
 ô_disk
 ++;
 
-1417 
+1389 
 m_csMDProfûes
 .
 	`U∆ock
 ();
 
-1418 
+1390 
 m_csDiskProfûes
 .
 	`U∆ock
 ();
 
-1420 i‡(
+1392 
+SYSTEMTIME
+ 
+time
+;
+
+1393 i‡(
 m_pNŸifyCh™ge
  =
 NULL
 ) {
 
-1421 
+1394 
 	`SÀïMS
 (
 RAIDMANAGER_MONITOR_INTERVAL
 );
 
-1423 
+1395 
+time
+ = 
+UTCTime
+::
+	`GëCuºítSy°emTime
+();
+
+1396 
+	`¥ötf
+("[%u:%u:%u.%u]Timeout forÇextÑound check.\n",
+
+1397 
+time
+.
+wHour
+,Åime.
+wMöuã
+,Åime.
+wSec⁄d
+,Åime.
+wMûli£c⁄ds
+);
+
+1399 
 m_pNŸifyCh™ge
 ->
 	`timedwaô
@@ -233681,7 +233677,211 @@ m_pNŸifyCh™ge
 RAIDMANAGER_MONITOR_INTERVAL
 );
 
-1426 
+1400 
+time
+ = 
+UTCTime
+::
+	`GëCuºítSy°emTime
+();
+
+1401 
+	`¥ötf
+("[%u:%u:%u.%u]GotÇotification orÅimeout forÇextÑound check.\n",
+
+1402 
+time
+.
+wHour
+,Åime.
+wMöuã
+,Åime.
+wSec⁄d
+,Åime.
+wMûli£c⁄ds
+);
+
+1405 
+	}
+}
+
+1407 
+	gRAIDM™agî
+::
+	$GëLa°Eº‹
+(
+°rög
+ &
+log
+)
+
+1409 
+CrôiˇlSe˘i⁄Lock
+ 
+	`cs
+(&
+m_csLa°Eº‹
+);
+
+1410 
+log
+ = 
+m_°rLa°Eº‹
+;
+
+1411 
+	}
+}
+
+1413 
+°rög
+ 
+	gRAIDM™agî
+::
+	$GëDevi˚NodeBySymLök
+(c⁄° 
+°rög
+& 
+symlök
+)
+
+1415 
+°©
+ 
+s
+;
+
+1416 i‡(
+	`l°©
+(
+symlök
+.
+	`c_°r
+(), &
+s
+) >= 0) {
+
+1417 i‡(
+	`S_ISLNK
+(
+s
+.
+°_mode
+) == 1) {
+
+1418 
+buf
+[128];
+
+1419 
+Àn
+ = 0;
+
+1420 i‡((
+Àn
+ = 
+	`ªadlök
+(
+symlök
+.
+	`c_°r
+(), 
+buf
+, (buf) - 1)) >= 0) {
+
+1421 
+°rög
+ 
+°rDevNode
+ = "/dev/";
+
+1422 
+buf
+[
+Àn
+] = '\0';
+
+1423 
+°rDevNode
+ +
+buf
+;
+
+1424  
+°rDevNode
+;
+
+1429  
+symlök
+;
+
+1430 
+	}
+}
+
+1432 
+	gRAIDM™agî
+::
+	$SëLa°Eº‹
+(c⁄° 
+°rög
+ &
+fmt
+, ...)
+
+1434 
+va_li°
+ 
+¨gs
+;
+
+1435 
+	`va_°¨t
+(
+¨gs
+, 
+fmt
+.
+	`c_°r
+());
+
+1436 
+	`WrôeHWLog
+(
+LOG_LOCAL0
+, 
+LOG_ERR
+, 
+LOG_LABEL
+,
+
+1437 
+fmt
+.
+	`c_°r
+(), 
+¨gs
+);
+
+1438 
+m_°rLa°Eº‹
+ = 
+	`°rög_f‹m©
+(
+fmt
+.
+	`c_°r
+(), 
+¨gs
+);
+
+1439 
+	`va_íd
+(
+¨gs
+);
+
+1440 
 	}
 }
 
@@ -233730,10 +233930,14 @@ NUUO
 "
 
 18 
+	~"comm⁄/£m≠h‹e.h
+"
+
+19 
 	~"≠r/≠r_thªad_w‹kî.h
 "
 
-19 
+20 
 usög
  
 «me•a˚
@@ -233741,55 +233945,59 @@ usög
 SYSUTILS_SPACE
 ;
 
-21 
+22 
 	~"ã°_utûs.h
 "
 
-24 
+25 
 	~<°rög
 >
 
-25 
+26 
 	~<ve˘‹
 >
 
-26 
+27 
 	~<ôî©‹
 >
 
-27 
+28 
 	~<mem‹y
 >
 
-28 
+29 
 	~<m≠
 >
 
-30 
+31 
 	~<°döt.h
 >
 
-31 
+32 
 	~<sys/°©.h
 >
 
-32 
+33 
 	~<uni°d.h
 >
 
-33 
+34 
 	~<scsi/sg_cmds.h
 >
 
-34 
+35 
 	~<scsi/sg_u«lig√d.h
 >
 
-35 
+36 
 	~<libudev.h
 >
 
-37 
+37 
+	~<°d¨g.h
+>
+
+39 
 usög
  
 «me•a˚
@@ -233797,199 +234005,199 @@ usög
 	g°d
 ;
 
-39 
+41 
 	eeDiskTy≥
  {
 
-40 
+42 
 	mDISK_TYPE_UNKNOWN
  = -1,
 
-41 
+43 
 	mDISK_TYPE_SATA
 ,
 
-42 
+44 
 	mDISK_TYPE_ESATA
 ,
 
-43 
+45 
 	mDISK_TYPE_ISCSI
 ,
 
-44 
+46 
 	mDISK_TYPE_NFS
 
 
-47 
+49 
 	sSGSîülNoPage
  {
 
-48 
+50 
 uöt8_t
  
 	mm_byãPQPDT
 ;
 
-49 
+51 
 uöt8_t
  
 	mm_byãPageCode
 ;
 
-50 
+52 
 uöt8_t
  
 	mm_byãRe£rvõd
 ;
 
-51 
+53 
 uöt8_t
  
 	mm_byãPageLígth
 ;
 
-52 
+54 
 uöt8_t
  
 	mm_byãPageSN
 [32];
 
-55 
+57 
 	sSGRódC≠acôy10
  {
 
-56 
+58 
 uöt8_t
  
 	mm_LogiˇlBlockAddr
 [4];
 
-57 
+59 
 uöt8_t
  
 	mm_BlockLígth
 [4];
 
-60 
+62 
 	sDiskProfûe
  {
 
-61 
+63 
 °rög
  
 	mm_°rSysName
 ;
 
-62 
+64 
 °rög
  
 	mm_°rDevP©h
 ;
 
-63 
+65 
 °rög
  
 	mm_°rSymLök
 ;
 
-64 
+66 
 °rög
  
 	mm_°rMDDev
 ;
 
-65 
+67 
 °rög
  
 	mm_°rVíd‹
 ;
 
-66 
+68 
 °rög
  
 	mm_°rModñ
 ;
 
-67 
+69 
 °rög
  
 	mm_°rFWVî
 ;
 
-68 
+70 
 °rög
  
 	mm_°rSîülNum
 ;
 
-69 
+71 
 öt64_t
  
 	mm_ŒC≠acôy
 ;
 
-70 
+72 
 eDiskTy≥
  
 	mm_diskTy≥
 ;
 
-71 
+73 
 	mm_iBay
 ;
 
-73 
+75 
 DiskProfûe
 ()
 
-74 : 
+76 : 
 m_°rSysName
 ("")
 
-75 , 
+77 , 
 m_°rDevP©h
 ("")
 
-76 , 
+78 , 
 m_°rSymLök
 ("")
 
-77 , 
+79 , 
 m_°rMDDev
 ("")
 
-78 , 
+80 , 
 m_°rVíd‹
 ("")
 
-79 , 
+81 , 
 m_°rModñ
 ("")
 
-80 , 
+82 , 
 m_°rFWVî
 ("")
 
-81 , 
+83 , 
 m_°rSîülNum
 ("")
 
-82 , 
+84 , 
 m_ŒC≠acôy
 (0ull)
 
-83 , 
+85 , 
 m_diskTy≥
 (
 DISK_TYPE_UNKNOWN
 )
 
-84 , 
+86 , 
 m_iBay
 (-1)
 
-88 
+90 
 DiskProfûe
 (
 °rög
@@ -233997,71 +234205,75 @@ DiskProfûe
 dev
 )
 
-89 : 
+91 : 
 m_°rSysName
 (
 dev
 )
 
-90 , 
+92 , 
 m_°rDevP©h
 ("")
 
-91 , 
+93 , 
 m_°rSymLök
 ("")
 
-92 , 
+94 , 
 m_°rMDDev
 ("")
 
-93 , 
+95 , 
 m_°rVíd‹
 ("")
 
-94 , 
+96 , 
 m_°rModñ
 ("")
 
-95 , 
+97 , 
 m_°rFWVî
 ("")
 
-96 , 
+98 , 
 m_°rSîülNum
 ("")
 
-97 , 
+99 , 
 m_ŒC≠acôy
 (0ull)
 
-98 , 
+100 , 
 m_diskTy≥
 (
 DISK_TYPE_UNKNOWN
 )
 
-99 , 
+101 , 
 m_iBay
 (-1)
 
-101 
+103 
 SëUDEVInf‹m©i⁄
 ();
 
-102 
+104 
 SëDiskVíd‹Infom©i⁄
 ();
 
-103 
+105 
 RódMDSèt
 ();
 
-106 ~
+106 
+Dump
+();
+
+109 ~
 DiskProfûe
 ()
 
-110 
+113 
 	mDiskProfûe
 & 
 	m›î©‹
@@ -234071,17 +234283,17 @@ DiskProfûe
 rhs
 )
 
-112 i‡(
+115 i‡(
 this
  =&
 rhs
 )
 
-113  *
+116  *
 this
 ;
 
-114 
+117 
 	mm_°rSysName
  = 
 rhs
@@ -234089,7 +234301,7 @@ rhs
 m_°rSysName
 ;
 
-115 
+118 
 	mm_°rDevP©h
  = 
 rhs
@@ -234097,7 +234309,7 @@ rhs
 m_°rDevP©h
 ;
 
-116 
+119 
 	mm_°rSymLök
  = 
 rhs
@@ -234105,7 +234317,7 @@ rhs
 m_°rSymLök
 ;
 
-117 
+120 
 	mm_diskTy≥
  = 
 rhs
@@ -234113,7 +234325,7 @@ rhs
 m_diskTy≥
 ;
 
-118 
+121 
 	mm_°rMDDev
  = 
 rhs
@@ -234121,7 +234333,7 @@ rhs
 m_°rMDDev
 ;
 
-119 
+122 
 	mm_iBay
  = 
 rhs
@@ -234129,7 +234341,7 @@ rhs
 m_iBay
 ;
 
-120 
+123 
 	mm_°rVíd‹
  = 
 rhs
@@ -234137,7 +234349,7 @@ rhs
 m_°rVíd‹
 ;
 
-121 
+124 
 	mm_°rModñ
  = 
 rhs
@@ -234145,7 +234357,7 @@ rhs
 m_°rModñ
 ;
 
-122 
+125 
 	mm_°rFWVî
  = 
 rhs
@@ -234153,7 +234365,7 @@ rhs
 m_°rFWVî
 ;
 
-123 
+126 
 	mm_°rSîülNum
  = 
 rhs
@@ -234161,7 +234373,7 @@ rhs
 m_°rSîülNum
 ;
 
-124 
+127 
 	mm_ŒC≠acôy
  = 
 rhs
@@ -234169,11 +234381,11 @@ rhs
 m_ŒC≠acôy
 ;
 
-125  *
+128  *
 	mthis
 ;
 
-128 
+131 
 boﬁ
  
 	m›î©‹
@@ -234183,61 +234395,61 @@ DiskProfûe
 rhs
 )
 
-130  (
+133  (
 m_°rSysName
  =
 rhs
 .m_strSysName &&
 
-131 
+134 
 m_°rDevP©h
  =
 rhs
 .m_strDevPath &&
 
-132 
+135 
 m_°rSymLök
  =
 rhs
 .m_strSymLink);
 
-135 
+138 
 SëUDEVInf‹m©i⁄
 ()
 
-137 i‡(
+140 i‡(
 	mm_°rSysName
 .
 em±y
 ())
 
-140 
+143 
 udev
  *
 	mudev
 ;
 
-141 
+144 
 udev_devi˚
  *
 	mdev
 ;
 
-142 
+145 
 	mudev
  = 
 udev_√w
 ();
 
-143 i‡(!
+146 i‡(!
 	mudev
 ) {
 
-144 
+147 
 ¥ötf
 ("can't create udev\n");
 
-148 
+151 
 	mdev
  = 
 udev_devi˚_√w_‰om_subsy°em_sy¢ame
@@ -234249,15 +234461,15 @@ m_°rSysName
 c_°r
 ());
 
-149 i‡(
+152 i‡(
 	mdev
 ) {
 
-150 
+153 
 	mªt
  = 0;
 
-152 
+155 
 	mm_°rDevP©h
  = 
 udev_devi˚_gë_devnode
@@ -234265,7 +234477,7 @@ udev_devi˚_gë_devnode
 dev
 );
 
-153 
+156 
 	mm_°rSymLök
  = 
 udev_devi˚_gë_¥›îty_vÆue
@@ -234273,29 +234485,29 @@ udev_devi˚_gë_¥›îty_vÆue
 dev
 , "ID_SYMLINK");
 
-155 i‡(!
+158 i‡(!
 	mm_°rSymLök
 .
 em±y
 ()) {
 
-156 i‡(
+159 i‡(
 	mm_°rSymLök
 .
 föd
-("/dev/nuuo_ßè"Ë!
+("nuuo_ßè"Ë!
 °rög
 ::
 ≈os
 ) {
 
-157 
+160 
 m_diskTy≥
  = 
 DISK_TYPE_SATA
 ;
 
-158 
+161 
 	mªt
  = 
 ssˇnf
@@ -234303,11 +234515,11 @@ ssˇnf
 m_°rSymLök
 .
 c_°r
-(), "/dev/nuuo_ßè%d", &
+(), "nuuo_ßè%d", &
 m_iBay
 );
 
-159 i‡(
+162 i‡(
 	mªt
  < 1 ||Ñë =
 EOF
@@ -234315,27 +234527,27 @@ EOF
 m_iBay
  > 127 || m_iBay < 0) {
 
-160 
+163 
 m_iBay
  = -1;
 
-162 } i‡(
+165 } i‡(
 	mm_°rSymLök
 .
 föd
-("/dev/nuuo_eßè"Ë!
+("nuuo_eßè"Ë!
 °rög
 ::
 ≈os
 ) {
 
-163 
+166 
 m_diskTy≥
  = 
 DISK_TYPE_ESATA
 ;
 
-164 
+167 
 	mªt
  = 
 ssˇnf
@@ -234343,11 +234555,11 @@ ssˇnf
 m_°rSymLök
 .
 c_°r
-(), "/dev/nuuo_ßè%d", &
+(), "nuuo_eßè%d", &
 m_iBay
 );
 
-165 i‡(
+168 i‡(
 	mªt
  < 1 ||Ñë =
 EOF
@@ -234355,31 +234567,53 @@ EOF
 m_iBay
  > 127 || m_iBay < 0) {
 
-166 
+169 
 m_iBay
  = -1;
 
-168 } i‡(
+171 } i‡(
 	mm_°rSymLök
 .
 föd
-("/dev/nuuo_iscsi"Ë!
+("nuuo_iscsi"Ë!
 °rög
 ::
 ≈os
 ) {
 
-169 
+172 
 m_diskTy≥
  = 
 DISK_TYPE_ISCSI
 ;
 
-171 
+173 
+	mªt
+ = 
+ssˇnf
+(
+m_°rSymLök
+.
+c_°r
+(), "nuuo_iscsi%d", &
+m_iBay
+);
+
+174 i‡(
+	mªt
+ < 1 ||Ñë =
+EOF
+) {
+
+175 
+m_iBay
+ = -1;
+
+178 
 ¥ötf
 ("Unknown SYMLINK\n");
 
-175 
+182 
 ¥ötf
 ("ˇn'àfound block devi˚ %s.\n", 
 m_°rSysName
@@ -234387,47 +234621,47 @@ m_°rSysName
 c_°r
 ());
 
-178 
+185 
 udev_devi˚_uƒef
 (
 dev
 );
 
-179 
+186 
 udev_uƒef
 (
 udev
 );
 
-183 
+190 
 SëDiskVíd‹Infom©i⁄
 ()
 
-185 i‡(
+192 i‡(
 	mm_°rDevP©h
 .
 em±y
 ())
 
-188 
+195 
 sg_sim∂e_öquúy_ª•
  
 	mª•
 ;
 
-189 
+196 
 SGSîülNoPage
  
 	msg_¢_ª•
 ;
 
-190 
+197 
 SGRódC≠acôy10
  
 	msg_ªadˇp10_ª•
 ;
 
-191 
+198 
 	msg_fd
  = 
 sg_cmds_›í_devi˚
@@ -234437,11 +234671,11 @@ m_°rDevP©h
 c_°r
 (), 1, 1);
 
-193 i‡(
+200 i‡(
 	msg_fd
  < 0)
 
-196 i‡(0 =
+203 i‡(0 =
 sg_sim∂e_öquúy
 (
 sg_fd
@@ -234449,7 +234683,7 @@ sg_fd
 ª•
 , 0, 0)) {
 
-197 
+204 
 	mm_°rVíd‹
  = 
 ª•
@@ -234457,7 +234691,7 @@ sg_fd
 víd‹
 ;
 
-198 
+205 
 	mm_°rModñ
  = 
 ª•
@@ -234465,7 +234699,7 @@ víd‹
 ¥odu˘
 ;
 
-199 
+206 
 	mm_°rFWVî
  = 
 ª•
@@ -234473,21 +234707,21 @@ víd‹
 ªvisi⁄
 ;
 
-206 i‡(0 =
+213 i‡(0 =
 sg_Œ_öquúy
 (
 sg_fd
 , 0 ,1 , 0x80,
 
-207 (*)&
+214 (*)&
 sg_¢_ª•
 ,
 
-208 (
+215 (
 SGSîülNoPage
 ),
 
-210 
+217 
 	mm_°rSîülNum
  = (*)
 sg_¢_ª•
@@ -234495,21 +234729,21 @@ sg_¢_ª•
 m_byãPageSN
 ;
 
-217 i‡(0 =
+224 i‡(0 =
 sg_Œ_ªadˇp_10
 (
 sg_fd
 , 0, 1,
 
-218 &
+225 &
 sg_ªadˇp10_ª•
 ,
 
-219 (
+226 (
 SGRódC≠acôy10
 ),
 
-221 
+228 
 uöt32_t
  
 	mœ°_blk_addr
@@ -234517,7 +234751,7 @@ uöt32_t
 	mblock_size
  = 0;
 
-222 
+229 
 	mœ°_blk_addr
  = 
 sg_gë_u«lig√d_be32
@@ -234527,11 +234761,11 @@ sg_ªadˇp10_ª•
 m_LogiˇlBlockAddr
 ));
 
-223 i‡(0xfffffff‡!
+230 i‡(0xfffffff‡!
 œ°_blk_addr
 ) {
 
-224 
+231 
 block_size
  = 
 sg_gë_u«lig√d_be32
@@ -234541,7 +234775,7 @@ sg_ªadˇp10_ª•
 m_BlockLígth
 ));
 
-225 
+232 
 	mm_ŒC≠acôy
  = (
 œ°_blk_addr
@@ -234549,17 +234783,17 @@ m_BlockLígth
 block_size
 ;
 
-233 
+240 
 sg_cmds_˛o£_devi˚
 (
 sg_fd
 );
 
-236 
+243 
 RódMDSèt
 ()
 
-238 
+245 
 md°©_ít
  *
 	mms
@@ -234567,7 +234801,7 @@ md°©_ít
 md°©_ªad
 (0, 0);
 
-239 
+246 
 md°©_ít
  *
 	me
@@ -234575,7 +234809,7 @@ md°©_ít
 ms
 ;
 
-240 
+247 
 	me
  = 
 md°©_by_comp⁄ít
@@ -234585,11 +234819,11 @@ m_°rSysName
 c_°r
 ());
 
-241 i‡(
+248 i‡(
 	me
 )
 
-242 
+249 
 	mm_°rMDDev
  = 
 e
@@ -234597,25 +234831,25 @@ e
 dev
 ;
 
-244 
+251 
 	mm_°rMDDev
  = "";
 
-246 
+253 
 ‰ì_md°©
 (
 e
 );
 
-249 
+256 
 Dump
 ()
 
-251 
+258 
 ¥ötf
 ("Soft Link: %s, In RAID: %s",
 
-252 
+259 
 m_°rSymLök
 .
 c_°r
@@ -234623,153 +234857,153 @@ c_°r
 m_°rMDDev
 .c_str());
 
-253 
+260 
 	mm_diskTy≥
 ) {
 
-254 
+261 
 	mDISK_TYPE_UNKNOWN
 :
 
-255 
+262 
 ¥ötf
 (", Type: Unknown\n");
 
-257 
+264 
 	mDISK_TYPE_SATA
 :
 
-258 
+265 
 ¥ötf
 (", Type: SATA\n");
 
-260 
+267 
 	mDISK_TYPE_ESATA
 :
 
-261 
+268 
 ¥ötf
 (", Type: ESATA\n");
 
-263 
+270 
 	mDISK_TYPE_ISCSI
 :
 
-264 
+271 
 ¥ötf
 (", Type: iSCSI\n");
 
-266 
+273 
 	mDISK_TYPE_NFS
 :
 
-267 
+274 
 ¥ötf
 (", Type: NFS\n");
 
-273 
+280 
 	sRAIDDiskInfo
  {
 
-274 
+281 
 DiskProfûe
  
 	mm_diskProfûe
 ;
 
-275 
+282 
 °rög
  
 	mm_°rSèã
 ;
 
-276 
+283 
 °rög
  
 	mm_°rDevP©h
 ;
 
-277 
+284 
 öt32_t
  
 	mm_RaidUUID
 [4];
 
-278 
+285 
 öt32_t
  
 	mm_iSèã
 ;
 
-279 
+286 
 öt32_t
  
 	mm_iRaidDiskNum
 ;
 
-280 
+287 
 öt32_t
  
 	mm_iMaj‹
 ;
 
-281 
+288 
 öt32_t
  
 	mm_iMö‹
 ;
 
-282 
+289 
 boﬁ
  
 	mm_bHasMDSB
 ;
 
-284 
+291 
 RAIDDiskInfo
 ()
 
-285 : 
+292 : 
 m_°rSèã
 ("")
 
-286 , 
+293 , 
 m_°rDevP©h
 ("")
 
-287 , 
+294 , 
 m_iSèã
 (0)
 
-288 , 
+295 , 
 m_iRaidDiskNum
 (0)
 
-289 , 
+296 , 
 m_iMaj‹
 (0)
 
-290 , 
+297 , 
 m_iMö‹
 (0)
 
-291 , 
+298 , 
 m_bHasMDSB
 (
 Ál£
 )
 
-293 
+300 
 mem£t
 (
 m_RaidUUID
 , 0x00, (m_RaidUUID));
 
-296 ~
+303 ~
 RAIDDiskInfo
 () {}
 
-298 
+305 
 	mRAIDDiskInfo
 & 
 	m›î©‹
@@ -234779,7 +235013,7 @@ RAIDDiskInfo
 rhs
 )
 
-300 
+307 
 m_°rSèã
  = 
 rhs
@@ -234787,7 +235021,7 @@ rhs
 °rSèã
 ;
 
-301 
+308 
 	mm_°rDevP©h
  = 
 rhs
@@ -234795,7 +235029,7 @@ rhs
 °rDevName
 ;
 
-302 
+309 
 	mm_iSèã
  = 
 rhs
@@ -234805,7 +235039,7 @@ diskInfo
 °©e
 ;
 
-303 
+310 
 	mm_iRaidDiskNum
  = 
 rhs
@@ -234815,7 +235049,7 @@ diskInfo
 øid_disk
 ;
 
-304 
+311 
 	mm_iMaj‹
  = 
 rhs
@@ -234825,7 +235059,7 @@ diskInfo
 maj‹
 ;
 
-305 
+312 
 	mm_iMö‹
  = 
 rhs
@@ -234835,19 +235069,19 @@ diskInfo
 mö‹
 ;
 
-306  *
+313  *
 	mthis
 ;
 
-309 
+316 
 Dump
 ()
 
-311 
+318 
 ¥ötf
 ("Device: %s, State: %s, MD Super Block: %s, Major: %d, Minor: %d\n\t",
 
-312 
+319 
 m_°rDevP©h
 .
 c_°r
@@ -234857,19 +235091,19 @@ m_°rSèã
 m_bHasMDSB
  ? "Yes" : "No",
 
-313 
+320 
 m_iMaj‹
 , 
 m_iMö‹
 );
 
-314 
+321 
 	mm_diskProfûe
 .
 Dump
 ();
 
-317 
+324 
 	mRAIDDiskInfo
 & 
 	m›î©‹
@@ -234879,17 +235113,17 @@ RAIDDiskInfo
 rhs
 )
 
-319 i‡(
+326 i‡(
 this
  =&
 rhs
 )
 
-320  *
+327  *
 this
 ;
 
-321 
+328 
 	mm_diskProfûe
  = 
 rhs
@@ -234897,7 +235131,7 @@ rhs
 m_diskProfûe
 ;
 
-322 
+329 
 	mm_°rSèã
  = 
 rhs
@@ -234905,7 +235139,7 @@ rhs
 m_°rSèã
 ;
 
-323 
+330 
 	mm_°rDevP©h
  = 
 rhs
@@ -234913,7 +235147,7 @@ rhs
 m_°rDevP©h
 ;
 
-324 
+331 
 	mm_iSèã
  = 
 rhs
@@ -234921,7 +235155,7 @@ rhs
 m_iSèã
 ;
 
-325 
+332 
 	mm_iRaidDiskNum
  = 
 rhs
@@ -234929,7 +235163,7 @@ rhs
 m_iRaidDiskNum
 ;
 
-326 
+333 
 	mm_bHasMDSB
  = 
 rhs
@@ -234937,7 +235171,7 @@ rhs
 m_bHasMDSB
 ;
 
-327 
+334 
 	mm_iMaj‹
  = 
 rhs
@@ -234945,7 +235179,7 @@ rhs
 m_iMaj‹
 ;
 
-328 
+335 
 	mm_iMö‹
  = 
 rhs
@@ -234953,11 +235187,11 @@ rhs
 m_iMö‹
 ;
 
-329  *
+336  *
 	mthis
 ;
 
-332 
+339 
 boﬁ
  
 	m›î©‹
@@ -234967,13 +235201,13 @@ RAIDDiskInfo
 rhs
 ) const
 
-334  (
+341  (
 m_°rDevP©h
  =
 rhs
 .m_strDevPath);
 
-337 
+344 
 boﬁ
  
 	m›î©‹
@@ -234983,13 +235217,13 @@ boﬁ
 rhs
 ) const
 
-339  (
+346  (
 rhs
  =
 m_°rDevP©h
 );
 
-342 
+349 
 boﬁ
  
 	m›î©‹
@@ -234999,21 +235233,21 @@ DiskProfûe
 ¥ofûe
 ) const
 
-344  (
+351  (
 m_°rDevP©h
  =
 ¥ofûe
 .m_strDevPath);
 
-348 
+355 
 	sMDProfûe
  {
 
-349 #ifde‡
+356 #ifde‡
 NUUO
 
 
-350 
+357 
 	msm¨t_±r
 <
 	mFûesy°emM™agî
@@ -235021,7 +235255,7 @@ NUUO
 	mm_fsMgr
 ;
 
-352 
+359 
 	msh¨ed_±r
 <
 	mFûesy°emM™agî
@@ -235029,7 +235263,7 @@ NUUO
 	mm_fsMgr
 ;
 
-354 
+361 
 	mve˘‹
 <
 	m°rög
@@ -235037,137 +235271,155 @@ NUUO
 	mm_vMembîs
 ;
 
-355 
+362 
 °rög
  
 	mm_°rSysName
 ;
 
-356 
+363 
 °rög
  
 	mm_°rDevP©h
 ;
 
-357 
+364 
 	mm_iRaidDisks
 ;
 
-358 
+365 
 	mm_iDevCou¡
 ;
 
-359 
+366 
 	mm_iMDNum
 ;
 
-361 
+367 
+boﬁ
+ 
+	mm_bInMDSèt
+;
+
+369 
 MDProfûe
 ()
 
-362 : 
+370 : 
 m_fsMgr
 (
 NULL
 )
 
-363 , 
+371 , 
 m_°rSysName
 ("")
 
-364 , 
+372 , 
 m_°rDevP©h
 ("")
 
-365 , 
+373 , 
 m_iRaidDisks
 (0)
-
-366 , 
-m_iDevCou¡
-(0)
-
-367 , 
-m_iMDNum
-(-1)
-
-369 
-	mm_vMembîs
-.
-˛ór
-();
-
-372 
-MDProfûe
-(
-°rög
- 
-dev
-)
-
-373 : 
-m_fsMgr
-(
-NULL
-)
 
 374 , 
-m_°rSysName
-(
-dev
-)
-
-375 , 
-m_°rDevP©h
-("")
-
-376 , 
-m_iRaidDisks
-(0)
-
-377 , 
 m_iDevCou¡
 (0)
 
-378 , 
+375 , 
 m_iMDNum
 (-1)
 
-380 
+376 , 
+m_bInMDSèt
+(
+Ál£
+)
+
+378 
 	mm_vMembîs
 .
 ˛ór
 ();
 
 381 
-SëUDEVInf‹m©i⁄
-();
-
-382 
-RódMDSèt
-();
-
-383 
-InôülizeFSM™agî
-();
-
-386 ~
 MDProfûe
-()
+(
+°rög
+ 
+dev
+)
 
-388 
+382 : 
+m_fsMgr
+(
+NULL
+)
+
+383 , 
+m_°rSysName
+(
+dev
+)
+
+384 , 
+m_°rDevP©h
+("")
+
+385 , 
+m_iRaidDisks
+(0)
+
+386 , 
+m_iDevCou¡
+(0)
+
+387 , 
+m_iMDNum
+(-1)
+
+388 , 
+m_bInMDSèt
+(
+Ál£
+)
+
+390 
 	mm_vMembîs
 .
 ˛ór
 ();
 
-389 
+391 
+SëUDEVInf‹m©i⁄
+();
+
+392 
+RódMDSèt
+();
+
+393 
+InôülizeFSM™agî
+();
+
+396 ~
+MDProfûe
+()
+
+398 
+	mm_vMembîs
+.
+˛ór
+();
+
+399 
 	mm_fsMgr
  = 
 NULL
 ;
 
-392 
+402 
 	mMDProfûe
 & 
 	m›î©‹
@@ -235177,23 +235429,23 @@ MDProfûe
 rhs
 )
 
-394 i‡(
+404 i‡(
 this
  =&
 rhs
 )
 
-395  *
+405  *
 this
 ;
 
-397 
+407 
 	mm_vMembîs
 .
 ˛ór
 ();
 
-398 
+408 
 size_t
  
 	mi
@@ -235205,7 +235457,7 @@ size_t
 size
 (); i++)
 
-399 
+409 
 	mm_vMembîs
 .
 push_back
@@ -235217,7 +235469,7 @@ m_vMembîs
 i
 ]);
 
-400 
+410 
 	mm_°rSysName
  = 
 rhs
@@ -235225,7 +235477,7 @@ rhs
 m_°rSysName
 ;
 
-401 
+411 
 	mm_°rDevP©h
  = 
 rhs
@@ -235233,7 +235485,7 @@ rhs
 m_°rDevP©h
 ;
 
-402 
+412 
 	mm_iRaidDisks
  = 
 rhs
@@ -235241,7 +235493,7 @@ rhs
 m_iRaidDisks
 ;
 
-403 
+413 
 	mm_iDevCou¡
  = 
 rhs
@@ -235249,7 +235501,7 @@ rhs
 m_iDevCou¡
 ;
 
-404 
+414 
 	mm_iMDNum
  = 
 rhs
@@ -235257,7 +235509,7 @@ rhs
 m_iMDNum
 ;
 
-405 
+415 
 	mm_fsMgr
  = 
 rhs
@@ -235265,11 +235517,11 @@ rhs
 m_fsMgr
 ;
 
-406  *
+416  *
 	mthis
 ;
 
-409 
+419 
 boﬁ
  
 	m›î©‹
@@ -235279,49 +235531,49 @@ MDProfûe
 rhs
 )
 
-411  (
+421  (
 m_°rSysName
  =
 rhs
 .m_strSysName);
 
-414 
+424 
 SëUDEVInf‹m©i⁄
 ()
 
-416 i‡(
+426 i‡(
 	mm_°rSysName
 .
 em±y
 ())
 
-419 
+429 
 udev
  *
 	mudev
 ;
 
-420 
+430 
 udev_devi˚
  *
 	mdev
 ;
 
-421 
+431 
 	mudev
  = 
 udev_√w
 ();
 
-422 i‡(!
+432 i‡(!
 	mudev
 ) {
 
-423 
+433 
 ¥ötf
 ("can't create udev\n");
 
-427 
+437 
 	mdev
  = 
 udev_devi˚_√w_‰om_subsy°em_sy¢ame
@@ -235333,15 +235585,15 @@ m_°rSysName
 c_°r
 ());
 
-428 i‡(
+438 i‡(
 	mdev
 ) {
 
-429 
+439 
 	mªt
  = 0;
 
-431 
+441 
 	mm_°rDevP©h
  = 
 udev_devi˚_gë_devnode
@@ -235349,13 +235601,13 @@ udev_devi˚_gë_devnode
 dev
 );
 
-433 i‡(!
+443 i‡(!
 	mm_°rDevP©h
 .
 em±y
 ()) {
 
-434 
+444 
 	mªt
  = 
 ssˇnf
@@ -235367,7 +235619,7 @@ c_°r
 m_iMDNum
 );
 
-435 i‡(
+445 i‡(
 	mªt
  < 1 ||Ñë =
 EOF
@@ -235375,27 +235627,27 @@ EOF
 m_iMDNum
  > 127 || m_iMDNum < 0) {
 
-436 
+446 
 m_iMDNum
  = -1;
 
-441 
+451 
 udev_devi˚_uƒef
 (
 dev
 );
 
-442 
+452 
 udev_uƒef
 (
 udev
 );
 
-446 
+456 
 RódMDSèt
 ()
 
-448 
+458 
 md°©_ít
  *
 	mms
@@ -235403,7 +235655,7 @@ md°©_ít
 md°©_ªad
 (0, 0);
 
-449 
+459 
 md°©_ít
  *
 	me
@@ -235411,13 +235663,13 @@ md°©_ít
 ms
 ;
 
-450 
+460 
 	mm_vMembîs
 .
 ˛ór
 ();
 
-451 ; 
+461 ; 
 	me
 ;É = 
 e
@@ -235425,7 +235677,7 @@ e
 √xt
 ) {
 
-452 i‡(
+462 i‡(
 m_°rSysName
  =
 e
@@ -235433,7 +235685,7 @@ e
 dev
 ) {
 
-453 
+463 
 md°©_ít
 ::
 dev_membî
@@ -235445,7 +235697,7 @@ e
 membîs
 ;
 
-454 ; 
+464 ; 
 	mdev
 ; dev = 
 dev
@@ -235453,7 +235705,7 @@ dev
 √xt
 ) {
 
-455 
+465 
 m_vMembîs
 .
 push_back
@@ -235463,7 +235715,7 @@ dev
 «me
 );
 
-458 
+468 
 	mm_iRaidDisks
  = 
 e
@@ -235471,7 +235723,7 @@ e
 øid_disks
 ;
 
-459 
+469 
 	mm_iDevCou¡
  = 
 e
@@ -235479,27 +235731,33 @@ e
 dev˙t
 ;
 
-463 
+470 
+	mm_bInMDSèt
+ = 
+åue
+;
+
+474 
 ‰ì_md°©
 (
 ms
 );
 
-466 
+477 
 boﬁ
  
 InôülizeFSM™agî
 () {
 
-467 
+478 
 	måy
  {
 
-468 #ifde‡
+479 #ifde‡
 NUUO
 
 
-469 
+480 
 	mm_fsMgr
  = 
 √w
@@ -235509,7 +235767,7 @@ Fûesy°emM™agî
 m_°rDevP©h
 );
 
-471 
+482 
 	mm_fsMgr
  = 
 sh¨ed_±r
@@ -235521,13 +235779,13 @@ Fûesy°emM™agî
 m_°rDevP©h
 ));
 
-473 i‡(!
+484 i‡(!
 	mm_fsMgr
 ->
 IsInôülized
 ()) {
 
-474 
+485 
 WrôeHWLog
 (
 LOG_LOCAL0
@@ -235535,23 +235793,23 @@ LOG_LOCAL0
 LOG_ERR
 , "RAIDInfo",
 
-476  
+487  
 	mÁl£
 ;
 
-478 } 
+489 } 
 ˇtch
  (
 bad_Æloc
 &) {
 
-479 
+490 
 	mm_fsMgr
  = 
 NULL
 ;
 
-480 
+491 
 WrôeHWLog
 (
 LOG_LOCAL0
@@ -235559,23 +235817,65 @@ LOG_LOCAL0
 LOG_ERR
 , "RAIDInfo",
 
-482  
+493  
 	mÁl£
 ;
 
-485  
+496  
 	måue
 ;
 
-488 
+499 
 Dump
 () {
 
-492 
+500 
+¥ötf
+("MD Name: %s\n\tDev Node: %s, RAID Disks: (%d/%d)\n\t",
+
+501 
+m_°rSysName
+.
+c_°r
+(), 
+m_°rDevP©h
+.c_°r(), 
+m_iDevCou¡
+, 
+m_iRaidDisks
+);
+
+502 i‡(
+	mm_fsMgr
+.
+gë
+()) {
+
+503 
+¥ötf
+("Status: Format(%s), Mount(%s on %s)",
+
+504 
+m_fsMgr
+->
+IsF‹m©ed
+()?"Yes":"No",
+
+505 
+m_fsMgr
+->
+IsMou¡ed
+()?"Yes":"No", m_fsMgr->
+GëMou¡Poöt
+().
+c_°r
+());
+
+510 
 	sRAIDInfo
  {
 
-493 
+511 
 	mve˘‹
 <
 	mRAIDDiskInfo
@@ -235583,323 +235883,323 @@ Dump
 	mm_vDiskLi°
 ;
 
-494 
+512 
 °rög
  
 	mm_°rSysName
 ;
 
-495 
+513 
 °rög
  
 	mm_°rDevP©h
 ;
 
-496 
+514 
 °rög
  
 	mm_°rSèã
 ;
 
-497 
+515 
 °rög
  
 	mm_°rLayout
 ;
 
-498 
+516 
 °rög
  
 	mm_°rRebuûdögO≥øti⁄
 ;
 
-499 
+517 
 °rög
  
 	mm_°rMou¡Poöt
 ;
 
-500 
+518 
 time_t
  
 	mm_Cª©i⁄Time
 ;
 
-501 
+519 
 time_t
  
 	mm_Upd©eTime
 ;
 
-502 
+520 
 uöt32_t
  
 	mm_UUID
 [4];
 
-503 
+521 
 öt64_t
  
 	mm_uŒTŸÆC≠acôy
 ;
 
-504 
+522 
 öt64_t
  
 	mm_uŒU£dSize
 ;
 
-505 
+523 
 öt32_t
  
 	mm_iRAIDLevñ
 ;
 
-506 
+524 
 öt32_t
  
 	mm_iTŸÆDiskNum
 ;
 
-507 
+525 
 öt32_t
  
 	mm_iRAIDDiskNum
 ;
 
-508 
+526 
 öt32_t
  
 	mm_iA˘iveDiskNum
 ;
 
-509 
+527 
 öt32_t
  
 	mm_iW‹kögDiskNum
 ;
 
-510 
+528 
 öt32_t
  
 	mm_iFaûedDiskNum
 ;
 
-511 
+529 
 öt32_t
  
 	mm_iS∑ªDiskNum
 ;
 
-512 
+530 
 öt32_t
  
 	mm_iSèã
 ;
 
-513 
+531 
 öt32_t
  
 	mm_iChunkSize
 ;
 
-514 
+532 
 öt32_t
  
 	mm_iRebuûdögProgªss
 ;
 
-515 
+533 
 öt32_t
  
 	mm_iMDNum
 ;
 
-516 
+534 
 öt32_t
  
 	mm_iF‹m©ögSèã
 ;
 
-517 
+535 
 öt32_t
  
 	mm_iF‹m©Progªss
 ;
 
-518 
+536 
 boﬁ
  
 	mm_bF‹m©
 ;
 
-519 
+537 
 boﬁ
  
 	mm_bMou¡
 ;
 
-520 
+538 
 boﬁ
  
 	mm_bSu≥rBlockPîsi°ít
 ;
 
-521 
+539 
 boﬁ
  
 	mm_bI«˘ive
 ;
 
-522 
+540 
 boﬁ
  
 	mm_bRebuûdög
 ;
 
-524 
+542 
 RAIDInfo
 ()
 
-525 : 
+543 : 
 m_°rSysName
 ("")
 
-526 , 
+544 , 
 m_°rDevP©h
 ("")
 
-527 , 
+545 , 
 m_°rSèã
 ("")
 
-528 , 
+546 , 
 m_°rLayout
 ("")
 
-529 , 
+547 , 
 m_°rRebuûdögO≥øti⁄
 ("")
 
-530 , 
+548 , 
 m_°rMou¡Poöt
 ("")
 
-531 , 
+549 , 
 m_Cª©i⁄Time
 (0)
 
-532 , 
+550 , 
 m_Upd©eTime
 (0)
 
-533 , 
+551 , 
 m_uŒTŸÆC≠acôy
 (0ull)
 
-534 , 
+552 , 
 m_uŒU£dSize
 (0ull)
 
-535 , 
+553 , 
 m_iRAIDLevñ
 (
 UnSë
 )
 
-536 , 
+554 , 
 m_iTŸÆDiskNum
 (0)
 
-537 , 
+555 , 
 m_iRAIDDiskNum
 (0)
 
-538 , 
+556 , 
 m_iA˘iveDiskNum
 (0)
 
-539 , 
+557 , 
 m_iW‹kögDiskNum
 (0)
 
-540 , 
+558 , 
 m_iFaûedDiskNum
 (0)
 
-541 , 
+559 , 
 m_iS∑ªDiskNum
 (0)
 
-542 , 
+560 , 
 m_iSèã
 (0)
 
-543 , 
+561 , 
 m_iChunkSize
 (512)
 
-544 , 
+562 , 
 m_iRebuûdögProgªss
 (-1)
 
-545 , 
+563 , 
 m_iMDNum
 (-1)
 
-546 , 
+564 , 
 m_iF‹m©ögSèã
 (-1)
 
-547 , 
+565 , 
 m_iF‹m©Progªss
 (-1)
 
-548 , 
+566 , 
 m_bF‹m©
 (
 Ál£
 )
 
-549 , 
+567 , 
 m_bMou¡
 (
 Ál£
 )
 
-550 , 
+568 , 
 m_bSu≥rBlockPîsi°ít
 (
 Ál£
 )
 
-551 , 
+569 , 
 m_bI«˘ive
 (
 Ál£
 )
 
-552 , 
+570 , 
 m_bRebuûdög
 (
 Ál£
 )
 
-554 
+572 
 	mi
  = 0; i < 4; i ++)
 
-555 
+573 
 	mm_UUID
 [
 i
 ] = 0;
 
-558 ~
+576 ~
 RAIDInfo
 () {
 
-561 
+579 
 	mRAIDInfo
 & 
 	m›î©‹
@@ -235909,29 +236209,27 @@ RAIDInfo
 rhs
 )
 
-563 
+581 
 m_vDiskLi°
 .
 ˛ór
 ();
 
-564 
+582 
 	mi
  = 0; i < 
 	mrhs
 .
-	m¨øyInfo
-.
-	mƒ_disks
+	muDiskCou¡î
 ; i++) {
 
-565 
+583 
 RAIDDiskInfo
  
 	möfo
 ;
 
-566 i‡(
+584 i‡(
 	mrhs
 .
 	m¨øyDisks
@@ -235941,21 +236239,23 @@ i
 	mdiskInfo
 .
 	mmaj‹
- == 0 &&
+ != 8)
 
-567 
+587 
+¥ötf
+("%s, %s\n", 
 rhs
 .
+°rAºayDevName
+,Ñhs.
 ¨øyDisks
 [
 i
 ].
-diskInfo
-.
-mö‹
- == 0)
+°rDevName
+);
 
-570 
+588 
 	möfo
  = 
 rhs
@@ -235965,7 +236265,7 @@ rhs
 i
 ];
 
-571 
+589 
 	mm_vDiskLi°
 .
 push_back
@@ -235973,7 +236273,7 @@ push_back
 öfo
 );
 
-574 
+592 
 	mm_°rSèã
  = 
 rhs
@@ -235981,7 +236281,7 @@ rhs
 °rAºaySèã
 ;
 
-575 
+593 
 	mm_°rLayout
  = 
 rhs
@@ -235989,7 +236289,7 @@ rhs
 °rRaidLayout
 ;
 
-576 
+594 
 	mm_°rRebuûdögO≥øti⁄
  = 
 rhs
@@ -235997,7 +236297,7 @@ rhs
 °rRebuûdO≥øti⁄
 ;
 
-577 
+595 
 	mm_°rDevP©h
  = 
 rhs
@@ -236005,7 +236305,7 @@ rhs
 °rAºayDevName
 ;
 
-578 
+596 
 mem˝y
 (
 m_UUID
@@ -236015,7 +236315,7 @@ rhs
 uuid
 , (m_UUID));
 
-579 
+597 
 	mm_uŒTŸÆC≠acôy
  = 
 rhs
@@ -236023,7 +236323,7 @@ rhs
 uŒAºaySize
 ;
 
-580 
+598 
 	mm_uŒU£dSize
  = 
 rhs
@@ -236031,7 +236331,7 @@ rhs
 uŒU£dSize
 ;
 
-581 
+599 
 	mm_iRAIDLevñ
  = 
 rhs
@@ -236041,7 +236341,7 @@ rhs
 Àvñ
 ;
 
-582 
+600 
 	mm_iTŸÆDiskNum
  = 
 rhs
@@ -236051,7 +236351,7 @@ rhs
 ƒ_disks
 ;
 
-583 
+601 
 	mm_iRAIDDiskNum
  = 
 rhs
@@ -236061,7 +236361,7 @@ rhs
 øid_disks
 ;
 
-584 
+602 
 	mm_iA˘iveDiskNum
  = 
 rhs
@@ -236071,7 +236371,7 @@ rhs
 a˘ive_disks
 ;
 
-585 
+603 
 	mm_iW‹kögDiskNum
  = 
 rhs
@@ -236081,7 +236381,7 @@ rhs
 w‹kög_disks
 ;
 
-586 
+604 
 	mm_iFaûedDiskNum
  = 
 rhs
@@ -236091,7 +236391,7 @@ rhs
 Áûed_disks
 ;
 
-587 
+605 
 	mm_iS∑ªDiskNum
  = 
 rhs
@@ -236101,7 +236401,7 @@ rhs
 •¨e_disks
 ;
 
-588 
+606 
 	mm_iSèã
  = 
 rhs
@@ -236111,7 +236411,7 @@ rhs
 °©e
 ;
 
-589 
+607 
 	mm_iChunkSize
  = 
 rhs
@@ -236121,7 +236421,7 @@ rhs
 chunk_size
 ;
 
-590 
+608 
 	mm_iRebuûdögProgªss
  = 
 rhs
@@ -236129,7 +236429,7 @@ rhs
 iRebuûdProgªss
 ;
 
-591 
+609 
 	mm_bRebuûdög
  = 
 rhs
@@ -236141,7 +236441,7 @@ bIsRebuûdög
 Ál£
 ;
 
-592 
+610 
 	mm_bI«˘ive
  = 
 rhs
@@ -236153,7 +236453,7 @@ bI«˘ive
 Ál£
 ;
 
-593 
+611 
 	mm_bSu≥rBlockPîsi°ít
  = 
 rhs
@@ -236165,7 +236465,7 @@ bIsSu≥rBlockPîsi°ít
 Ál£
 ;
 
-594 
+612 
 	mm_Cª©i⁄Time
  = 
 rhs
@@ -236175,7 +236475,7 @@ rhs
 ˘ime
 ;
 
-595 
+613 
 	mm_Upd©eTime
  = 
 rhs
@@ -236185,11 +236485,11 @@ rhs
 utime
 ;
 
-597  *
+615  *
 	mthis
 ;
 
-600 
+618 
 	mRAIDInfo
 & 
 	m›î©‹
@@ -236199,23 +236499,23 @@ RAIDInfo
 rhs
 )
 
-602 i‡(
+620 i‡(
 this
  =&
 rhs
 )
 
-603  *
+621  *
 this
 ;
 
-605 
+623 
 	mm_vDiskLi°
 .
 ˛ór
 ();
 
-606 
+624 
 size_t
  
 	mi
@@ -236227,7 +236527,7 @@ size_t
 size
 (); i++) {
 
-607 
+625 
 	mm_vDiskLi°
 .
 push_back
@@ -236239,7 +236539,7 @@ m_vDiskLi°
 i
 ]);
 
-610 
+628 
 	mm_°rSysName
  = 
 rhs
@@ -236247,7 +236547,7 @@ rhs
 m_°rSysName
 ;
 
-611 
+629 
 	mm_°rSèã
  = 
 rhs
@@ -236255,7 +236555,7 @@ rhs
 m_°rSèã
 ;
 
-612 
+630 
 	mm_°rLayout
  = 
 rhs
@@ -236263,7 +236563,7 @@ rhs
 m_°rLayout
 ;
 
-613 
+631 
 	mm_°rRebuûdögO≥øti⁄
  = 
 rhs
@@ -236271,7 +236571,7 @@ rhs
 m_°rRebuûdögO≥øti⁄
 ;
 
-614 
+632 
 	mm_°rDevP©h
  = 
 rhs
@@ -236279,7 +236579,7 @@ rhs
 m_°rDevP©h
 ;
 
-615 
+633 
 	mm_°rMou¡Poöt
  = 
 rhs
@@ -236287,7 +236587,7 @@ rhs
 m_°rMou¡Poöt
 ;
 
-616 
+634 
 mem˝y
 (
 m_UUID
@@ -236295,7 +236595,7 @@ m_UUID
 rhs
 .m_UUID, (m_UUID));
 
-617 
+635 
 	mm_uŒTŸÆC≠acôy
  = 
 rhs
@@ -236303,7 +236603,7 @@ rhs
 m_uŒTŸÆC≠acôy
 ;
 
-618 
+636 
 	mm_uŒU£dSize
  = 
 rhs
@@ -236311,7 +236611,7 @@ rhs
 m_uŒU£dSize
 ;
 
-619 
+637 
 	mm_iRAIDLevñ
  = 
 rhs
@@ -236319,7 +236619,7 @@ rhs
 m_iRAIDLevñ
 ;
 
-620 
+638 
 	mm_iTŸÆDiskNum
  = 
 rhs
@@ -236327,7 +236627,7 @@ rhs
 m_iTŸÆDiskNum
 ;
 
-621 
+639 
 	mm_iRAIDDiskNum
  = 
 rhs
@@ -236335,7 +236635,7 @@ rhs
 m_iRAIDDiskNum
 ;
 
-622 
+640 
 	mm_iA˘iveDiskNum
  = 
 rhs
@@ -236343,7 +236643,7 @@ rhs
 m_iA˘iveDiskNum
 ;
 
-623 
+641 
 	mm_iW‹kögDiskNum
  = 
 rhs
@@ -236351,7 +236651,7 @@ rhs
 m_iW‹kögDiskNum
 ;
 
-624 
+642 
 	mm_iFaûedDiskNum
  = 
 rhs
@@ -236359,7 +236659,7 @@ rhs
 m_iFaûedDiskNum
 ;
 
-625 
+643 
 	mm_iS∑ªDiskNum
  = 
 rhs
@@ -236367,7 +236667,7 @@ rhs
 m_iS∑ªDiskNum
 ;
 
-626 
+644 
 	mm_iSèã
  = 
 rhs
@@ -236375,7 +236675,7 @@ rhs
 m_iSèã
 ;
 
-627 
+645 
 	mm_iChunkSize
  = 
 rhs
@@ -236383,7 +236683,7 @@ rhs
 m_iChunkSize
 ;
 
-628 
+646 
 	mm_iRebuûdögProgªss
  = 
 rhs
@@ -236391,7 +236691,7 @@ rhs
 m_iRebuûdögProgªss
 ;
 
-629 
+647 
 	mm_bRebuûdög
  = 
 rhs
@@ -236399,7 +236699,7 @@ rhs
 m_bRebuûdög
 ;
 
-630 
+648 
 	mm_bI«˘ive
  = 
 rhs
@@ -236407,7 +236707,7 @@ rhs
 m_bI«˘ive
 ;
 
-631 
+649 
 	mm_bSu≥rBlockPîsi°ít
  = 
 rhs
@@ -236415,7 +236715,7 @@ rhs
 m_bSu≥rBlockPîsi°ít
 ;
 
-632 
+650 
 	mm_Cª©i⁄Time
  = 
 rhs
@@ -236423,7 +236723,7 @@ rhs
 m_Cª©i⁄Time
 ;
 
-633 
+651 
 	mm_Upd©eTime
  = 
 rhs
@@ -236431,7 +236731,7 @@ rhs
 m_Upd©eTime
 ;
 
-634 
+652 
 	mm_iMDNum
  = 
 rhs
@@ -236439,7 +236739,7 @@ rhs
 m_iMDNum
 ;
 
-635 
+653 
 	mm_iF‹m©Progªss
  = 
 rhs
@@ -236447,7 +236747,7 @@ rhs
 m_iF‹m©Progªss
 ;
 
-636 
+654 
 	mm_iF‹m©ögSèã
  = 
 rhs
@@ -236455,7 +236755,7 @@ rhs
 m_iF‹m©ögSèã
 ;
 
-637 
+655 
 	mm_bMou¡
  = 
 rhs
@@ -236463,7 +236763,7 @@ rhs
 m_bMou¡
 ;
 
-638 
+656 
 	mm_bF‹m©
  = 
 rhs
@@ -236471,11 +236771,11 @@ rhs
 m_bF‹m©
 ;
 
-640  *
+658  *
 	mthis
 ;
 
-643 
+661 
 boﬁ
  
 	m›î©‹
@@ -236485,13 +236785,13 @@ RAIDInfo
 rhs
 ) const
 
-645  (
+663  (
 m_°rSysName
  =
 rhs
 .m_strSysName &&
 
-646 0 =
+664 0 =
 memcmp
 (
 rhs
@@ -236499,7 +236799,7 @@ rhs
 m_UUID
 , m_UUID, (m_UUID)));
 
-649 
+667 
 boﬁ
  
 	m›î©‹
@@ -236509,13 +236809,13 @@ boﬁ
 rhs
 ) const
 
-651  (
+669  (
 m_°rSysName
  =
 rhs
 );
 
-654 
+672 
 boﬁ
  
 IsRAIDSètusCh™ged
@@ -236525,7 +236825,7 @@ RAIDInfo
 ¥evious
 ) {
 
-655  !(
+673  !(
 	mm_Upd©eTime
  =
 ¥evious
@@ -236533,33 +236833,33 @@ RAIDInfo
 m_Upd©eTime
  &&
 
-656 
+674 
 m_iFaûedDiskNum
  =
 ¥evious
 .m_iFailedDiskNum &&
 
-657 
+675 
 m_iW‹kögDiskNum
  =
 ¥evious
 .m_iWorkingDiskNum &&
 
-658 
+676 
 m_iS∑ªDiskNum
  =
 ¥evious
 .m_iSpareDiskNum);
 
-661 
+679 
 Dump
 ()
 
-663 
+681 
 ¥ötf
 ("Device: %s\n"
 
-670 
+688 
 m_°rDevP©h
 .
 c_°r
@@ -236567,19 +236867,19 @@ c_°r
 m_°rSèã
 .c_str(),
 
-671 
+689 
 m_iRAIDLevñ
 , 
 m_iChunkSize
 ,
 
-672 
+690 
 m_uŒTŸÆC≠acôy
 , 
 m_uŒU£dSize
 ,
 
-673 
+691 
 m_iTŸÆDiskNum
 , 
 m_iRAIDDiskNum
@@ -236587,7 +236887,7 @@ m_iRAIDDiskNum
 m_iA˘iveDiskNum
 ,
 
-674 
+692 
 m_iW‹kögDiskNum
 , 
 m_iFaûedDiskNum
@@ -236595,7 +236895,7 @@ m_iFaûedDiskNum
 m_iS∑ªDiskNum
 ,
 
-675 
+693 
 ˘ime
 (&
 m_Cª©i⁄Time
@@ -236603,23 +236903,23 @@ m_Cª©i⁄Time
 m_Upd©eTime
 ),
 
-676 
+694 
 m_bRebuûdög
 ?"Yes":"No", (
 m_iRebuûdögProgªss
  < 0)?100:m_iRebuildingProgress,
 
-677 
+695 
 m_bMou¡
 ?"Yes":"No", 
 m_bF‹m©
 ?"Yes":"No",
 
-678 
+696 
 m_iF‹m©ögSèã
 
 
-681 
+699 
 size_t
  
 	mi
@@ -236629,11 +236929,11 @@ size_t
 size
 (); i++) {
 
-682 
+700 
 ¥ötf
 ("\t");
 
-683 
+701 
 	mm_vDiskLi°
 [
 i
@@ -236641,11 +236941,11 @@ i
 Dump
 ();
 
-685 
+703 
 ¥ötf
 ("\n");
 
-689 ˛as†
+707 ˛as†
 	cRAIDM™agî
  : 
 public
@@ -236653,19 +236953,19 @@ public
 A¥ThªadW‹kî
  {
 
-690 
+708 
 ¥iv©e
 :
 
-692 
+710 
 eTC_STOP
 ,
 
-695 
+713 
 	g¥iv©e
 :
 
-696 
+714 
 m≠
 <
 °rög
@@ -236675,7 +236975,7 @@ m≠
 	gm_m≠MDProfûes
 ;
 
-697 
+715 
 	gm≠
 <
 	g°rög
@@ -236685,59 +236985,77 @@ m≠
 	gm_m≠DiskProfûes
 ;
 
-698 
+716 
+°rög
+ 
+	gm_°rLa°Eº‹
+;
+
+717 
 boﬁ
  
 	gm_bU£dMD
 [128];
 
-699 
+718 
 boﬁ
  
 	gm_bU£dVﬁume
 [128];
 
-701 
+720 
 CrôiˇlSe˘i⁄
  
 	gm_csMDProfûes
 ;
 
-702 
+721 
 CrôiˇlSe˘i⁄
  
 	gm_csDiskProfûes
 ;
 
-703 
+722 
 CrôiˇlSe˘i⁄
  
 	gm_csNŸifyCh™ge
 ;
 
-704 
+723 
 CrôiˇlSe˘i⁄
  
 	gm_csU£dMD
 ;
 
-705 
+724 
 CrôiˇlSe˘i⁄
  
 	gm_csU£dVﬁume
 ;
 
-706 
+725 
+CrôiˇlSe˘i⁄
+ 
+	gm_csLa°Eº‹
+;
+
+726 
+Sem≠h‹e
+ 
+	gm_£mAs£mbÀ
+;
+
+727 
 A¥C⁄d
  *
 	gm_pNŸifyCh™ge
 ;
 
-708 
+729 
 	g¥iv©e
 :
 
-709 
+730 
 ve˘‹
 <
 RAIDInfo
@@ -236751,13 +237069,13 @@ RAIDDiskInfo
 devInfo
 );
 
-711 
+732 
 boﬁ
  
 Inôülize
 ();
 
-713 
+734 
 InôülizeSh≠e
 (
 sh≠e
@@ -236779,11 +237097,11 @@ bôm≠_fûe
 NULL
 );
 
-714 #ifde‡
+735 #ifde‡
 DEBUG
 
 
-715 
+736 
 InôülizeC⁄ãxt
 (
 c⁄ãxt
@@ -236797,7 +237115,7 @@ run°›
 vîbo£
  = 1);
 
-717 
+738 
 InôülizeC⁄ãxt
 (
 c⁄ãxt
@@ -236811,7 +237129,7 @@ run°›
 vîbo£
  = 0);
 
-719 
+740 
 InôülizeMDDevIdít
 (
 mddev_idít
@@ -236829,7 +237147,7 @@ bôm≠_fûe
 NULL
 );
 
-720 
+741 
 mddev_dev
 * 
 InôülizeDevLi°
@@ -236843,7 +237161,7 @@ devNameLi°
 di•osôi⁄
  = 0);
 
-721 
+742 
 mddev_dev
 * 
 InôülizeDevLi°
@@ -236855,7 +237173,7 @@ InôülizeDevLi°
 wôh
 );
 
-722 
+743 
 FªeDevLi°
 (
 mddev_dev
@@ -236863,15 +237181,15 @@ mddev_dev
 devli°
 );
 
-723 
+744 
 O≥nMDDev
 (c⁄° 
 °rög
 & 
-mddev
+mddev_∑th
 );
 
-725 
+746 
 Cª©eRAID
 (c⁄° 
 °rög
@@ -236885,7 +237203,7 @@ vDevLi°
 Àvñ
 );
 
-727 
+748 
 boﬁ
  
 As£mbÀRAID
@@ -236897,7 +237215,7 @@ uuid
 mddev
 );
 
-728 
+749 
 As£mbÀRAID
 (c⁄° 
 °rög
@@ -236907,45 +237225,39 @@ mddev
 uuid
 [4]);
 
-730 
+751 
 GëFªeMDNum
 ();
 
-731 
+752 
 FªeMDNum
 (
 n
 );
 
-732 
+753 
 SëMDNum
 (
 n
 );
 
-734 
-GëF‹mîVﬁumeNum
-(
-n
-);
-
-735 
+755 
 GëFªeVﬁumeNum
 ();
 
-736 
+756 
 FªeVﬁumeNum
 (
 n
 );
 
-737 
+757 
 SëVﬁumeNum
 (
 n
 );
 
-739 
+759 
 Upd©eRAIDDiskLi°
 (
 ve˘‹
@@ -236959,7 +237271,7 @@ vRAIDDiskInfoLi°
 mddev
 );
 
-740 
+760 
 boﬁ
  
 M™ageRAIDSubdevs
@@ -236975,7 +237287,7 @@ vDevLi°
 ›î©i⁄
 );
 
-741 
+761 
 	gve˘‹
 <
 	gRAIDInfo
@@ -236989,7 +237301,7 @@ IsMDDevInRAIDInfoLi°
 mddev
 );
 
-742 
+762 
 	gve˘‹
 <
 	gRAIDInfo
@@ -237007,7 +237319,7 @@ RAIDInfo
 öfo
 );
 
-743 
+763 
 boﬁ
  
 IsDiskExi°InRAIDDiskLi°
@@ -237017,7 +237329,7 @@ IsDiskExi°InRAIDDiskLi°
 dev
 );
 
-744 
+764 
 boﬁ
  
 IsDiskExi°InRAIDDiskLi°
@@ -237029,7 +237341,7 @@ ve˘‹
 vDevLi°
 );
 
-745 
+765 
 °rög
  
 Gíî©eMDSysName
@@ -237037,7 +237349,7 @@ Gíî©eMDSysName
 num
 );
 
-747 
+767 
 boﬁ
  
 St›RAID
@@ -237047,33 +237359,33 @@ St›RAID
 mddev
 );
 
-749 
+769 
 QuîyMDSu≥rBlockInDisk
 (c⁄° 
 °rög
 & 
-dev
+dev_∑th
 , 
 examöe_ªsu…
  &
 ªsu…
 );
 
-750 
+770 
 boﬁ
  
 QuîyMDDëaû
 (c⁄° 
 °rög
 & 
-mddev
+mddev_∑th
 , 
 ¨øy_dëaû
  &
 ad
 );
 
-751 
+771 
 boﬁ
  
 Gíî©eRAIDInfo
@@ -237087,27 +237399,39 @@ RAIDInfo
 öfo
 );
 
-753 
+772 
+°rög
+ 
+GëDevi˚NodeBySymLök
+(c⁄° såög& 
+symlök
+);
+
+774 
+NŸifyCh™ge
+();
+
+776 
 	g¥Ÿe˘ed
 :
 
-754 
+777 
 ThªadProc
 ();
 
-756 
+779 
 	gpublic
 :
 
-757 
+780 
 RAIDM™agî
 ();
 
-758 ~
+781 ~
 RAIDM™agî
 ();
 
-760 
+783 
 boﬁ
  
 AddDisk
@@ -237117,7 +237441,7 @@ AddDisk
 dev
 );
 
-761 
+784 
 boﬁ
  
 RemoveDisk
@@ -237127,7 +237451,7 @@ RemoveDisk
 dev
 );
 
-763 
+786 
 boﬁ
  
 Cª©eRAID
@@ -237141,7 +237465,7 @@ vDevLi°
 Àvñ
 );
 
-765 
+788 
 boﬁ
  
 RemoveMDDisks
@@ -237155,7 +237479,7 @@ ve˘‹
 vDevLi°
 );
 
-766 
+789 
 boﬁ
  
 M¨kFau…yMDDisks
@@ -237169,7 +237493,7 @@ ve˘‹
 vDevLi°
 );
 
-767 
+790 
 boﬁ
  
 AddMDDisks
@@ -237183,7 +237507,7 @@ ve˘‹
 vDevLi°
 );
 
-768 
+791 
 boﬁ
  
 RóddMDDisks
@@ -237197,7 +237521,7 @@ ve˘‹
 vDevLi°
 );
 
-769 
+792 
 boﬁ
  
 Rïœ˚MDDisk
@@ -237211,7 +237535,7 @@ mddev
 wôh
 );
 
-771 
+794 
 boﬁ
  
 DñëeRAID
@@ -237221,7 +237545,7 @@ DñëeRAID
 mddev
 );
 
-773 
+796 
 boﬁ
  
 GëRAIDInfo
@@ -237235,7 +237559,7 @@ RAIDInfo
 öfo
 );
 
-774 
+797 
 GëRAIDInfo
 (
 ve˘‹
@@ -237245,7 +237569,7 @@ RAIDInfo
 li°
 );
 
-775 
+798 
 GëFªeDisksInfo
 (
 ve˘‹
@@ -237255,25 +237579,41 @@ RAIDDiskInfo
 li°
 );
 
-777 
+800 
+SëLa°Eº‹
+(c⁄° 
+°rög
+ &
+fmt
+, ...);
+
+801 
+GëLa°Eº‹
+(
+°rög
+ &
+log
+);
+
+803 
 boﬁ
  
 CheckFûeSy°em
 ();
 
-778 
+804 
 boﬁ
  
 DoFûeSy°emRecovîy
 ();
 
-779 
+805 
 boﬁ
  
 GëFûeSy°emSètus
 ();
 
-781 
+807 
 boﬁ
  
 F‹m©
@@ -237283,7 +237623,7 @@ F‹m©
 mddev
 );
 
-782 
+808 
 boﬁ
  
 Mou¡
@@ -237293,7 +237633,7 @@ Mou¡
 mddev
 );
 
-783 
+809 
 boﬁ
  
 Unmou¡
@@ -237303,7 +237643,7 @@ Unmou¡
 mddev
 );
 
-784 
+810 
 boﬁ
  
 GëF‹m©Progªss
@@ -237313,13 +237653,13 @@ GëF‹m©Progªss
 mddev
 ,
 
-785 & 
+811 & 
 °©
 , & 
 ¥ogªss
 );
 
-786 
+812 
 boﬁ
  
 IsMou¡ed
@@ -237331,7 +237671,7 @@ mddev
 num
 );
 
-787 
+813 
 boﬁ
  
 IsF‹m©ed
@@ -237341,17 +237681,9 @@ IsF‹m©ed
 mddev
 );
 
-789 
+815 
 Dump
 ();
-
-791 
-°rög
- 
-GëDevi˚NodeBySymLök
-(c⁄° såög& 
-symlök
-);
 
 	@libmdadm/bitmap.h
 
@@ -245781,147 +246113,151 @@ MAX_DISK_NUM
 	miLayout
 ;
 
-44 
+43 
+	muDiskCou¡î
+;
+
+45 
 	m°rC⁄èöî
 [32];
 
-45 
+46 
 	m°rMembî
 [32];
 
-48 
+49 
 	mbResh≠eA˘ive
 ;
 
-49 
+50 
 	miDñèDisks
 ;
 
-50 
+51 
 	miRaidNewLevñ
 ;
 
-51 
+52 
 	miNewChunkSize
 ;
 
-52 
+53 
 	muŒResh≠eProgªss
 ;
 
-53 
+54 
 	m°rRaidNewLayout
 [32];
 
-56 
+57 
 	squîy_ªsu…
  {
 
-57 
+58 
 	mbIsMD
 ;
 
-58 
+59 
 	mbIsMDA˘ive
 ;
 
-59 
+60 
 	mbHasMDDëaû
 ;
 
-60 
+61 
 	mbHasMDEº‹
 ;
 
-61 
+62 
 	miMDRaidDiskNum
 ;
 
-62 
+63 
 	miMDS∑ªDiskNum
 ;
 
-63 
+64 
 	miMDRaidLevñ
 ;
 
-64 
+65 
 	m°rMDSize
 [32];
 
-65 
+66 
 	m°rMDLevñ
 [16];
 
-66 
+67 
 	m°rMDDevName
 [32];
 
-67 
+68 
 	m°rMDEº‹
 [128];
 
-69 
+70 
 	miDiskNumbî
 ;
 
-70 
+71 
 	m°rDiskA˘ivôy
 [32];
 
-71 
+72 
 	m°rDiskDevName
 [32];
 
-74 
+75 
 	sexamöe_ªsu…
  {
 
-75 
+76 
 	mcSèã
 ;
 
-76 
+77 
 	m°rDevName
 [32];
 
-77 
+78 
 	m¨øyUUID
 [4];
 
-78 
+79 
 	muRaidLevñ
 ;
 
-79 
+80 
 	muRaidDiskNum
 ;
 
-80 
+81 
 	mbHasBadblock
 ;
 
-81 
+82 
 	mbSBChkSumEº‹
 ;
 
-82 
+83 
 	mbIsVÆid
 ;
 
-83 
+84 
 	muChkSum
 ;
 
-84 
+85 
 	muEx≥˘edChkSum
 ;
 
-85 
+86 
 	muDevRﬁe
 ;
 
-86 
+87 
 examöe_ªsu…
 * 
 	m√xt
