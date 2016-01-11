@@ -35,6 +35,7 @@ using namespace SYSUTILS_SPACE;
 #include <scsi/sg_unaligned.h>
 #include <libudev.h>
 #include <stdarg.h>
+#include <blkid/blkid.h>
 
 using namespace std;
 
@@ -59,6 +60,13 @@ struct SGReadCapacity10 {
 	uint8_t m_BlockLength[4];
 };
 
+struct SGReadCapacity16 {
+	uint8_t m_LogicalBlockAddr[8];
+	uint8_t m_BlockLength[4];
+	uint8_t m_ProtectionInfo; // bit 0: PROT_EN, bit 1:3: P_TYPE, bit 4:7: reserved
+	uint8_t m_Reserved[19];
+};
+
 struct DiskProfile {
 	string m_strSysName;
 	string m_strDevPath;
@@ -68,7 +76,7 @@ struct DiskProfile {
 	string m_strModel;
 	string m_strFWVer;
 	string m_strSerialNum;
-	int64_t	m_llCapacity;
+	uint64_t	m_llCapacity;
 	eDiskType m_diskType;
 	int m_iBay;
 
@@ -102,6 +110,7 @@ struct DiskProfile {
 	{
 		SetUDEVInformation();
 		SetDiskVendorInfomation();
+		GetDevCapacity();
 		ReadMDStat();
 	}
 
@@ -173,6 +182,9 @@ struct DiskProfile {
 					if (ret < 1 || ret == EOF) {
 						m_iBay = -1;
 					}
+					
+					/* iSCSI disk use its target name as serial number. */
+					m_strSerialNum = udev_device_get_property_value(dev, "ID_PATH");
 				} else {
 					printf("Unknown SYMLINK\n");
 				}
@@ -193,7 +205,6 @@ struct DiskProfile {
 
 		struct sg_simple_inquiry_resp resp;
 		struct SGSerialNoPage sg_sn_resp;
-		struct SGReadCapacity10 sg_readcap10_resp;
 		int sg_fd = sg_cmds_open_device(m_strDevPath.c_str(), 1, 1);
 
 		if (sg_fd < 0)
@@ -209,7 +220,8 @@ struct DiskProfile {
 					   m_strDevName.c_str());*/
 		}
 
-		if (0 == sg_ll_inquiry(sg_fd, 0 ,1 , 0x80, 
+		if (m_diskType != DISK_TYPE_ISCSI &&
+			0 == sg_ll_inquiry(sg_fd, 0 ,1 , 0x80, 
 							   (void*)&sg_sn_resp,
 							   sizeof(struct SGSerialNoPage),
 							   0, 0)) {
@@ -220,23 +232,19 @@ struct DiskProfile {
 					   m_strDevName.c_str());*/
 		}
 
-		if (0 == sg_ll_readcap_10(sg_fd, 0, 1,
-								  &sg_readcap10_resp,
-								  sizeof(struct SGReadCapacity10),
-								  0, 0)) {
-			uint32_t last_blk_addr = 0, block_size = 0;
-			last_blk_addr = sg_get_unaligned_be32(&(sg_readcap10_resp.m_LogicalBlockAddr));
-			if (0xffffffff != last_blk_addr) {
-				block_size = sg_get_unaligned_be32(&(sg_readcap10_resp.m_BlockLength));
-				m_llCapacity = (last_blk_addr + 1) * block_size;
-			}
-		} else {
-			/*WriteHWLog(LOG_LOCAL1, LOG_DEBUG, "DiskInfo",
-					   "Cannot get %s's capacity.",
-					   m_strDevName.c_str());*/
-		}
-
 		sg_cmds_close_device(sg_fd);	
+	}
+
+	void GetDevCapacity()
+	{
+		int fd = open(m_strDevPath.c_str(), O_RDONLY);
+		if (fd < 0) {
+			printf("Cannot open %s, %s\n", m_strDevPath.c_str(), strerror(errno));
+		}
+	
+		m_llCapacity = blkid_get_dev_size(fd);
+
+		close(fd);
 	}
 
 	void ReadMDStat()
