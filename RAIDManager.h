@@ -372,6 +372,7 @@ struct MDProfile {
 	int m_iDevCount;
 	int m_iMDNum;
 	bool m_bInMDStat;
+	int m_uuid[4];
 
 	MDProfile()
 	: m_fsMgr(NULL)
@@ -504,8 +505,10 @@ struct MDProfile {
 	}
 
 	void Dump() {
-		printf("MD Name: %s\n\tDev Node: %s, RAID Disks: (%d/%d)\n\t",
-				m_strSysName.c_str(), m_strDevPath.c_str(), m_iDevCount, m_iRaidDisks);
+		char buf[128];
+		printf("MD Name: %s\n\tDev Node: %s, RAID Disks: (%d/%d)\n\t%s\n\t",
+				m_strSysName.c_str(), m_strDevPath.c_str(), m_iDevCount, m_iRaidDisks,
+				__fname_from_uuid(m_uuid, 0, buf, ':'));
 		if (m_fsMgr.get()) {
 			printf("Status: Format(%s), Mount(%s on %s)",
 					m_fsMgr->IsFormated()?"Yes":"No",

@@ -598,7 +598,6 @@ bool RAIDManager::ManageRAIDSubdevs(const string& mddev, vector<string>& vDevLis
 	if (vDevList.empty())
 		return false;
 
-	CriticalSectionLock cs_md(&m_csMDProfiles);
 	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
 	if (it == m_mapMDProfiles.end()) {
 		SetLastError("%s doesn't exist.\n", mddev.c_str());
@@ -663,21 +662,25 @@ bool RAIDManager::ManageRAIDSubdevs(const string& mddev, vector<string>& vDevLis
 
 bool RAIDManager::RemoveMDDisks(const string& mddev, vector<string>& vDevList)
 {
+	CriticalSectionLock cs_md(&m_csMDProfiles);
 	return ManageRAIDSubdevs(mddev, vDevList, 'r');
 }
 
 bool RAIDManager::MarkFaultyMDDisks(const string& mddev, vector<string>& vDevList)
 {
+	CriticalSectionLock cs_md(&m_csMDProfiles);
 	return ManageRAIDSubdevs(mddev, vDevList, 'f');
 }
 
 bool RAIDManager::AddMDDisks(const string& mddev, vector<string>& vDevList)
 {
+	CriticalSectionLock cs_md(&m_csMDProfiles);
 	return ManageRAIDSubdevs(mddev, vDevList, 'a');
 }
 
 bool RAIDManager::ReaddMDDisks(const string& mddev, vector<string>& vDevList)
 {
+	CriticalSectionLock cs_md(&m_csMDProfiles);
 	return ManageRAIDSubdevs(mddev, vDevList, 'A');
 }
 
@@ -690,6 +693,7 @@ bool RAIDManager::ReplaceMDDisk(const string& mddev, const string& replace, cons
 	vDevList.push_back(replace);
 	vDevList.push_back(with);
 
+	CriticalSectionLock cs_md(&m_csMDProfiles);
 	return ManageRAIDSubdevs(mddev, vDevList, 'R');
 }
 
@@ -698,7 +702,6 @@ bool RAIDManager::StopRAID(const string& mddev)
 	if (mddev.empty())
 		return false;
 
-	CriticalSectionLock cs_md(&m_csMDProfiles);
 	map<string, MDProfile>::iterator it = m_mapMDProfiles.find(mddev);
 	if (it == m_mapMDProfiles.end()) {
 		SetLastError("%s doesn't exist.\n", mddev.c_str());
@@ -731,6 +734,10 @@ bool RAIDManager::StopRAID(const string& mddev)
 	if (ret != SUCCESS) {
 		SetLastError("Fail to stop RAID %s: %d\n", mddev.c_str(), ret);
 		return false;
+	} else {
+		WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+					"Stop %s successfully.\n",
+					it->first.c_str());
 	}
 
 	FreeMDNum(it->second.m_iMDNum);
@@ -751,8 +758,12 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 	bQueryDetailOK = QueryMDDetail("/dev/" + mddev, ad);
 
 	CriticalSectionLock cs(&m_csDiskProfiles);
-	if (!StopRAID(mddev))
+	m_csMDProfiles.Lock();
+	if (!StopRAID(mddev)) {
+		m_csMDProfiles.Unlock();
 		return false;
+	}
+	m_csMDProfiles.Unlock();
 
 	map<string, DiskProfile>::iterator it = m_mapDiskProfiles.begin();
 	while (it != m_mapDiskProfiles.end()) {
@@ -1222,6 +1233,8 @@ void RAIDManager::ThreadProc()
 				 goto md_check_done;
 			}
 
+			copy_uuid(it_md->second.m_uuid, ad.uuid, 0);
+
 			/*
 			 * MD device has already lost some disks, we have to check
 			 * whehter the remaining is enough for MD device to work.
@@ -1332,7 +1345,7 @@ void RAIDManager::ThreadProc()
 								   "Unmount %s due to RAID doesn't have enough disks\n",
 								   it_md->first.c_str());
 					}
-				}	
+				}
 			}
 
 md_check_done:
@@ -1349,7 +1362,26 @@ md_check_done:
 					examine_result er;
 					int err = 0;
 					if ((err = QueryMDSuperBlockInDisk(it_disk->second.m_strDevPath, er)) == SUCCESS) {
-						// TODO: Check MD before ASSEMBLE
+						/* Check MD exsits or not before trying to assemble it */
+						map<string, MDProfile>::iterator it_md = m_mapMDProfiles.begin();
+						while (it_md != m_mapMDProfiles.end()) {
+							if (same_uuid(er.arrayUUID, it_md->second.m_uuid, 0))
+								break;
+							it_md++;
+						}
+
+						if (it_md != m_mapMDProfiles.end()) {
+							/* Auto re-add into MD device, because disk may be
+							 * left from the MD due to some reason.
+							 */
+							vector vDevList;
+							vDevList.push_bak(it_disk->second.m_strDevPath);
+							ManageRAIDSubdevs(it_md->second.m_strSysName, vDevList, 'A');
+
+							it_disk++;
+							continue;
+						}
+						
 						string mddev;
 						if (AssembleRAID(er.arrayUUID, mddev)) {
 							if (m_mapMDProfiles[mddev].m_fsMgr.get() == NULL) {
@@ -1365,9 +1397,7 @@ md_check_done:
 								if (!m_mapMDProfiles[mddev].m_fsMgr->IsMounted(num)) {
 									if (num == -1) {
 										num = GetFreeVolumeNum();
-										if (num == -1) {
-											;
-										} else {
+										if (num != -1) {
 											m_mapMDProfiles[mddev].m_fsMgr->SetVolumeNum(num);
 											if (m_mapMDProfiles[mddev].m_fsMgr->Mount()) {
 												m_mapMDProfiles[mddev].m_fsMgr->GenerateUUIDFile();
