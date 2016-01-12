@@ -35,7 +35,6 @@ using namespace SYSUTILS_SPACE;
 #include <scsi/sg_unaligned.h>
 #include <libudev.h>
 #include <stdarg.h>
-#include <blkid/blkid.h>
 
 using namespace std;
 
@@ -242,7 +241,8 @@ struct DiskProfile {
 			printf("Cannot open %s, %s\n", m_strDevPath.c_str(), strerror(errno));
 		}
 	
-		m_llCapacity = blkid_get_dev_size(fd);
+		if (0 == get_dev_size(fd, (char*)m_strDevPath.c_str(), &m_llCapacity))
+			m_llCapacity = 0;
 
 		close(fd);
 	}

@@ -306,10 +306,7 @@ void RAIDManager::InitializeMDDevIdent(struct mddev_ident& ident, int uuid_set, 
 	ident.bitmap_fd = bitmap_fd;
 	ident.bitmap_file = bitmap_file;
 	if (uuid_set) {
-		memcpy(ident.uuid, uuid, sizeof(int) * 4);
-		for (int i = 0; i < 4; i++) {
-			ident.uuid[i] = __be32_to_cpu(ident.uuid[i]);
-		}
+		copy_uuid(ident.uuid, (int*)uuid, 1);
 	}
 }
 
@@ -515,13 +512,11 @@ bool RAIDManager::AssembleRAID(const int uuid[4], string& mddev)
 		mddev = GenerateMDSysName(freeMD);
 		ret = AssembleRAID(mddev, uuid);
 		if (ret == SUCCESS) {
-			unsigned char* p_uuid = (unsigned char*) uuid;
-			string strUUID("");
-			for (int i = 0; i < 16; i++) {
-				strUUID += string_format("%02X ", p_uuid[i]);
-			}
+			char csUUID[128];
 			WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
-				   "%swas assembled to %s.\n", strUUID.c_str(), mddev.c_str());
+				   "%s was assembled to %s.\n",
+				   __fname_from_uuid((int*)uuid, 0, csUUID, ':')
+					, mddev.c_str());
 
 			MDProfile profile(mddev);
 			m_mapMDProfiles[mddev] = profile;
@@ -535,13 +530,9 @@ bool RAIDManager::AssembleRAID(const int uuid[4], string& mddev)
 			// next loop retry
 		} else if (ret != ASSEMBLE_RAID_DEVS_NOT_ENOUGH) {
 			if (bRetry) {
-				unsigned char* p_uuid = (unsigned char*) uuid;
-				string strUUID("");
-				for (int i = 0; i < 16; i++) {
-					strUUID += string_format("%02X ", p_uuid[i]);
-				}
+				char csUUID[128];
 				SetLastError("Retry to assemble %s failed.\n",
-							 strUUID.c_str());
+							 __fname_from_uuid((int*)uuid, 0, csUUID, ':'));
 				FreeMDNum(freeMD);
 				bRetry = false; 
 			} else
@@ -578,13 +569,10 @@ int RAIDManager::AssembleRAID(const string& mddev, const int uuid[4])
 	int ret = Assemble(NULL, (char*)string_format("/dev/%s", mddev.c_str()).c_str(),
 						&ident, NULL, &c);
 	if (ret != SUCCESS) {
-		unsigned char* p_uuid = (unsigned char*) uuid;
-		string strUUID("");
-		for (int i = 0; i < 16; i++) {
-			strUUID += string_format("%02X ", p_uuid[i]);
-		}
+		char csUUID[128];
 		SetLastError("Fail to assemble volume %s to %s: (%d)\n",
-					 strUUID.c_str(), mddev.c_str(), ret);
+					 __fname_from_uuid((int*)uuid, 0, csUUID, ':')
+					 , mddev.c_str(), ret);
 	}
 
 	return ret;
@@ -1374,9 +1362,9 @@ md_check_done:
 							/* Auto re-add into MD device, because disk may be
 							 * left from the MD due to some reason.
 							 */
-							vector vDevList;
-							vDevList.push_bak(it_disk->second.m_strDevPath);
-							ManageRAIDSubdevs(it_md->second.m_strSysName, vDevList, 'A');
+							vector<string> vDevList;
+							vDevList.push_back(it_disk->second.m_strSysName);
+							ManageRAIDSubdevs(it_md->second.m_strSysName, vDevList, 'a');
 
 							it_disk++;
 							continue;
