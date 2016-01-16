@@ -6,8 +6,6 @@ extern "C"
 {
 #endif
 #include "libmke2fs/mke2fs.h" 
-//#include "uuid/uuid.h"
-//#include "e2p/e2p.h"
 #include "blkid/blkid.h"
 #ifdef __cplusplus
 }
@@ -63,7 +61,6 @@ public:
 
 	static void MakeFilesystemProgress(void *pData, int stat,
 					   int current, int total);
-	//static void CheckFilesystemProgress();
 	bool Initialize();
 
 	bool Format(bool force = true);

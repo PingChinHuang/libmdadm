@@ -46,6 +46,12 @@ enum eDiskType {
 	DISK_TYPE_NFS
 };
 
+enum eCBReason {
+	CB_MOUNT = 1,	 
+};
+
+typedef void (*raidmgr_cb)(void *, eCBReason);
+
 struct SGSerialNoPage {
 	uint8_t m_bytePQPDT; /* bit 5-7: Peripheral Qualifier, bit 0-4: Peripheral Device Type */
 	uint8_t m_bytePageCode;
@@ -736,6 +742,8 @@ private:
 	Semaphore m_semAssemble;
 	AprCond *m_pNotifyChange;
 
+	raidmgr_cb m_cb;
+
 private:
 	vector<RAIDInfo>::iterator SearchDiskBelong2RAID(RAIDDiskInfo& devInfo);
 
@@ -789,6 +797,8 @@ protected:
 public:
 	RAIDManager();
 	~RAIDManager();
+
+	void RegisterCB(raidmgr_cb cb);
 
 	bool AddDisk(const string& dev);
 	bool RemoveDisk(const string& dev);

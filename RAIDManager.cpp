@@ -12,6 +12,7 @@
 #define RAIDMANAGER_MONITOR_INTERVAL 3000 /* ms */
 
 RAIDManager::RAIDManager()
+: m_cb(NULL)
 {
 	for (int i = 0; i < 128; i++)
 		m_bUsedMD[i] = false;
@@ -45,6 +46,8 @@ RAIDManager::~RAIDManager()
 			m_pNotifyChange = NULL;
 		}
 	}
+
+	m_cb = NULL;
 }
 
 bool RAIDManager::Initialize()
@@ -127,7 +130,7 @@ bool RAIDManager::Initialize()
 	udev_enumerate_unref(enumerate);
 	udev_unref(udev);
 
-	/* TODO:
+	/* TODO: (Unnecessary now, but still keep this note)
 	 * Is it necessary to check all the MD devices in the list, and
 	 * to set m_strMDDev of a DiskProfile since the disk is occupied
 	 * by a MD device during this initial stage?
@@ -1326,6 +1329,8 @@ void RAIDManager::ThreadProc()
 						if (it_md->second.m_fsMgr->Mount()) {
 							it_md->second.m_fsMgr->GenerateUUIDFile();
 							it_md->second.m_fsMgr->CreateDefaultFolders();
+							if (m_cb)
+								m_cb(NULL, CB_MOUNT);
 						}
 					}
 				} else {
@@ -1415,12 +1420,16 @@ md_check_done:
 											if (m_mapMDProfiles[mddev].m_fsMgr->Mount()) {
 												m_mapMDProfiles[mddev].m_fsMgr->GenerateUUIDFile();
 												m_mapMDProfiles[mddev].m_fsMgr->CreateDefaultFolders();
+												if (m_cb)
+													m_cb(NULL, CB_MOUNT);
 											}
 										}
 									} else {
 										if (m_mapMDProfiles[mddev].m_fsMgr->Mount()) {
 											m_mapMDProfiles[mddev].m_fsMgr->GenerateUUIDFile();
 											m_mapMDProfiles[mddev].m_fsMgr->CreateDefaultFolders();
+											if (m_cb)
+												m_cb(NULL, CB_MOUNT);
 										}
 									}
 								}
@@ -1493,4 +1502,9 @@ void RAIDManager::SetLastError(const string &fmt, ...)
 				fmt.c_str(), args);
 	m_strLastError = string_format(fmt.c_str(), args);
 	va_end(args);
+}
+
+void RAIDManager::RegisterCB(raidmgr_cb cb)
+{
+	 m_cb = cb;
 }
