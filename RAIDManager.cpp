@@ -891,6 +891,23 @@ void RAIDManager::GetFreeDisksInfo(vector<RAIDDiskInfo> &list)
 	}
 }
 
+bool RAIDManager::GetFreeDiskInfo(const string& symlink, RAIDDiskInfo &info)
+{
+	CriticalSectionLock cs(&m_csDiskProfiles);
+	string strDevPath = GetDeviceNodeBySymLink("/dev/" + symlink);
+	map<string, DiskProfile>::iterator it = m_mapDiskProfiles.begin();
+	while(it != m_mapDiskProfiles.end()) {
+		if (it->second.m_strDevPath == strDevPath) {
+			info.m_strDevPath = it->second.m_strDevPath;
+			info.m_diskProfile = it->second;
+			return true;
+		}
+		it++;
+	}
+
+	return false;
+}
+
 bool RAIDManager::Format(const string& mddev)
 {
 	if (mddev.empty()) {

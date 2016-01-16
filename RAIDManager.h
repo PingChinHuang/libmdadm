@@ -806,6 +806,7 @@ public:
 	bool GetRAIDInfo(const string& mddev, RAIDInfo& info);
 	void GetRAIDInfo(vector<RAIDInfo>& list);
 	void GetFreeDisksInfo(vector<RAIDDiskInfo> &list);
+	bool GetFreeDiskInfo(const string& symlink, RAIDDiskInfo &info);
 
 	void SetLastError(const string &fmt, ...);
 	void GetLastError(string &log);
