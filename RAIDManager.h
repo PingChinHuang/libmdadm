@@ -313,6 +313,7 @@ struct DiskProfile {
 			 printf("Fail to get %s's S.M.A.R.T. overall status.\n",
 					 m_strDevPath.c_str());
 		}
+		m_strSMARTOverall = sk_smart_overall_to_string(overall);
 
 		if (sk_disk_smart_get_bad(d, &m_ullSMARTBadSectors) < 0) {
 			 printf("Fail to get %s's bad sectors information.\n",
@@ -370,6 +371,12 @@ get_smart_info_fail:
 			printf(", Type: NFS\n");
 			break;
 		}
+
+		printf("\tS.M.A.R.T: %s, Status %s, Bad Sectors: %llu, Temperature: %llu C\n\n",
+				m_bSMARTSupport ? "Support" : "Not Support",
+				m_strSMARTOverall.c_str(), m_ullSMARTBadSectors,
+				m_ullSMARTTemp
+			  )
 	}
 };
 
