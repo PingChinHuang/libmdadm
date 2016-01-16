@@ -1114,16 +1114,24 @@ void RAIDManager::ThreadProc()
 			switch (uMessage) {
 			case eTC_STOP:
 				Reply(0);
+			
+				/* Unmount volumes before exiting the thread. */	
+				CriticalSecionLock cs(&m_csMDProfiles);
+				map<string, MDProfile>::iterator it_md = m_mapMDProfiles.begin();
+				while (it_md != m_mapDiskProfiles.end()) {
+					if (it_md->second.m_fsMgr.get() &&
+						it_md->second.m_fsMgr->IsMounted())
+						it_md->second.m_fsMgr->Unmount();
+
+					it_md++;
+				}
+
 				return;
 			default:
 				Reply(-1);
 				break;
 			}
 		}
-
-		/*
-		 * TODO: Monitor
-		 */
 
 		/*
 		 * Check current disk status;
