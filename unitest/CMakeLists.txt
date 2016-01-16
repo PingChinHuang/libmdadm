@@ -30,6 +30,7 @@ TARGET_LINK_LIBRARIES(
 	e2p
 	uuid
 	udev
+	atasmart.a
 )
 
 ADD_DEPENDENCIES(

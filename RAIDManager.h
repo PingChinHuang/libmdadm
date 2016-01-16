@@ -35,6 +35,7 @@ using namespace SYSUTILS_SPACE;
 #include <scsi/sg_unaligned.h>
 #include <libudev.h>
 #include <stdarg.h>
+#include <atasmart.h>
 
 using namespace std;
 
@@ -81,9 +82,13 @@ struct DiskProfile {
 	string m_strModel;
 	string m_strFWVer;
 	string m_strSerialNum;
-	uint64_t	m_llCapacity;
+	string m_strSMARTOverall;
+	uint64_t m_llCapacity;
+	uint64_t m_ullSMARTBadSectors;
+	uint64_t m_ullSMARTTemp;
 	eDiskType m_diskType;
 	int m_iBay;
+	bool m_bSMARTSupport;
 
 	DiskProfile()
 	: m_strSysName("")
@@ -94,9 +99,13 @@ struct DiskProfile {
 	, m_strModel("")
 	, m_strFWVer("")
 	, m_strSerialNum("")
+	, m_strSMARTOverall("")
 	, m_llCapacity(0ull)
+	, m_ullSMARTBadSectors(0ull)
+	, m_ullSMARTTemp(0ull)
 	, m_diskType(DISK_TYPE_UNKNOWN)
 	, m_iBay(-1)
+	, m_bSMARTSupport(false)
 	{
 	}
 
@@ -109,14 +118,19 @@ struct DiskProfile {
 	, m_strModel("")
 	, m_strFWVer("")
 	, m_strSerialNum("")
+	, m_strSMARTOverall("")
 	, m_llCapacity(0ull)
+	, m_ullSMARTBadSectors(0ull)
+	, m_ullSMARTTemp(0ull)
 	, m_diskType(DISK_TYPE_UNKNOWN)
 	, m_iBay(-1)
+	, m_bSMARTSupport(false)
 	{
 		SetUDEVInformation();
 		SetDiskVendorInfomation();
 		GetDevCapacity();
 		ReadMDStat();
+		SetSMARTInfo();
 	}
 
 	~DiskProfile()
@@ -137,7 +151,11 @@ struct DiskProfile {
 		m_strModel = rhs.m_strModel;
 		m_strFWVer = rhs.m_strFWVer;
 		m_strSerialNum = rhs.m_strSerialNum;
+		m_strSMARTOverall = rhs.m_strSMARTOverall;
 		m_llCapacity = rhs.m_llCapacity;
+		m_ullSMARTBadSectors = rhs.m_ullSMARTBadSectors;
+		m_ullSMARTTemp = rhs.m_ullSMARTTemp;
+		m_bSMARTSupport = rhs.m_SMARTSupport;
 		return *this;
 	}
 
@@ -264,6 +282,71 @@ struct DiskProfile {
 			m_strMDDev = "";
 
 		free_mdstat(e);
+	}
+
+	void SetSMARTInfo()
+	{
+		SkDisk *d = NULL;
+		SkBool available;
+		SkSmartOverall overall;
+
+		if (sk_disk_open(m_strDevPath.c_str(), &d) < 0) {
+			 printf("Fail to open S.M.A.R.T. device %s.\n",
+					 m_strDevPath.c_str());
+			 return;
+		}
+
+		if (sk_disk_smart_is_available(d, &available) < 0) {
+			 printf("Fail to query %s whether S.M.A.R.T. is available.\n",
+					 m_strDevPath.c_str());
+			 goto get_smart_info_fail;
+		}
+		m_bSMARTSupport = available ? true : false;
+
+		if (sk_disk_smart_read_data(d) < 0) {
+			 printf("Fail to read %s's S.M.A.R.T. data.\n",
+					 m_strDevPath.c_str());
+			 goto get_smart_info_fail;
+		}
+
+		if (sk_disk_smart_get_overall(d, &overall) < 0) {
+			 printf("Fail to get %s's S.M.A.R.T. overall status.\n",
+					 m_strDevPath.c_str());
+		}
+
+		if (sk_disk_smart_get_bad(d, &m_ullSMARTBadSectors) < 0) {
+			 printf("Fail to get %s's bad sectors information.\n",
+					 m_strDevPath.c_str());
+		}
+
+		if (sk_disk_smart_get_temperature(d, &m_ullSMARTTemp) < 0) {
+			 printf("Fail to get %s's temperature.\n",
+					 m_strDevPath.c_str());
+		}
+		m_ullSMARTTemp = (m_ullSMARTTemp / 1000) - 273; /* Covert to Celsius */
+
+get_smart_info_fail:
+		sk_disk_free(d);
+	}
+
+	bool RunSMARTSelfTest(int type)
+	{
+		SkDisk *d = NULL;
+		if (sk_disk_open(m_strDevPath.c_str(), &d) < 0) {
+			printf("Fail to open S.M.A.R.T. device %s.\n",
+				 m_strDevPath.c_str());
+			return false;
+		}
+		
+		if (sk_disk_smart_self_test(d, type) < 0) {
+			printf("Fail to start %s's S.M.A.R.T. test.\n",
+					 m_strDevPath.c_str());
+			sk_disk_free(d);
+			return false;
+		}
+
+		sk_disk_free(d);
+		return true;
 	}
 
 	void Dump()
