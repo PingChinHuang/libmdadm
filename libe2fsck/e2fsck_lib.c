@@ -69,33 +69,6 @@ e2fsck_t e2fsck_global_ctx;	/* Try your very best not to use this! */
 int journal_enable_debug = -1;
 #endif
 
-static void usage(e2fsck_t ctx)
-{
-	fprintf(stderr,
-		_("Usage: %s [-panyrcdfvtDFV] [-b superblock] [-B blocksize]\n"
-		"\t\t[-I inode_buffer_blocks] [-P process_inode_size]\n"
-		"\t\t[-l|-L bad_blocks_file] [-C fd] [-j external_journal]\n"
-		"\t\t[-E extended-options] device\n"),
-		ctx->program_name);
-
-	fprintf(stderr, "%s", _("\nEmergency help:\n"
-		" -p                   Automatic repair (no questions)\n"
-		" -n                   Make no changes to the filesystem\n"
-		" -y                   Assume \"yes\" to all questions\n"
-		" -c                   Check for bad blocks and add them to the badblock list\n"
-		" -f                   Force checking even if filesystem is marked clean\n"));
-	fprintf(stderr, "%s", _(""
-		" -v                   Be verbose\n"
-		" -b superblock        Use alternative superblock\n"
-		" -B blocksize         Force blocksize when looking for superblock\n"
-		" -j external_journal  Set location of the external journal\n"
-		" -l bad_blocks_file   Add to badblocks list\n"
-		" -L bad_blocks_file   Set badblocks list\n"
-		));
-
-	exit(FSCK_USAGE);
-}
-
 static void show_stats(e2fsck_t	ctx)
 {
 	ext2_filsys fs = ctx->fs;
@@ -221,7 +194,7 @@ static void show_stats(e2fsck_t	ctx)
 		num_files);
 }
 
-static void check_mount(e2fsck_t ctx)
+static int check_mount(e2fsck_t ctx)
 {
 	errcode_t	retval;
 	int		cont;
@@ -232,7 +205,7 @@ static void check_mount(e2fsck_t ctx)
 		com_err("ext2fs_check_if_mount", retval,
 			_("while determining whether %s is mounted."),
 			ctx->filesystem_name);
-		return;
+		return FSCK_ERROR;
 	}
 
 	/*
@@ -244,7 +217,7 @@ static void check_mount(e2fsck_t ctx)
 	    ((ctx->mount_flags & EXT2_MF_ISROOT) &&
 	     (ctx->mount_flags & EXT2_MF_READONLY) &&
 	     !(ctx->options & E2F_OPT_WRITECHECK)))
-		return;
+		return FSCK_OK;
 
 	if (((ctx->options & E2F_OPT_READONLY) ||
 	     ((ctx->options & E2F_OPT_FORCE) &&
@@ -256,7 +229,7 @@ static void check_mount(e2fsck_t ctx)
 		else
 			log_out(ctx, _("Warning!  %s is in use.\n"),
 					ctx->filesystem_name);
-		return;
+		return FSCK_MOUNT;
 	}
 
 	if (ctx->mount_flags & EXT2_MF_MOUNTED)
@@ -271,12 +244,7 @@ static void check_mount(e2fsck_t ctx)
 		       "If you continue you ***WILL***\n"
 		       "cause ***SEVERE*** filesystem damage.\n\n"));
 	puts("\007\007\007");
-	cont = ask_yn(ctx, _("Do you really want to continue"), 0);
-	if (!cont) {
-		printf("%s", _("check aborted.\n"));
-		exit (0);
-	}
-	return;
+	return FSCK_CANCELED;
 }
 
 static int is_on_batt(void)
@@ -330,7 +298,7 @@ static int is_on_batt(void)
  * it will exit with E2FSCK_OK.  Under some conditions it will print a
  * message explaining why a check is being forced.
  */
-static void check_if_skip(e2fsck_t ctx)
+static int check_if_skip(e2fsck_t ctx)
 {
 	ext2_filsys fs = ctx->fs;
 	struct problem_context pctx;
@@ -343,7 +311,7 @@ static void check_if_skip(e2fsck_t ctx)
 	time_t lastcheck;
 
 	if (ctx->flags & E2F_FLAG_PROBLEMS_FIXED)
-		return;
+		return FSCK_OK;
 
 	profile_get_boolean(ctx->profile, "options", "broken_system_clock",
 			    0, 0, &broken_system_clock);
@@ -356,7 +324,7 @@ static void check_if_skip(e2fsck_t ctx)
 		batt = 0;
 
 	if ((ctx->options & E2F_OPT_FORCE) || bad_blocks_file || cflag)
-		return;
+		return FSCK_OK;
 
 	if (ctx->options & E2F_OPT_JOURNAL_ONLY)
 		goto skip;
@@ -397,7 +365,7 @@ static void check_if_skip(e2fsck_t ctx)
 		log_out(ctx, "%s", ctx->device_name);
 		log_out(ctx, reason, reason_arg);
 		log_out(ctx, "%s", _(", check forced.\n"));
-		return;
+		return FSCK_OK;
 	}
 
 	/*
@@ -461,7 +429,7 @@ static void check_if_skip(e2fsck_t ctx)
 skip:
 	ext2fs_close_free(&ctx->fs);
 	e2fsck_free_context(ctx);
-	exit(FSCK_OK);
+	return FSCK_SKIP;
 }
 
 /*
@@ -576,18 +544,26 @@ static int e2fsck_update_progress(e2fsck_t ctx, int pass,
 	char buf[1024];
 	float percent;
 
-	if (pass == 0)
+	if (pass == 0 || pass == -1) {
+		if (ctx->handle)
+			ctx->handle->cb_func(NULL, pass, 0);
 		return 0;
+	}
 
 	if (ctx->progress_fd) {
-		snprintf(buf, sizeof(buf), "%d %lu %lu %s\n",
-			 pass, cur, max, ctx->device_name);
+		percent = calc_percent(&e2fsck_tbl, pass, cur, max);
+		snprintf(buf, sizeof(buf), "%d %lu %lu %s, %f\n",
+			 pass, cur, max, ctx->device_name, percent);
 		write_all(ctx->progress_fd, buf, strlen(buf));
 	} else {
 		percent = calc_percent(&e2fsck_tbl, pass, cur, max);
 		e2fsck_simple_progress(ctx, ctx->device_name,
 				       percent, 0);
 	}
+
+	if (ctx->handle)
+		ctx->handle->cb_func(NULL, pass, percent);
+
 	return 0;
 }
 
@@ -662,7 +638,7 @@ static void syntax_err_report(const char *filename, long err, int line_num)
 	fprintf(stderr,
 		_("Syntax error in e2fsck config file (%s, line #%d)\n\t%s\n"),
 		filename, line_num, error_message(err));
-	exit(FSCK_ERROR);
+	//exit(FSCK_ERROR);
 }
 
 static const char *config_fn[] = { ROOT_SYSCONFDIR "/e2fsck.conf", 0 };
@@ -687,10 +663,13 @@ static errcode_t PRS(struct e2fsck_handle *handle, e2fsck_t *ret_ctx)
 
 	retval = e2fsck_allocate_context(&ctx);
 	if (retval)
-		return retval;
+		return FSCK_ERROR;
 
 	*ret_ctx = ctx;
 	e2fsck_global_ctx = ctx;
+
+	if (handle)
+		ctx->handle = handle;
 
 	setvbuf(stdout, NULL, _IONBF, BUFSIZ);
 	setvbuf(stderr, NULL, _IONBF, BUFSIZ);
@@ -840,7 +819,7 @@ static errcode_t PRS(struct e2fsck_handle *handle, e2fsck_t *ret_ctx)
 	if (cflag && bad_blocks_file) {
 		fprintf(stderr, "%s", _("The -c and the -l/-L options may not "
 					"be both used at the same time.\n"));
-		exit(FSCK_USAGE);
+		return FSCK_USAGE;
 	}
 #ifdef HAVE_SIGNAL_H
 	/*
@@ -887,7 +866,7 @@ static errcode_t PRS(struct e2fsck_handle *handle, e2fsck_t *ret_ctx)
 			fprintf(stderr,
 			        _("E2FSCK_JBD_DEBUG \"%s\" not an integer\n\n"),
 			        jbd_debug);
-			exit (1);
+			return FSCK_USAGE;
 		}
 	}
 #endif
@@ -896,7 +875,7 @@ static errcode_t PRS(struct e2fsck_handle *handle, e2fsck_t *ret_ctx)
 sscanf_err:
 	fprintf(stderr, _("\nInvalid non-numeric argument to -%c (\"%s\")\n\n"),
 	        c, optarg);
-	exit (1);
+	return FSCK_USAGE;
 }
 
 static errcode_t try_open_fs(e2fsck_t ctx, int flags, io_manager io_ptr,
@@ -1041,6 +1020,12 @@ int e2fsck(struct e2fsck_handle *handle)
 	char *cp;
 	int qtype = -99;  /* quota type */
 
+	if (handle == NULL) {
+		fprintf(stderr, "Invalid handle.\n");
+		exit_value |= FSCK_ERROR;		 
+		return exit_value;
+	}
+
 	clear_problem_context(&pctx);
 	sigcatcher_setup();
 #ifdef MTRACE
@@ -1064,11 +1049,11 @@ int e2fsck(struct e2fsck_handle *handle)
 		show_version_only++;
 	}
 
-	retval = PRS(handle, &ctx);
-	if (retval) {
-		com_err("e2fsck", retval, "%s",
+	exit_value |= PRS(handle, &ctx);
+	if (exit_value) {
+		com_err("e2fsck", exit_value, "%s",
 			_("while trying to initialize program"));
-		exit(FSCK_ERROR);
+		return exit_value;
 	}
 	reserve_stdio_fds();
 
@@ -1084,13 +1069,9 @@ int e2fsck(struct e2fsck_handle *handle)
 		log_err(ctx, "e2fsck %s (%s)\n", my_ver_string,
 			 my_ver_date);
 
-	if (show_version_only) {
-		log_err(ctx, _("\tUsing %s, %s\n"),
-			error_message(EXT2_ET_BASE), lib_ver_date);
-		exit(FSCK_OK);
-	}
-
-	check_mount(ctx);
+	exit_value |= check_mount(ctx);
+	if (exit_value & (FSCK_ERROR | FSCK_CANCELED))
+		return exit_value;
 
 	if (!(ctx->options & E2F_OPT_PREEN) &&
 	    !(ctx->options & E2F_OPT_NO) &&
@@ -1439,7 +1420,11 @@ print_unsupp_features:
 	check_super_block(ctx);
 	if (ctx->flags & E2F_FLAG_SIGNAL_MASK)
 		fatal_error(ctx, 0);
-	check_if_skip(ctx);
+
+	if (FSCK_SKIP == check_if_skip(ctx)) {
+		 return FSCK_SKIP;
+	}
+
 	check_resize_inode(ctx);
 	if (bad_blocks_file)
 		read_bad_blocks_file(ctx, bad_blocks_file, replace_bad_blocks);

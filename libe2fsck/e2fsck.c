@@ -227,6 +227,10 @@ int e2fsck_run(e2fsck_t ctx)
 		if (ctx->progress)
 			(void) (ctx->progress)(ctx, 0, 0, 0);
 	}
+	/* -1 pass  means 5 pass checks are done. */
+	if (ctx->progress)
+		(void) (ctx->progress)(ctx, -1, 0, 0);
+
 	ctx->flags &= ~E2F_FLAG_SETJMP_OK;
 
 	if (ctx->flags & E2F_FLAG_RUN_RETURN)

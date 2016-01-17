@@ -24,6 +24,7 @@
 
 #include "profile.h"
 #include "prof_err.h"
+#include "e2fsck_lib.h"
 
 #ifdef ENABLE_NLS
 #include <libintl.h>
@@ -65,7 +66,9 @@
 #define FSCK_ERROR       8	/* Operational error */
 #define FSCK_USAGE       16	/* Usage or syntax error */
 #define FSCK_CANCELED	 32	/* Aborted with a signal or ^C */
-#define FSCK_LIBRARY     128	/* Shared library error */
+#define FSCK_LIBRARY     128/* Shared library error */
+#define FSCK_MOUNT		 256/* Disk is mounted */
+#define FSCK_SKIP		 512/* This check can be skipped */
 
 /*
  * The last ext2fs revision level that this version of e2fsck is able to
@@ -361,6 +364,7 @@ struct e2fsck_struct {
 	 * e2fsck functions themselves.
 	 */
 	void *priv_data;
+	struct e2fsck_handle *handle;
 };
 
 /* Used by the region allocation code */

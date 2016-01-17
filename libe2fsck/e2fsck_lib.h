@@ -31,7 +31,7 @@ struct e2fsck_cfg {
 	struct e2fsck_extended_opt ext_opts;
 };
 
-typedef void (*e2fsck_cb_func)(void *pData, int stat, int current, int total);
+typedef void (*e2fsck_cb_func)(void *pData, int pass, float percent);
 
 struct e2fsck_handle {
 	//ext2_filsys fs;
