@@ -139,6 +139,7 @@ void e2fsck_pass2(e2fsck_t ctx)
 	cd.ctx = ctx;
 	cd.count = 1;
 	cd.max = ext2fs_dblist_count2(fs->dblist);
+	cd.pctx.is_fatal = 0;
 
 	if (ctx->progress)
 		(void) (ctx->progress)(ctx, 2, 0, cd.max);
@@ -148,6 +149,8 @@ void e2fsck_pass2(e2fsck_t ctx)
 
 	cd.pctx.errcode = ext2fs_dblist_iterate2(fs->dblist, check_dir_block,
 						 &cd);
+	if (cd.pctx.is_fatal == 1)
+		return;
 	if (ctx->flags & E2F_FLAG_SIGNAL_MASK || ctx->flags & E2F_FLAG_RESTART)
 		return;
 
@@ -803,7 +806,8 @@ static int check_dir_block(ext2_filsys fs,
 				dx_db = 0;
 				goto out_htree;
 			}
-			fatal_error(ctx, _("Can not continue."));
+			cd->pctx.is_fatal = 1;
+			return DIRENT_ABORT;
 		}
 		dx_db = &dx_dir->dx_block[db->blockcnt];
 		dx_db->type = DX_DIRBLOCK_LEAF;

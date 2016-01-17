@@ -757,8 +757,10 @@ void e2fsck_pass1(e2fsck_t ctx)
 
 	while (1) {
 		if (ino % (fs->super->s_inodes_per_group * 4) == 1) {
-			if (e2fsck_mmp_update(fs))
-				fatal_error(ctx, 0);
+			if (e2fsck_mmp_update(fs)) {
+				ctx->flags |= E2F_FLAG_CANCEL;
+				return;		
+			}
 		}
 		old_op = ehandler_operation(_("getting next inode from scan"));
 		pctx.errcode = ext2fs_get_next_inode_full(scan, &ino,

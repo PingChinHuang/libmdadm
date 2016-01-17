@@ -290,8 +290,10 @@ static void pass1b(e2fsck_t ctx, char *block_buf)
 	pctx.str = "pass1b";
 	while (1) {
 		if (ino % (fs->super->s_inodes_per_group * 4) == 1) {
-			if (e2fsck_mmp_update(fs))
-				fatal_error(ctx, 0);
+			if (e2fsck_mmp_update(fs)) {
+				ctx->flags |= E2F_FLAG_CANCEL;
+				return;	
+			}
 		}
 		pctx.errcode = ext2fs_get_next_inode(scan, &ino, &inode);
 		if (pctx.errcode == EXT2_ET_BAD_BLOCK_IN_INODE_TABLE)

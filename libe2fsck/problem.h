@@ -22,6 +22,7 @@ struct problem_context {
 	__u32		csum1, csum2;
 	__u64	num;
 	const char *str;
+	int is_fatal;
 };
 
 /*

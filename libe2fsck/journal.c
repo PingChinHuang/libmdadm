@@ -905,7 +905,7 @@ errcode_t e2fsck_run_ext3_journal(e2fsck_t ctx)
 		com_err(ctx->program_name, retval,
 			_("while trying to re-open %s"),
 			ctx->device_name);
-		fatal_error(ctx, 0);
+		return retval;	
 	}
 	ctx->fs->priv_data = ctx;
 	ctx->fs->now = ctx->now;

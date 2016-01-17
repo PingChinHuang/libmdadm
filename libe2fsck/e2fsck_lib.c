@@ -237,7 +237,7 @@ static int check_mount(e2fsck_t ctx)
 	else
 		log_out(ctx, _("%s is in use.\n"), ctx->filesystem_name);
 	if (!ctx->interactive || ctx->mount_flags & EXT2_MF_BUSY)
-		fatal_error(ctx, _("Cannot continue, aborting.\n\n"));
+		return FSCK_CANCELED;
 	puts("\007\007\007\007");
 	log_out(ctx, "%s", _("\n\nWARNING!!!  "
 		       "The filesystem is mounted.   "
@@ -702,8 +702,7 @@ static errcode_t PRS(struct e2fsck_handle *handle, e2fsck_t *ret_ctx)
 					_("Error validating file descriptor %d: %s\n"),
 					ctx->progress_fd,
 					error_message(errno));
-					fatal_error(ctx,
-					_("Invalid completion information file descriptor"));
+			return FSCK_ERROR;
 		} else
 			close(fd);
 	}
@@ -739,7 +738,7 @@ static errcode_t PRS(struct e2fsck_handle *handle, e2fsck_t *ret_ctx)
 			com_err(ctx->program_name, 0,
 					_("Unable to resolve '%s'"),
 					handle->cfg.ext_journal);
-			fatal_error(ctx, 0);
+			return FSCK_ERROR;
 		}
 	}
 	
@@ -756,17 +755,17 @@ static errcode_t PRS(struct e2fsck_handle *handle, e2fsck_t *ret_ctx)
 	    (ctx->options & E2F_OPT_COMPRESS_DIRS)) {
 		com_err(ctx->program_name, 0, "%s",
 			_("The -n and -D options are incompatible."));
-		fatal_error(ctx, 0);
+		return FSCK_USAGE;
 	}
 	if ((ctx->options & E2F_OPT_NO) && cflag) {
 		com_err(ctx->program_name, 0, "%s",
 			_("The -n and -c options are incompatible."));
-		fatal_error(ctx, 0);
+		return FSCK_USAGE;
 	}
 	if ((ctx->options & E2F_OPT_NO) && bad_blocks_file) {
 		com_err(ctx->program_name, 0, "%s",
 			_("The -n and -l/-L options are incompatible."));
-		fatal_error(ctx, 0);
+		return FSCK_USAGE;
 	}
 	if (ctx->options & E2F_OPT_NO)
 		ctx->options |= E2F_OPT_READONLY;
@@ -778,7 +777,7 @@ static errcode_t PRS(struct e2fsck_handle *handle, e2fsck_t *ret_ctx)
 	if (!ctx->filesystem_name) {
 		com_err(ctx->program_name, 0, _("Unable to resolve '%s'"),
 			handle->device_name);
-		fatal_error(ctx, 0);
+		return FSCK_ERROR;
 	}
 
 	parse_extended_opts(ctx, &handle->cfg.ext_opts);
@@ -806,13 +805,13 @@ static errcode_t PRS(struct e2fsck_handle *handle, e2fsck_t *ret_ctx)
 			com_err("open", errno,
 				_("while opening %s for flushing"),
 				ctx->filesystem_name);
-			fatal_error(ctx, 0);
+			return FSCK_ERROR;
 		}
 		if ((retval = ext2fs_sync_device(fd, 1))) {
 			com_err("ext2fs_sync_device", retval,
 				_("while trying to flush %s"),
 				ctx->filesystem_name);
-			fatal_error(ctx, 0);
+			return FSCK_ERROR;
 		}
 		close(fd);
 	}
@@ -849,7 +848,7 @@ static errcode_t PRS(struct e2fsck_handle *handle, e2fsck_t *ret_ctx)
 
 		newpath = malloc(len);
 		if (!newpath)
-			fatal_error(ctx, "Couldn't malloc() newpath");
+			return FSCK_ERROR;
 		strcpy(newpath, PATH_SET);
 
 		if (oldpath) {
@@ -1041,13 +1040,6 @@ int e2fsck(struct e2fsck_handle *handle)
 	textdomain(NLS_CAT_NAME);
 	set_com_err_gettext(gettext);
 #endif
-	my_ver = ext2fs_parse_version_string(my_ver_string);
-	lib_ver = ext2fs_get_library_version(0, &lib_ver_date);
-	if (my_ver > lib_ver) {
-		fprintf( stderr, "%s",
-			 _("Error: ext2fs library version out of date!\n"));
-		show_version_only++;
-	}
 
 	exit_value |= PRS(handle, &ctx);
 	if (exit_value) {
@@ -1077,8 +1069,7 @@ int e2fsck(struct e2fsck_handle *handle)
 	    !(ctx->options & E2F_OPT_NO) &&
 	    !(ctx->options & E2F_OPT_YES)) {
 		if (!ctx->interactive)
-			fatal_error(ctx,
-				    _("need terminal for interactive repairs"));
+			return FSCK_ERROR;
 	}
 	ctx->superblock = ctx->use_superblock;
 
@@ -1208,7 +1199,8 @@ failure:
 #endif
 		else
 			fix_problem(ctx, PR_0_SB_CORRUPT, &pctx);
-		fatal_error(ctx, 0);
+
+		return FSCK_ERROR;
 	}
 	/*
 	 * We only update the master superblock because (a) paranoia;
@@ -1250,7 +1242,7 @@ failure:
 		else if (pctx.errcode) {
 			fix_problem(ctx, PR_0_GETSIZE_ERROR, &pctx);
 			ctx->flags |= E2F_FLAG_ABORT;
-			fatal_error(ctx, 0);
+			return FSCK_CANCELED;
 		}
 		ctx->flags |= E2F_FLAG_GOT_DEVSIZE;
 		if (need_restart)
@@ -1266,7 +1258,7 @@ failure:
 			_("while trying to open %s"),
 			ctx->filesystem_name);
 	get_newer:
-		fatal_error(ctx, _("Get a newer version of e2fsck!"));
+		return FSCK_LIBRARY;
 	}
 
 	/*
@@ -1289,7 +1281,7 @@ failure:
 	if ((fs->super->s_feature_incompat & EXT4_FEATURE_INCOMPAT_MMP) &&
 	    (flags & EXT2_FLAG_SKIP_MMP)) {
 		if (e2fsck_check_mmp(fs, ctx))
-			fatal_error(ctx, 0);
+			return FSCK_ERROR;
 
 		/*
 		 * Restart in order to reopen fs but this time start mmp.
@@ -1311,7 +1303,7 @@ failure:
 		com_err(ctx->program_name, retval,
 			_("while checking ext3 journal for %s"),
 			ctx->device_name);
-		fatal_error(ctx, 0);
+		return FSCK_ERROR;
 	}
 
 	/*
@@ -1335,14 +1327,14 @@ failure:
 				com_err(ctx->program_name, 0,
 					_("unable to set superblock flags "
 					  "on %s\n"), ctx->device_name);
-				fatal_error(ctx, 0);
+				return FSCK_ERROR;
 			}
 			retval = e2fsck_run_ext3_journal(ctx);
 			if (retval) {
 				com_err(ctx->program_name, retval,
 				_("while recovering ext3 journal of %s"),
 					ctx->device_name);
-				fatal_error(ctx, 0);
+				return FSCK_ERROR;
 			}
 			ext2fs_close_free(&ctx->fs);
 			ctx->flags |= E2F_FLAG_RESTARTED;
@@ -1419,7 +1411,7 @@ print_unsupp_features:
 	ext2fs_mark_valid(fs);
 	check_super_block(ctx);
 	if (ctx->flags & E2F_FLAG_SIGNAL_MASK)
-		fatal_error(ctx, 0);
+		return FSCK_CANCELED;
 
 	if (FSCK_SKIP == check_if_skip(ctx)) {
 		 return FSCK_SKIP;
@@ -1431,7 +1423,7 @@ print_unsupp_features:
 	else if (cflag)
 		read_bad_blocks_file(ctx, 0, !keep_bad_blocks); /* Test disk */
 	if (ctx->flags & E2F_FLAG_SIGNAL_MASK)
-		fatal_error(ctx, 0);
+		return FSCK_CANCELED;
 
 	/*
 	 * Mark the system as valid, 'til proven otherwise
@@ -1472,6 +1464,9 @@ print_unsupp_features:
 #endif
 
 	run_result = e2fsck_run(ctx);
+	if (run_result & E2F_FLAG_CANCEL)
+		return FSCK_CANCELED;
+
 	e2fsck_clear_progbar(ctx);
 
 	if (!ctx->invalid_bitmaps &&
@@ -1530,13 +1525,13 @@ no_journal:
 		if (retval) {
 			com_err(ctx->program_name, retval, "%s",
 				_("while resetting context"));
-			fatal_error(ctx, 0);
+			return FSCK_ERROR;
 		}
 		ext2fs_close_free(&ctx->fs);
 		goto restart;
 	}
 	if (run_result & E2F_FLAG_ABORT)
-		fatal_error(ctx, _("aborted"));
+		return FSCK_CANCELED;
 
 #ifdef MTRACE
 	mtrace_print("Cleanup");

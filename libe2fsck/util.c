@@ -49,6 +49,8 @@ void fatal_error(e2fsck_t ctx, const char *msg)
 	ext2_filsys fs = ctx->fs;
 	int exit_value = FSCK_ERROR;
 
+	log_out(ctx, _("\n%s: fatal error!\n"), ctx->device_name);
+
 	if (msg)
 		fprintf (stderr, "e2fsck: %s\n", msg);
 	if (!fs)
@@ -83,29 +85,49 @@ out:
 void log_out(e2fsck_t ctx, const char *fmt, ...)
 {
 	va_list pvar;
+	FILE *fp = fopen("/tmp/e2fsck.log", "a+");
 
 	va_start(pvar, fmt);
 	vprintf(fmt, pvar);
 	va_end(pvar);
+
+	if (fp) {
+		va_start(pvar, fmt);
+		vfprintf(fp, fmt, pvar);
+		va_end(pvar);
+	}
+
 	if (ctx->logf) {
 		va_start(pvar, fmt);
 		vfprintf(ctx->logf, fmt, pvar);
 		va_end(pvar);
 	}
+
+	fclose(fp);
 }
 
 void log_err(e2fsck_t ctx, const char *fmt, ...)
 {
 	va_list pvar;
+	FILE *fp = fopen("/tmp/e2fsck.log", "a+");
 
 	va_start(pvar, fmt);
 	vfprintf(stderr, fmt, pvar);
 	va_end(pvar);
+
+	if (fp) {
+		va_start(pvar, fmt);
+		vfprintf(fp, fmt, pvar);
+		va_end(pvar);
+	}
+
 	if (ctx->logf) {
 		va_start(pvar, fmt);
 		vfprintf(ctx->logf, fmt, pvar);
 		va_end(pvar);
 	}
+
+	fclose(fp);
 }
 
 void *e2fsck_allocate_memory(e2fsck_t ctx, unsigned int size,
