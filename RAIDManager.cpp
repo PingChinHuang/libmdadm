@@ -1500,6 +1500,8 @@ void RAIDManager::SetLastError(const string &fmt, ...)
 	va_start(args, fmt.c_str());
 	WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 				fmt.c_str(), args);
+	va_end(args);
+	va_start(args, fmt.c_str());
 	m_strLastError = string_format(fmt.c_str(), args);
 	va_end(args);
 }
