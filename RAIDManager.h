@@ -47,11 +47,12 @@ enum eDiskType {
 	DISK_TYPE_NFS
 };
 
-enum eCBReason {
-	CB_MOUNT = 1,	 
+enum eCBEvent {
+	CB_EVENT_INITIAL	= 1,
+	CB_EVENT_MOUNT		= 1 << 1, 
 };
 
-typedef void (*raidmgr_cb)(void *, eCBReason);
+typedef void (*raidmgr_event_cb)(void *, uint64_t);
 
 struct SGSerialNoPage {
 	uint8_t m_bytePQPDT; /* bit 5-7: Peripheral Qualifier, bit 0-4: Peripheral Device Type */
@@ -131,7 +132,7 @@ struct DiskProfile {
 		GetDevCapacity();
 		ReadMDStat();
 		SetSMARTInfo();
-		Dump();
+		//Dump();
 	}
 
 	~DiskProfile()
@@ -298,8 +299,8 @@ struct DiskProfile {
 		}
 
 		if (sk_disk_smart_is_available(d, &available) < 0) {
-			 printf("Fail to query %s whether S.M.A.R.T. is available.\n",
-					 m_strDevPath.c_str());
+			 //printf("Fail to query %s whether S.M.A.R.T. is available.\n",
+					 //m_strDevPath.c_str());
 			 goto get_smart_info_fail;
 		}
 		m_bSMARTSupport = available ? true : false;
@@ -833,7 +834,9 @@ private:
 	Semaphore m_semAssemble;
 	AprCond *m_pNotifyChange;
 
-	raidmgr_cb m_cb;
+	CriticalSection m_csCallback;
+	void* m_pCallbackData;
+	raidmgr_event_cb m_cb;
 
 private:
 	vector<RAIDInfo>::iterator SearchDiskBelong2RAID(RAIDDiskInfo& devInfo);
@@ -882,6 +885,8 @@ private:
 
 	void NotifyChange();
 
+	void EventCallback(uint64_t event);
+
 protected:
 	void ThreadProc();
 
@@ -889,7 +894,8 @@ public:
 	RAIDManager();
 	~RAIDManager();
 
-	void RegisterCB(raidmgr_cb cb);
+	void RegisterCB(void* pData, raidmgr_event_cb cb);
+	void DeregisterCB();
 
 	bool AddDisk(const string& dev);
 	bool RemoveDisk(const string& dev);

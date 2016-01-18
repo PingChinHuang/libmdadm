@@ -25,20 +25,21 @@ RAIDManager::RAIDManager()
 
 	m_semAssemble.Post();
 
-	CriticalSectionLock cs_NotifyChange(&m_csNotifyChange);
+	//CriticalSectionLock cs_NotifyChange(&m_csNotifyChange);
 	try {
 		m_pNotifyChange = new AprCond(false);
-		CreateThread();
 	} catch (bad_alloc&) {
 		m_pNotifyChange = NULL;
 		SetLastError("Allocate memory failed.");
 	}
+	//CreateThread();
 }
 
 RAIDManager::~RAIDManager()
 {
 	if (ThreadExists()) {
 		uint32_t result;
+		NotifyChange();
 		CallWorker(eTC_STOP, &result);
 		if (result == 0) {
 			CriticalSectionLock cs_NotifyChange(&m_csNotifyChange);
@@ -223,8 +224,7 @@ int RAIDManager::QueryMDSuperBlockInDisk(const string& dev_path, examine_result 
 
 void RAIDManager::NotifyChange()
 {
-	CriticalSectionLock cs_NotifyChange(&m_csNotifyChange);
-	if (NULL == m_pNotifyChange)
+	if (NULL != m_pNotifyChange)
 		m_pNotifyChange->set();
 }
 
@@ -821,7 +821,7 @@ bool RAIDManager::GenerateRAIDInfo(const MDProfile &profile, RAIDInfo& info)
 		char csDiskSysName[8];
 		sscanf(it->m_strDevPath.c_str(),
 			   "/dev/%7[^/\n\t ]", csDiskSysName);
-		printf("Search for disk %s's profile.\n", csDiskSysName);
+		//printf("Search for disk %s's profile.\n", csDiskSysName);
 		map<string, DiskProfile>::iterator it_disk = m_mapDiskProfiles.find(csDiskSysName);
 		if (it_disk != m_mapDiskProfiles.end()) {
 			it->m_diskProfile = it_disk->second;
@@ -1111,6 +1111,7 @@ void RAIDManager::Dump()
 void RAIDManager::ThreadProc()
 {
 	uint32_t uMessage = (uint32_t) eTC_STOP;
+	uint64_t u64CBEvent = CB_EVENT_INITIAL;
 
 	while (1) {
 		if (CheckRequest(&uMessage)) {
@@ -1331,8 +1332,7 @@ void RAIDManager::ThreadProc()
 						if (it_md->second.m_fsMgr->Mount()) {
 							it_md->second.m_fsMgr->GenerateUUIDFile();
 							it_md->second.m_fsMgr->CreateDefaultFolders();
-							if (m_cb)
-								m_cb(NULL, CB_MOUNT);
+							u64CBEvent |= CB_EVENT_MOUNT;
 						}
 					}
 				} else {
@@ -1422,16 +1422,14 @@ md_check_done:
 											if (m_mapMDProfiles[mddev].m_fsMgr->Mount()) {
 												m_mapMDProfiles[mddev].m_fsMgr->GenerateUUIDFile();
 												m_mapMDProfiles[mddev].m_fsMgr->CreateDefaultFolders();
-												if (m_cb)
-													m_cb(NULL, CB_MOUNT);
+												u64CBEvent |= CB_EVENT_MOUNT;
 											}
 										}
 									} else {
 										if (m_mapMDProfiles[mddev].m_fsMgr->Mount()) {
 											m_mapMDProfiles[mddev].m_fsMgr->GenerateUUIDFile();
 											m_mapMDProfiles[mddev].m_fsMgr->CreateDefaultFolders();
-											if (m_cb)
-												m_cb(NULL, CB_MOUNT);
+											u64CBEvent |= CB_EVENT_MOUNT;
 										}
 									}
 								}
@@ -1456,18 +1454,24 @@ md_check_done:
 		m_csMDProfiles.Unlock();
 		m_csDiskProfiles.Unlock();
 
+		EventCallback(u64CBEvent);
+
 		SYSTEMTIME time;
+		m_csNotifyChange.Lock();
 		if (m_pNotifyChange == NULL) {
+			m_csNotifyChange.Unlock();
 			SleepMS(RAIDMANAGER_MONITOR_INTERVAL);
 			time = UTCTime::GetCurrentSystemTime();
 			printf("[%u:%u:%u.%u]Timeout for next round check.\n",
 					time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
 		} else {
 			m_pNotifyChange->timedwait(RAIDMANAGER_MONITOR_INTERVAL);
+			m_csNotifyChange.Unlock();
 			time = UTCTime::GetCurrentSystemTime();
 			printf("[%u:%u:%u.%u]Got notification or timeout for next round check.\n",
 					time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
 		}
+		u64CBEvent = 0;
 	}
 }
 
@@ -1508,7 +1512,26 @@ void RAIDManager::SetLastError(const string &fmt, ...)
 	va_end(args);
 }
 
-void RAIDManager::RegisterCB(raidmgr_cb cb)
+void RAIDManager::RegisterCB(void* pData, raidmgr_event_cb cb)
 {
-	 m_cb = cb;
+	CriticalSectionLock _cs(&m_csCallback);
+	m_cb = cb;
+	m_pCallbackData = pData;
+}
+
+void RAIDManager::DeregisterCB()
+{
+	CriticalSectionLock _cs(&m_csCallback);
+	m_cb = NULL;
+	m_pCallbackData = NULL;
+}
+
+void RAIDManager::EventCallback(uint64_t event)
+{
+	if (event == 0)
+		return;
+
+	CriticalSectionLock _cs(&m_csCallback);
+	if (m_cb)
+		m_cb(m_pCallbackData, event);
 }
