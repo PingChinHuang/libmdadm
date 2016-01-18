@@ -1116,12 +1116,13 @@ void RAIDManager::ThreadProc()
 		if (CheckRequest(&uMessage)) {
 			switch (uMessage) {
 			case eTC_STOP:
+			{
 				Reply(0);
 			
 				/* Unmount volumes before exiting the thread. */	
-				CriticalSecionLock cs(&m_csMDProfiles);
+				CriticalSectionLock cs(&m_csMDProfiles);
 				map<string, MDProfile>::iterator it_md = m_mapMDProfiles.begin();
-				while (it_md != m_mapDiskProfiles.end()) {
+				while (it_md == m_mapMDProfiles.end()) {
 					if (it_md->second.m_fsMgr.get() &&
 						it_md->second.m_fsMgr->IsMounted())
 						it_md->second.m_fsMgr->Unmount();
@@ -1130,6 +1131,7 @@ void RAIDManager::ThreadProc()
 				}
 
 				return;
+			}
 			default:
 				Reply(-1);
 				break;

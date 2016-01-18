@@ -131,6 +131,7 @@ struct DiskProfile {
 		GetDevCapacity();
 		ReadMDStat();
 		SetSMARTInfo();
+		Dump();
 	}
 
 	~DiskProfile()
@@ -155,7 +156,7 @@ struct DiskProfile {
 		m_llCapacity = rhs.m_llCapacity;
 		m_ullSMARTBadSectors = rhs.m_ullSMARTBadSectors;
 		m_ullSMARTTemp = rhs.m_ullSMARTTemp;
-		m_bSMARTSupport = rhs.m_SMARTSupport;
+		m_bSMARTSupport = rhs.m_bSMARTSupport;
 		return *this;
 	}
 
@@ -330,7 +331,7 @@ get_smart_info_fail:
 		sk_disk_free(d);
 	}
 
-	bool RunSMARTSelfTest(int type)
+	bool RunSMARTSelfTest(SkSmartSelfTest type)
 	{
 		SkDisk *d = NULL;
 		if (sk_disk_open(m_strDevPath.c_str(), &d) < 0) {
@@ -376,7 +377,7 @@ get_smart_info_fail:
 				m_bSMARTSupport ? "Support" : "Not Support",
 				m_strSMARTOverall.c_str(), m_ullSMARTBadSectors,
 				m_ullSMARTTemp
-			  )
+			  );
 	}
 };
 
