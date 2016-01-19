@@ -17,6 +17,7 @@ extern "C" {
 #include "common/smart_pointer.h"
 #include "common/semaphore.h"
 #include "apr/apr_thread_worker.h"
+#include "debugMsg/Debug.h"
 using namespace SYSUTILS_SPACE;
 #else
 #include "test_utils.h"
@@ -177,7 +178,7 @@ struct DiskProfile {
 		struct udev_device *dev;
 		udev = udev_new();
 		if (!udev) {
-			printf("can't create udev\n");
+			TRACE("can't create udev\n");
 			return;
 		}
 
@@ -211,11 +212,11 @@ struct DiskProfile {
 					/* iSCSI disk use its target name as serial number. */
 					m_strSerialNum = udev_device_get_property_value(dev, "ID_PATH");
 				} else {
-					printf("Unknown SYMLINK\n");
+					TRACE("Unknown SYMLINK\n");
 				}
 			}
 		} else {
-			printf("can't found block device %s.\n", m_strSysName.c_str());
+			TRACE("can't found block device %s.\n", m_strSysName.c_str());
 		}
 	
 		udev_device_unref(dev);
@@ -264,7 +265,7 @@ struct DiskProfile {
 	{
 		int fd = open(m_strDevPath.c_str(), O_RDONLY);
 		if (fd < 0) {
-			printf("Cannot open %s, %s\n", m_strDevPath.c_str(), strerror(errno));
+			TRACE("Cannot open %s, %s\n", m_strDevPath.c_str(), strerror(errno));
 		}
 	
 		if (0 == get_dev_size(fd, (char*)m_strDevPath.c_str(), &m_llCapacity))
@@ -293,37 +294,37 @@ struct DiskProfile {
 		SkSmartOverall overall;
 
 		if (sk_disk_open(m_strDevPath.c_str(), &d) < 0) {
-			 printf("Fail to open S.M.A.R.T. device %s.\n",
+			 TRACE("Fail to open S.M.A.R.T. device %s.\n",
 					 m_strDevPath.c_str());
 			 return;
 		}
 
 		if (sk_disk_smart_is_available(d, &available) < 0) {
-			 //printf("Fail to query %s whether S.M.A.R.T. is available.\n",
+			 //TRACE("Fail to query %s whether S.M.A.R.T. is available.\n",
 					 //m_strDevPath.c_str());
 			 goto get_smart_info_fail;
 		}
 		m_bSMARTSupport = available ? true : false;
 
 		if (sk_disk_smart_read_data(d) < 0) {
-			 printf("Fail to read %s's S.M.A.R.T. data.\n",
+			 TRACE("Fail to read %s's S.M.A.R.T. data.\n",
 					 m_strDevPath.c_str());
 			 goto get_smart_info_fail;
 		}
 
 		if (sk_disk_smart_get_overall(d, &overall) < 0) {
-			 printf("Fail to get %s's S.M.A.R.T. overall status.\n",
+			 TRACE("Fail to get %s's S.M.A.R.T. overall status.\n",
 					 m_strDevPath.c_str());
 		}
 		m_strSMARTOverall = sk_smart_overall_to_string(overall);
 
 		if (sk_disk_smart_get_bad(d, &m_ullSMARTBadSectors) < 0) {
-			 printf("Fail to get %s's bad sectors information.\n",
+			 TRACE("Fail to get %s's bad sectors information.\n",
 					 m_strDevPath.c_str());
 		}
 
 		if (sk_disk_smart_get_temperature(d, &m_ullSMARTTemp) < 0) {
-			 printf("Fail to get %s's temperature.\n",
+			 TRACE("Fail to get %s's temperature.\n",
 					 m_strDevPath.c_str());
 		}
 		m_ullSMARTTemp = (m_ullSMARTTemp / 1000) - 273; /* Covert to Celsius */
@@ -336,13 +337,13 @@ get_smart_info_fail:
 	{
 		SkDisk *d = NULL;
 		if (sk_disk_open(m_strDevPath.c_str(), &d) < 0) {
-			printf("Fail to open S.M.A.R.T. device %s.\n",
+			TRACE("Fail to open S.M.A.R.T. device %s.\n",
 				 m_strDevPath.c_str());
 			return false;
 		}
 		
 		if (sk_disk_smart_self_test(d, type) < 0) {
-			printf("Fail to start %s's S.M.A.R.T. test.\n",
+			TRACE("Fail to start %s's S.M.A.R.T. test.\n",
 					 m_strDevPath.c_str());
 			sk_disk_free(d);
 			return false;
@@ -536,7 +537,7 @@ struct MDProfile {
 		struct udev_device *dev;
 		udev = udev_new();
 		if (!udev) {
-			printf("can't create udev\n");
+			TRACE("can't create udev\n");
 			return;
 		}
 
@@ -612,6 +613,7 @@ struct MDProfile {
 					m_fsMgr->IsFormated()?"Yes":"No",
 					m_fsMgr->IsMounted()?"Yes":"No", m_fsMgr->GetMountPoint().c_str());
 		}
+		printf("\n");
 	}
 };
 
@@ -692,7 +694,6 @@ struct RAIDInfo {
 			if (rhs.arrayDisks[i].diskInfo.major != 8)
 				continue;
 			
-			printf("%s, %s\n", rhs.strArrayDevName, rhs.arrayDisks[i].strDevName);
 			info = rhs.arrayDisks[i];
 			m_vDiskList.push_back(info);
 		}
@@ -827,12 +828,11 @@ private:
 	
 	CriticalSection m_csMDProfiles;
 	CriticalSection m_csDiskProfiles;
-	CriticalSection m_csNotifyChange;
 	CriticalSection m_csUsedMD;
 	CriticalSection m_csUsedVolume;
 	CriticalSection m_csLastError;
 	Semaphore m_semAssemble;
-	AprCond *m_pNotifyChange;
+	AprCond m_NotifyChange;
 
 	CriticalSection m_csCallback;
 	void* m_pCallbackData;

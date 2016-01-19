@@ -5,7 +5,6 @@
 #include "common/string.h"
 #include "common/system.h"
 #include "common/time.h"
-#include "debugMsg/Debug.h"
 #endif
 
 #define LOG_LABEL "RAIDManager"
@@ -23,29 +22,16 @@ RAIDManager::RAIDManager()
 	CriticalSectionLock cs_MDProfiles(&m_csMDProfiles);
 	Initialize();
 
+	/* Request to assemble MD device */
 	m_semAssemble.Post();
-
-	//CriticalSectionLock cs_NotifyChange(&m_csNotifyChange);
-	try {
-		m_pNotifyChange = new AprCond(false);
-	} catch (bad_alloc&) {
-		m_pNotifyChange = NULL;
-		SetLastError("Allocate memory failed.");
-	}
-	//CreateThread();
 }
 
 RAIDManager::~RAIDManager()
 {
 	if (ThreadExists()) {
-		uint32_t result;
 		NotifyChange();
-		CallWorker(eTC_STOP, &result);
-		if (result == 0) {
-			CriticalSectionLock cs_NotifyChange(&m_csNotifyChange);
-			delete m_pNotifyChange;
-			m_pNotifyChange = NULL;
-		}
+		CallWorker(eTC_STOP);
+		CloseThread();
 	}
 
 	m_cb = NULL;
@@ -60,7 +46,7 @@ bool RAIDManager::Initialize()
 	
 	udev = udev_new();
 	if (!udev) {
-		printf("can't create udev\n");
+		TRACE("can't create udev\n");
 		return false;
 	}
 
@@ -92,9 +78,10 @@ bool RAIDManager::Initialize()
 		case 9: /* MD */
 		{
 			MDProfile profile(strSysName);
+			profile.Dump();
 			
 			if (!profile.m_bInMDStat) {
-				printf("%s: non-functional MD device.\n",
+				TRACE("%s: non-functional MD device.\n",
 						strSysName.c_str());
 				continue;
 			}
@@ -118,7 +105,7 @@ bool RAIDManager::Initialize()
 				} else
 					SetVolumeNum(m_mapMDProfiles[strSysName].m_fsMgr->GetVolumeNum());
 			} else {
-				printf("[%s] FilesystemManager initialization retried failed.\n",
+				TRACE("[%s] FilesystemManager initialization retried failed.\n",
 					   strSysName.c_str());
 			}
 			break;
@@ -224,8 +211,7 @@ int RAIDManager::QueryMDSuperBlockInDisk(const string& dev_path, examine_result 
 
 void RAIDManager::NotifyChange()
 {
-	if (NULL != m_pNotifyChange)
-		m_pNotifyChange->set();
+	m_NotifyChange.set();
 }
 
 bool RAIDManager::AddDisk(const string& dev)
@@ -613,7 +599,7 @@ bool RAIDManager::ManageRAIDSubdevs(const string& mddev, vector<string>& vDevLis
 	vector<string> vDevPathList;
 	for (size_t i = 0; i < vDevList.size(); i++) {
 		vDevPathList.push_back(GetDeviceNodeBySymLink("/dev/" + vDevList[i]));
-		printf("%s.\n", vDevPathList[i].c_str());
+		TRACE("%s.\n", vDevPathList[i].c_str());
 	}
 
 	switch (operation) {
@@ -821,7 +807,6 @@ bool RAIDManager::GenerateRAIDInfo(const MDProfile &profile, RAIDInfo& info)
 		char csDiskSysName[8];
 		sscanf(it->m_strDevPath.c_str(),
 			   "/dev/%7[^/\n\t ]", csDiskSysName);
-		//printf("Search for disk %s's profile.\n", csDiskSysName);
 		map<string, DiskProfile>::iterator it_disk = m_mapDiskProfiles.find(csDiskSysName);
 		if (it_disk != m_mapDiskProfiles.end()) {
 			it->m_diskProfile = it_disk->second;
@@ -1118,12 +1103,10 @@ void RAIDManager::ThreadProc()
 			switch (uMessage) {
 			case eTC_STOP:
 			{
-				Reply(0);
-			
 				/* Unmount volumes before exiting the thread. */	
 				CriticalSectionLock cs(&m_csMDProfiles);
 				map<string, MDProfile>::iterator it_md = m_mapMDProfiles.begin();
-				while (it_md == m_mapMDProfiles.end()) {
+				while (it_md != m_mapMDProfiles.end()) {
 					if (it_md->second.m_fsMgr.get() &&
 						it_md->second.m_fsMgr->IsMounted())
 						it_md->second.m_fsMgr->Unmount();
@@ -1131,6 +1114,7 @@ void RAIDManager::ThreadProc()
 					it_md++;
 				}
 
+				Reply(0);
 				return;
 			}
 			default:
@@ -1149,7 +1133,7 @@ void RAIDManager::ThreadProc()
 			struct udev_device *dev = NULL;
 			udev = udev_new();
 			if (!udev) {
-				printf("can't create udev\n");
+				TRACE("can't create udev\n");
 				it_disk++;
 				continue;
 			}
@@ -1190,7 +1174,7 @@ void RAIDManager::ThreadProc()
 
 			udev = udev_new();
 			if (!udev) {
-				printf("can't create udev\n");
+				TRACE("can't create udev\n");
 				goto md_check_done;
 			}
 
@@ -1267,7 +1251,7 @@ void RAIDManager::ThreadProc()
 
 				/* We can see this case when iSCSI disk diconnected. */
 				if (strlen(ad.arrayDisks[i].strDevName) == 0) {
-					printf("MD device %s has disks without any information.\n",
+					TRACE("MD device %s has disks without any information.\n",
 							ad.strArrayDevName);
 					continue;
 				}
@@ -1308,7 +1292,7 @@ void RAIDManager::ThreadProc()
 
 				if (it_md->second.m_fsMgr.get() == NULL) {
 					if(!it_md->second.InitializeFSManager()) { /* Re-initialize */
-						printf("%s has no valid filesystem manager.\n",
+						TRACE("%s has no valid filesystem manager.\n",
 								it_md->second.m_strSysName.c_str());
 						goto md_check_done;
 					}
@@ -1457,20 +1441,11 @@ md_check_done:
 		EventCallback(u64CBEvent);
 
 		SYSTEMTIME time;
-		m_csNotifyChange.Lock();
-		if (m_pNotifyChange == NULL) {
-			m_csNotifyChange.Unlock();
-			SleepMS(RAIDMANAGER_MONITOR_INTERVAL);
-			time = UTCTime::GetCurrentSystemTime();
-			printf("[%u:%u:%u.%u]Timeout for next round check.\n",
-					time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
-		} else {
-			m_pNotifyChange->timedwait(RAIDMANAGER_MONITOR_INTERVAL);
-			m_csNotifyChange.Unlock();
-			time = UTCTime::GetCurrentSystemTime();
-			printf("[%u:%u:%u.%u]Got notification or timeout for next round check.\n",
-					time.wHour, time.wMinute, time.wSecond, time.wMilliseconds);
-		}
+		m_NotifyChange.timedwait(RAIDMANAGER_MONITOR_INTERVAL);
+		time = UTCTime::GetCurrentSystemTime();
+		TRACE("[%02u:%02u:%02u.%u] %s is working.\n",
+				time.wHour, time.wMinute, time.wSecond, time.wMilliseconds,
+				LOG_LABEL);
 		u64CBEvent = 0;
 	}
 }

@@ -207,12 +207,12 @@ bool FilesystemManager::Mount(const string& strMountPoint)
 	}
 
 	if (mount(m_strDevNode.c_str(), strMountPoint.c_str(),
-		  m_strFSType.c_str(), 0, "") < 0) {
+		  m_strFSType.c_str(), MS_MGC_VAL | MS_NOATIME, NULL) < 0) {
 
 		SleepMS(2000);
 		/* Retry */
 		if (mount(m_strDevNode.c_str(), strMountPoint.c_str(),
-			m_strFSType.c_str(), 0, "") < 0) {
+			m_strFSType.c_str(), MS_MGC_VAL | MS_NOATIME, NULL) < 0) {
 			strErrorLog = string_format("Fail to mount %s to %s. (%s)",
 										m_strDevNode.c_str(),
 										m_strMountPoint.c_str(),
@@ -454,7 +454,7 @@ int FilesystemManager::blkid()
 		if (mount_flags & EXT2_MF_MOUNTED) {
 			m_bMount = true;
 		} else if (mount_flags & EXT2_MF_BUSY) {
-			m_bMount = true;
+			m_bMount = false;
 		} else {
 			m_bMount = false;
 		}
