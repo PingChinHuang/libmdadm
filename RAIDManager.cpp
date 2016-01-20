@@ -11,7 +11,9 @@
 #define RAIDMANAGER_MONITOR_INTERVAL 3000 /* ms */
 
 RAIDManager::RAIDManager()
-: m_cb(NULL)
+: m_pCallbackData(NULL)
+, m_cb(NULL)
+, m_u64CBEvent(0ull)
 {
 	for (int i = 0; i < 128; i++)
 		m_bUsedMD[i] = false;
@@ -738,6 +740,9 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 	m_csMDProfiles.Lock();
 	if (!StopRAID(mddev)) {
 		m_csMDProfiles.Unlock();
+
+		CriticalSectionLock cs_cbevent(&m_csCBEvent);
+		m_u64CBEvent |= CB_EVENT_DELRAID_DONE;
 		return false;
 	}
 	m_csMDProfiles.Unlock();
@@ -780,6 +785,8 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 		it++;
 	}
 
+	CriticalSectionLock cs_cbevent(&m_csCBEvent);
+	m_u64CBEvent |= CB_EVENT_DELRAID_DONE;
 	return true;
 }
 
@@ -1455,6 +1462,7 @@ md_check_done:
 		m_csMDProfiles.Unlock();
 		m_csDiskProfiles.Unlock();
 
+		/* EventCallback is only called in this thread. */
 		EventCallback(u64CBEvent);
 
 		SYSTEMTIME time;
@@ -1465,7 +1473,11 @@ md_check_done:
 				LOG_LABEL);
 
 		u64PrevCBEvent = u64CBEvent; /* Keep previous event for comparing. */
-		u64CBEvent = 0;
+		u64CBEvent = 0; /* Reset */				
+		
+		CriticalSectionLock cs_cbevent(&m_csCBEvent);
+		u64CBEvent |= m_u64CBEvent; /* OR the event outside this thread. */
+		m_u64CBEvent = 0; /* Reset outside event */
 	}
 }
 

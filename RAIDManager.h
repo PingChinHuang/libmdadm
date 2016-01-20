@@ -49,10 +49,11 @@ enum eDiskType {
 };
 
 enum eCBEvent {
-	CB_EVENT_INITIAL	= 1,
-	CB_EVENT_MOUNT		= 1 << 1, 
-	CB_EVENT_FORMATING	= 1 << 2, 
-	CB_EVENT_FORMATED	= 1 << 3, 
+	CB_EVENT_INITIAL		= 1,
+	CB_EVENT_MOUNT			= 1 << 1, 
+	CB_EVENT_FORMATING		= 1 << 2, 
+	CB_EVENT_FORMATED		= 1 << 3, 
+	CB_EVENT_DELRAID_DONE	= 1 << 4, 
 };
 
 typedef void (*raidmgr_event_cb)(void *, uint64_t);
@@ -833,12 +834,15 @@ private:
 	CriticalSection m_csUsedMD;
 	CriticalSection m_csUsedVolume;
 	CriticalSection m_csLastError;
+	CriticalSection m_csCBEvent;
 	Semaphore m_semAssemble;
 	AprCond m_NotifyChange;
 
 	CriticalSection m_csCallback;
 	void* m_pCallbackData;
 	raidmgr_event_cb m_cb;
+
+	uint64_t m_u64CBEvent;
 
 private:
 	vector<RAIDInfo>::iterator SearchDiskBelong2RAID(RAIDDiskInfo& devInfo);
