@@ -1097,6 +1097,7 @@ void RAIDManager::ThreadProc()
 {
 	uint32_t uMessage = (uint32_t) eTC_STOP;
 	uint64_t u64CBEvent = CB_EVENT_INITIAL;
+	uint64_t u64PrevCBEvent = 0;
 
 	while (1) {
 		if (CheckRequest(&uMessage)) {
@@ -1320,6 +1321,22 @@ void RAIDManager::ThreadProc()
 						}
 					}
 				} else {
+					int progress = -1, stat = WRITE_INODE_TABLES_UNKNOWN; 
+					if (it_md->second.m_fsMgr->IsFormating(progress, stat)) {
+						u64CBEvent |= CB_EVENT_FORMATING;
+					} else if (u64PrevCBEvent & CB_EVENT_FORMATING) {
+						/*
+						 * If we have formating event in previous check,
+						 * and now it_md is done its format progress,
+						 * we should send CB_EVENT_FORMATED event.
+						 *
+						 * If CB_EVENT_FORMATING and CB_EVENT_FORMATED exist
+						 * at the same time, it means there are some MDs are
+						 * done, but others are not.
+						 */
+						u64CBEvent |= CB_EVENT_FORMATED;
+					}
+
 					num = it_md->second.m_fsMgr->GetVolumeNum();
 					if (num == -1) {
 						/* 
@@ -1446,6 +1463,8 @@ md_check_done:
 		TRACE("[%02u:%02u:%02u.%u] %s is working.\n",
 				time.wHour, time.wMinute, time.wSecond, time.wMilliseconds,
 				LOG_LABEL);
+
+		u64PrevCBEvent = u64CBEvent; /* Keep previous event for comparing. */
 		u64CBEvent = 0;
 	}
 }

@@ -51,6 +51,8 @@ enum eDiskType {
 enum eCBEvent {
 	CB_EVENT_INITIAL	= 1,
 	CB_EVENT_MOUNT		= 1 << 1, 
+	CB_EVENT_FORMATING	= 1 << 2, 
+	CB_EVENT_FORMATED	= 1 << 3, 
 };
 
 typedef void (*raidmgr_event_cb)(void *, uint64_t);

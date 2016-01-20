@@ -127,6 +127,13 @@ bool FilesystemManager::Format(bool force)
 	if (m_bFormat && !force)
 		goto format_done;	
 
+	/* 
+	 * Because we want to format this volume,
+	 * before the format progress is done, this
+	 * volume should be treated as unformated.
+	 */
+	m_bFormat = false;
+
 	InitializeMke2fsHandle();
 	ret = mke2fs(&m_mkfsHandle);
 	if (0 != ret) {
