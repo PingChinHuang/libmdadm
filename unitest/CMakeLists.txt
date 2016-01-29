@@ -18,11 +18,11 @@ ADD_EXECUTABLE(RAIDManager_test
 TARGET_LINK_LIBRARIES(
 	RAIDManager_test
 	pthread
-	${CMAKE_CURRENT_BINARY_DIR}/../libraidmgrobj.so
+	${CMAKE_CURRENT_BINARY_DIR}/../lib/libraidmgrobj.so
 	sgutils2.a
-	${CMAKE_CURRENT_BINARY_DIR}/../libmdadm/libmdadmobj.so
-	${CMAKE_CURRENT_BINARY_DIR}/../libfsmgrobj.so
-	${CMAKE_CURRENT_BINARY_DIR}/../libmke2fs/libmke2fsobj.so
+	${CMAKE_CURRENT_BINARY_DIR}/../lib/libmdadmobj.so
+	${CMAKE_CURRENT_BINARY_DIR}/../lib/libfsmgrobj.so
+	${CMAKE_CURRENT_BINARY_DIR}/../lib/libmke2fsobj.so
 
 	ext2fs
 	blkid
@@ -51,8 +51,8 @@ ADD_EXECUTABLE(FSManager_test
 TARGET_LINK_LIBRARIES(
 	FSManager_test
 
-	${CMAKE_CURRENT_BINARY_DIR}/../libfsmgrobj.so
-	${CMAKE_CURRENT_BINARY_DIR}/../libmke2fs/libmke2fsobj.so
+	${CMAKE_CURRENT_BINARY_DIR}/../lib/libfsmgrobj.so
+	${CMAKE_CURRENT_BINARY_DIR}/../lib/libmke2fsobj.so
 
 	pthread
 	ext2fs

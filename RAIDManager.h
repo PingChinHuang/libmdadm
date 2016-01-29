@@ -54,6 +54,7 @@ enum eCBEvent {
 	CB_EVENT_FORMATING		= 1 << 2, 
 	CB_EVENT_FORMATED		= 1 << 3, 
 	CB_EVENT_DELRAID_DONE	= 1 << 4, 
+	CB_EVENT_REMDISK_DONE	= 1 << 5, 
 };
 
 typedef void (*raidmgr_event_cb)(void *, uint64_t);
@@ -305,6 +306,10 @@ struct DiskProfile {
 		if (sk_disk_smart_is_available(d, &available) < 0) {
 			 //TRACE("Fail to query %s whether S.M.A.R.T. is available.\n",
 					 //m_strDevPath.c_str());
+			m_bSMARTSupport = false;
+			m_strSMARTOverall.clear();
+			m_ullSMARTTemp = 0ull;
+			m_ullSMARTBadSectors = 0ull;
 			 goto get_smart_info_fail;
 		}
 		m_bSMARTSupport = available ? true : false;
@@ -395,7 +400,6 @@ struct RAIDDiskInfo {
 	int32_t		m_iRaidDiskNum;
 	int32_t		m_iMajor;				/* For confirming whether disk is valid or not. */
 	int32_t		m_iMinor;				/* For confirming whether disk is valid or not. */
-	bool		m_bHasMDSB;
 
 	RAIDDiskInfo()
 	: m_strState("")
@@ -404,7 +408,6 @@ struct RAIDDiskInfo {
 	, m_iRaidDiskNum(0)
 	, m_iMajor(0)
 	, m_iMinor(0)
-	, m_bHasMDSB(false)
 	{
 		memset(m_RaidUUID, 0x00, sizeof(m_RaidUUID));
 	}
@@ -424,8 +427,8 @@ struct RAIDDiskInfo {
 
 	void Dump()
 	{
-		printf("Device: %s, State: %s, MD Super Block: %s, Major: %d, Minor: %d\n\t",
-			   m_strDevPath.c_str(), m_strState.c_str(), m_bHasMDSB ? "Yes" : "No",
+		printf("Device: %s, State: %s, Major: %d, Minor: %d\n\t",
+			   m_strDevPath.c_str(), m_strState.c_str(), 
 			   m_iMajor, m_iMinor);
 		m_diskProfile.Dump();
 	}
@@ -439,7 +442,6 @@ struct RAIDDiskInfo {
 		m_strDevPath = rhs.m_strDevPath;
 		m_iState = rhs.m_iState;
 		m_iRaidDiskNum = rhs.m_iRaidDiskNum;
-		m_bHasMDSB = rhs.m_bHasMDSB;
 		m_iMajor = rhs.m_iMajor;
 		m_iMinor = rhs.m_iMinor;
 		return *this;
@@ -921,7 +923,7 @@ public:
 	void GetFreeDisksInfo(vector<RAIDDiskInfo> &list);
 	bool GetFreeDiskInfo(const string& symlink, RAIDDiskInfo &info);
 
-	void SetLastError(const string &fmt, ...);
+	void SetLastError(const char* fmt, ...);
 	void GetLastError(string &log);
 
 	bool CheckFileSystem();

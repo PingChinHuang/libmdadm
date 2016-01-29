@@ -12,7 +12,7 @@ ADD_EXECUTABLE(mdadm_unitest ${SRCFILE})
 
 TARGET_LINK_LIBRARIES(mdadm_unitest
 	pthread
-	${CMAKE_CURRENT_BINARY_DIR}/../libmdadmobj.so
+	${CMAKE_CURRENT_BINARY_DIR}/../../lib/libmdadmobj.so
 )
 
 ADD_DEPENDENCIES(
@@ -23,7 +23,7 @@ ADD_DEPENDENCIES(
 ADD_EXECUTABLE(mdstat_read mdstat_read.c)
 
 TARGET_LINK_LIBRARIES(mdstat_read
-	${CMAKE_CURRENT_BINARY_DIR}/../libmdadmobj.so
+	${CMAKE_CURRENT_BINARY_DIR}/../../lib/libmdadmobj.so
 )
 
 ADD_DEPENDENCIES(

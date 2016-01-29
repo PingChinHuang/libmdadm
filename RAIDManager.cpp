@@ -125,6 +125,8 @@ bool RAIDManager::Initialize()
 	 * to set m_strMDDev of a DiskProfile since the disk is occupied
 	 * by a MD device during this initial stage?
 	 */
+
+	return true;
 }
 
 int RAIDManager::GetFreeMDNum()
@@ -237,12 +239,17 @@ bool RAIDManager::RemoveDisk(const string& dev)
 		return false;
 
 	m_csDiskProfiles.Lock();
+
 	map<string, DiskProfile>::iterator it;
 	it = m_mapDiskProfiles.find(dev);
-	m_mapDiskProfiles.erase(it++);
-	m_csDiskProfiles.Unlock();
-	NotifyChange();
+	if (it != m_mapDiskProfiles.end()) 
+		m_mapDiskProfiles.erase(it++);
 
+	m_csDiskProfiles.Unlock();
+	//m_u64CBEvent |= CB_EVENT_REMDISK_DONE;
+	NotifyChange();
+	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+				"Disk %s is removed.\n", dev.c_str());
 	return true;
 }
 
@@ -1253,7 +1260,7 @@ void RAIDManager::ThreadProc()
 			 * We have to create this avail array according to the RAID disks' order,
 			 * because it will affect the result of RAID10.
 			 */
-			for (int i = 0; i < ad.uDiskCounter; i++) {
+			for (unsigned i = 0; i < ad.uDiskCounter; i++) {
 				bool bFound = false;
 				avail[i] = 0;
 
@@ -1293,6 +1300,7 @@ void RAIDManager::ThreadProc()
 								 ad.arrayInfo.layout,
 								 1, avail);
 
+			it_md->second.Dump();
 			if (it_md->second.m_iDevCount == ad.arrayInfo.raid_disks ||
 				disk_enough == 1) {
 				/* Check format and mount status and mount volume if it is necessary. */
@@ -1370,8 +1378,37 @@ void RAIDManager::ThreadProc()
 				if (it_md->second.m_fsMgr->IsMounted()) {
 					if (it_md->second.m_fsMgr->Unmount()) {
 						WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-								   "Unmount %s due to RAID doesn't have enough disks\n",
+								   "Unmount %s due to critical RAID status.\n",
 								   it_md->first.c_str());
+
+						int fd = OpenMDDev(it_md->second.m_strDevPath.c_str());
+						if (fd >= 0) {
+							struct context c;
+							int ret = SUCCESS;
+							string cmd = string_format("fuser -mvk %s",
+									it_md->second.m_fsMgr->GetMountPoint().c_str());
+					
+							system(cmd.c_str());
+							SleepMS(1000);
+
+							InitializeContext(c);
+							ret = Manage_stop((char*)it_md->second.m_strDevPath.c_str(),
+												fd, c.verbose, 0);
+							close(fd);
+
+							if (ret != SUCCESS) {
+								SetLastError("Fail to stop RAID %s: %d\n",
+												it_md->first.c_str(), ret);
+							} else {
+								WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
+											"Stop %s due to insufficient active disks.\n",
+											it_md->first.c_str());
+								FreeVolumeNum(it_md->second.m_fsMgr->GetVolumeNum());
+								FreeMDNum(it_md->second.m_iMDNum);
+								m_mapMDProfiles.erase(it_md++);
+								continue;
+							}
+						}
 					}
 				}
 			}
@@ -1506,16 +1543,14 @@ string RAIDManager::GetDeviceNodeBySymLink(const string& symlink)
 	return symlink;
 }
 
-void RAIDManager::SetLastError(const string &fmt, ...)
+void RAIDManager::SetLastError(const char *fmt, ...)
 {
 	va_list args;
-	va_start(args, fmt.c_str());
+	va_start(args, fmt);
+	m_strLastError = string_format(fmt, args);
+	va_end(args);
 	WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
-				fmt.c_str(), args);
-	va_end(args);
-	va_start(args, fmt.c_str());
-	m_strLastError = string_format(fmt.c_str(), args);
-	va_end(args);
+				m_strLastError.c_str());
 }
 
 void RAIDManager::RegisterCB(void* pData, raidmgr_event_cb cb)
