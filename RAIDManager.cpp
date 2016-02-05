@@ -246,7 +246,6 @@ bool RAIDManager::RemoveDisk(const string& dev)
 		m_mapDiskProfiles.erase(it++);
 
 	m_csDiskProfiles.Unlock();
-	//m_u64CBEvent |= CB_EVENT_REMDISK_DONE;
 	NotifyChange();
 	WriteHWLog(LOG_LOCAL0, LOG_INFO, LOG_LABEL,
 				"Disk %s is removed.\n", dev.c_str());
@@ -743,14 +742,25 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 	/* Get MD's UUID */
 	bQueryDetailOK = QueryMDDetail("/dev/" + mddev, ad);
 
+	m_csCBEvent.Lock();
+		//EventCallback(CB_EVENT_RAID_DELETING);
+		m_u64CBEvent |= CB_EVENT_RAID_DELETING;
+	m_csCBEvent.Unlock();
+
 	CriticalSectionLock cs(&m_csDiskProfiles);
 	m_csMDProfiles.Lock();
 	if (!StopRAID(mddev)) {
 		m_csMDProfiles.Unlock();
 
 		CriticalSectionLock cs_cbevent(&m_csCBEvent);
+		m_u64CBEvent &= (~CB_EVENT_RAID_DELETING);
 		m_u64CBEvent |= CB_EVENT_DELRAID_DONE;
 		return false;
+	} else {
+		CriticalSectionLock cs_cbevent(&m_csCBEvent);
+		m_u64CBEvent &= (~CB_EVENT_RAID_DELETING);
+		m_u64CBEvent |= CB_EVENT_DELRAID_DONE;
+		SetLastError("Test 0x%08x\n", m_u64CBEvent);
 	}
 	m_csMDProfiles.Unlock();
 
@@ -792,8 +802,6 @@ bool RAIDManager::DeleteRAID(const string& mddev)
 		it++;
 	}
 
-	CriticalSectionLock cs_cbevent(&m_csCBEvent);
-	m_u64CBEvent |= CB_EVENT_DELRAID_DONE;
 	return true;
 }
 
@@ -935,6 +943,10 @@ bool RAIDManager::Format(const string& mddev)
 		it->second.m_fsMgr->SetVolumeNum(num);
 	}
 
+	
+	CriticalSectionLock cs_cbevent(&m_csCBEvent);
+	EventCallback(CB_EVENT_FORMATING);
+	m_u64CBEvent |= CB_EVENT_FORMATING;
 #ifdef NUUO
 	it->second.m_fsMgr->CreateThread();
 #endif
@@ -1198,8 +1210,10 @@ void RAIDManager::ThreadProc()
 				FreeMDNum(it_md->second.m_iMDNum);
 
 				if (it_md->second.m_fsMgr.get()) {
+					EventCallback(CB_EVENT_UNMOUNTING);
 					it_md->second.m_fsMgr->Unmount();
 					FreeVolumeNum(it_md->second.m_fsMgr->GetVolumeNum());
+					u64CBEvent |= CB_EVENT_UNMOUNTED;
 				}
 
 				/*
@@ -1338,6 +1352,7 @@ void RAIDManager::ThreadProc()
 				} else {
 					int progress = -1, stat = WRITE_INODE_TABLES_UNKNOWN; 
 					if (it_md->second.m_fsMgr->IsFormating(progress, stat)) {
+						EventCallback(CB_EVENT_FORMATING);
 						u64CBEvent |= CB_EVENT_FORMATING;
 					} else if (u64PrevCBEvent & CB_EVENT_FORMATING) {
 						/*
@@ -1350,6 +1365,14 @@ void RAIDManager::ThreadProc()
 						 * done, but others are not.
 						 */
 						u64CBEvent |= CB_EVENT_FORMATED;
+
+						/*
+						 * Clear FORMATING state in outside event if
+						 * there is still some volume is formating.
+						 * FORAMTING flag will be set in above section.
+						 */
+						CriticalSectionLock cs_cbevent(&m_csCBEvent);
+						m_u64CBEvent &= (~CB_EVENT_FORMATING);
 					}
 
 					num = it_md->second.m_fsMgr->GetVolumeNum();
@@ -1376,7 +1399,10 @@ void RAIDManager::ThreadProc()
 					goto md_check_done;
 
 				if (it_md->second.m_fsMgr->IsMounted()) {
+					EventCallback(CB_EVENT_UNMOUNTING);
 					if (it_md->second.m_fsMgr->Unmount()) {
+						u64CBEvent |= CB_EVENT_UNMOUNTED;
+
 						WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 								   "Unmount %s due to critical RAID status.\n",
 								   it_md->first.c_str());
@@ -1385,11 +1411,6 @@ void RAIDManager::ThreadProc()
 						if (fd >= 0) {
 							struct context c;
 							int ret = SUCCESS;
-							string cmd = string_format("fuser -mvk %s",
-									it_md->second.m_fsMgr->GetMountPoint().c_str());
-					
-							system(cmd.c_str());
-							SleepMS(1000);
 
 							InitializeContext(c);
 							ret = Manage_stop((char*)it_md->second.m_strDevPath.c_str(),
@@ -1406,7 +1427,7 @@ void RAIDManager::ThreadProc()
 								FreeVolumeNum(it_md->second.m_fsMgr->GetVolumeNum());
 								FreeMDNum(it_md->second.m_iMDNum);
 								m_mapMDProfiles.erase(it_md++);
-								continue;
+								goto md_erase;
 							}
 						}
 					}
@@ -1415,6 +1436,8 @@ void RAIDManager::ThreadProc()
 
 md_check_done:
 			it_md++;
+md_erase:
+			;
 		}
 
 		if (m_semAssemble.Wait(0)) {
@@ -1514,7 +1537,13 @@ md_check_done:
 		
 		CriticalSectionLock cs_cbevent(&m_csCBEvent);
 		u64CBEvent |= m_u64CBEvent; /* OR the event outside this thread. */
-		m_u64CBEvent = 0; /* Reset outside event */
+
+		/*
+		 * I want to keep the event which is still going on until
+		 * some one to reset it, and raise done events.
+		 */
+		if (!(m_u64CBEvent & CB_EVENT_IN_PROGRESS_MASK))
+			m_u64CBEvent = 0;
 	}
 }
 
@@ -1545,10 +1574,12 @@ string RAIDManager::GetDeviceNodeBySymLink(const string& symlink)
 
 void RAIDManager::SetLastError(const char *fmt, ...)
 {
+	char buf[1024];
 	va_list args;
 	va_start(args, fmt);
-	m_strLastError = string_format(fmt, args);
+	vsprintf(buf, fmt, args);
 	va_end(args);
+	m_strLastError = buf;
 	WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL,
 				m_strLastError.c_str());
 }

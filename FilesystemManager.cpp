@@ -1,10 +1,18 @@
 #include "FilesystemManager.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "libfuser/fuser.h"
+#ifdef __cplusplus
+}
+#endif
 
 #ifdef NUUO
 #include "common/file.h"
 #include "common/nusyslog.h"
 #include "common/string.h"
 #include "common/system.h"
+#include "common/process.h"
 #else
 #include "test_utils.h"
 #endif
@@ -262,6 +270,24 @@ bool FilesystemManager::Unmount()
 	
 	if (!IsMountPoint(m_strMountPoint))
 		goto unmount_done;	
+
+	/* Kill processes which are using this folder. */
+	struct fuser_handle_s handle;
+	handle.bKill = 0;
+	handle.iSignal = 0;
+	handle.proc_list = NULL;
+	strncpy(handle.csTarget,
+			m_strMountPoint.c_str(),
+			sizeof(handle.csTarget));
+	fuser(&handle);
+
+	for (struct procs* pListNode = handle.proc_list; pListNode;) {
+		struct procs* pTmp = pListNode;
+		printf("Kill PID %d\n", pListNode->pid);
+		KillProcByPID(pListNode->pid);
+		pListNode = pListNode->next;
+		free(pTmp);
+	}
 
 	if (umount2(m_strMountPoint.c_str(), UMOUNT_NOFOLLOW | MNT_DETACH) < 0) {
 		WriteHWLog(LOG_LOCAL0, LOG_ERR, LOG_LABEL, "Fail to unmount %s (%s)\n",

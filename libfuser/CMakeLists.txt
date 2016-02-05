@@ -1,0 +1,24 @@
+cmake_minimum_required (VERSION 2.8)
+project (libfuser)
+
+ADD_DEFINITIONS( -DDEBUG -g)
+
+SET(FUSER_SRCFILE
+	fuser.c
+	signals.c
+	signames.c
+)
+
+#ADD_EXECUTABLE(myfuser ${FUSER_SRCFILE})
+
+ADD_LIBRARY(fuserobj SHARED ${FUSER_SRCFILE})
+
+#ADD_SUBDIRECTORY(unitest)
+
+SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/../lib)
+
+INSTALL(TARGETS fuserobj
+		RUNTIME DESTINATION bin
+		LIBRARY DESTINATION lib
+		ARCHIVE DESTINATION lib_static)
+

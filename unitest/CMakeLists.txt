@@ -19,6 +19,7 @@ TARGET_LINK_LIBRARIES(
 	RAIDManager_test
 	pthread
 	${CMAKE_CURRENT_BINARY_DIR}/../lib/libraidmgrobj.so
+	${CMAKE_CURRENT_BINARY_DIR}/../lib/libfuserobj.so
 	sgutils2.a
 	${CMAKE_CURRENT_BINARY_DIR}/../lib/libmdadmobj.so
 	${CMAKE_CURRENT_BINARY_DIR}/../lib/libfsmgrobj.so
@@ -53,6 +54,7 @@ TARGET_LINK_LIBRARIES(
 
 	${CMAKE_CURRENT_BINARY_DIR}/../lib/libfsmgrobj.so
 	${CMAKE_CURRENT_BINARY_DIR}/../lib/libmke2fsobj.so
+	${CMAKE_CURRENT_BINARY_DIR}/../lib/libfuserobj.so
 
 	pthread
 	ext2fs

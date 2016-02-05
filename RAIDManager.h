@@ -16,6 +16,7 @@ extern "C" {
 #include "common/nusyslog.h"
 #include "common/smart_pointer.h"
 #include "common/semaphore.h"
+#include "common/string.h"
 #include "apr/apr_thread_worker.h"
 #include "debugMsg/Debug.h"
 using namespace SYSUTILS_SPACE;
@@ -54,7 +55,11 @@ enum eCBEvent {
 	CB_EVENT_FORMATING		= 1 << 2, 
 	CB_EVENT_FORMATED		= 1 << 3, 
 	CB_EVENT_DELRAID_DONE	= 1 << 4, 
-	CB_EVENT_REMDISK_DONE	= 1 << 5, 
+	CB_EVENT_RAID_DELETING	= 1 << 5, 
+	CB_EVENT_PROC_KILL		= 1 << 6, 
+	CB_EVENT_UNMOUNTING		= 1 << 7, 
+	CB_EVENT_UNMOUNTED		= 1 << 8,
+	CB_EVENT_IN_PROGRESS_MASK = CB_EVENT_FORMATING | CB_EVENT_RAID_DELETING | CB_EVENT_UNMOUNTING,
 };
 
 typedef void (*raidmgr_event_cb)(void *, uint64_t);
@@ -89,6 +94,7 @@ struct DiskProfile {
 	string m_strFWVer;
 	string m_strSerialNum;
 	string m_strSMARTOverall;
+	string m_strSMARTPowerOnTime;
 	uint64_t m_llCapacity;
 	uint64_t m_ullSMARTBadSectors;
 	uint64_t m_ullSMARTTemp;
@@ -106,6 +112,7 @@ struct DiskProfile {
 	, m_strFWVer("")
 	, m_strSerialNum("")
 	, m_strSMARTOverall("")
+	, m_strSMARTPowerOnTime("")
 	, m_llCapacity(0ull)
 	, m_ullSMARTBadSectors(0ull)
 	, m_ullSMARTTemp(0ull)
@@ -125,6 +132,7 @@ struct DiskProfile {
 	, m_strFWVer("")
 	, m_strSerialNum("")
 	, m_strSMARTOverall("")
+	, m_strSMARTPowerOnTime("")
 	, m_llCapacity(0ull)
 	, m_ullSMARTBadSectors(0ull)
 	, m_ullSMARTTemp(0ull)
@@ -162,6 +170,7 @@ struct DiskProfile {
 		m_llCapacity = rhs.m_llCapacity;
 		m_ullSMARTBadSectors = rhs.m_ullSMARTBadSectors;
 		m_ullSMARTTemp = rhs.m_ullSMARTTemp;
+		m_strSMARTPowerOnTime = rhs.m_strSMARTPowerOnTime;
 		m_bSMARTSupport = rhs.m_bSMARTSupport;
 		return *this;
 	}
@@ -296,6 +305,7 @@ struct DiskProfile {
 		SkDisk *d = NULL;
 		SkBool available;
 		SkSmartOverall overall;
+		uint64_t power_on;
 
 		if (sk_disk_open(m_strDevPath.c_str(), &d) < 0) {
 			 TRACE("Fail to open S.M.A.R.T. device %s.\n",
@@ -336,6 +346,22 @@ struct DiskProfile {
 					 m_strDevPath.c_str());
 		}
 		m_ullSMARTTemp = (m_ullSMARTTemp / 1000) - 273; /* Covert to Celsius */
+
+		if (sk_disk_smart_get_power_on(d, &power_on) < 0) { /* power_on unit: ms */
+			 TRACE("Fail to get %s's power on time\n",
+					 m_strDevPath.c_str());
+			 m_strSMARTPowerOnTime = "N/A";
+		} else {
+			if (power_on >= 1000LLU * 60LLU * 60LLU * 24LLU)
+				m_strSMARTPowerOnTime = string_format("%0.3f Days",
+										((double) power_on) / (1000.0*60*60*24));
+			else if (power_on >= 1000LLU * 60LLU * 60LLU)
+				m_strSMARTPowerOnTime = string_format("%0.3f Hours",
+										((double) power_on) / (1000.0*60*60));
+			else
+				m_strSMARTPowerOnTime = string_format("%0.3f Minutes",
+										((double) power_on) / (1000.0*60));
+		}
 
 get_smart_info_fail:
 		sk_disk_free(d);
